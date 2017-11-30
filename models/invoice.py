@@ -50,6 +50,15 @@ except:
     pass
 
 try:
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives.serialization import load_pem_private_key
+    import OpenSSL
+    from OpenSSL import crypto
+    type_ = crypto.FILETYPE_PEM
+except:
+    _logger.warning('Cannot import OpenSSL library')
+
+try:
     import dicttoxml
 except ImportError:
     _logger.warning('Cannot import dicttoxml library')
@@ -58,11 +67,6 @@ try:
     import pdf417gen
 except ImportError:
     _logger.warning('Cannot import pdf417gen library')
-
-try:
-    import M2Crypto
-except ImportError:
-    _logger.warning('Cannot import M2Crypto library')
 
 try:
     import base64
@@ -78,11 +82,6 @@ try:
     import cchardet
 except ImportError:
     _logger.warning('Cannot import cchardet library')
-
-try:
-    from SOAPpy import SOAPProxy
-except ImportError:
-    _logger.warning('Cannot import SOOAPpy')
 
 try:
     from signxml import xmldsig, methods
@@ -1039,7 +1038,7 @@ a VAT."""))
             pass
         url = server_url[company_id.dte_service_provider] + 'CrSeed.jws?WSDL'
         ns = 'urn:'+server_url[company_id.dte_service_provider] + 'CrSeed.jws'
-        _server = SOAPProxy(url, ns)
+        _server = Client(url, ns)
         root = etree.fromstring(_server.getSeed())
         semilla = root[0][0].text
         return semilla
@@ -1163,7 +1162,7 @@ version="1.0">
     def get_token(self, seed_file,company_id):
         url = server_url[company_id.dte_service_provider] + 'GetTokenFromSeed.jws?WSDL'
         ns = 'urn:'+ server_url[company_id.dte_service_provider] +'GetTokenFromSeed.jws'
-        _server = SOAPProxy(url, ns)
+        _server = Client(url, ns)
         tree = etree.fromstring(seed_file)
         ss = etree.tostring(tree, pretty_print=True, encoding='iso-8859-1')
         respuesta = etree.fromstring(_server.getToken(ss))
@@ -1247,11 +1246,6 @@ version="1.0">
         sig_root = Element("Signature",attrib={'xmlns':'http://www.w3.org/2000/09/xmldsig#'})
         sig_root.append(etree.fromstring(signed_info_c14n))
         signature_value = SubElement(sig_root, "SignatureValue")
-        from cryptography.hazmat.backends import default_backend
-        from cryptography.hazmat.primitives.serialization import load_pem_private_key
-        import OpenSSL
-        from OpenSSL import crypto
-        type_ = crypto.FILETYPE_PEM
         key=OpenSSL.crypto.load_privatekey(type_,privkey.encode('ascii'))
         signature= OpenSSL.crypto.sign(key,signed_info_c14n,'sha1')
         signature_value.text =textwrap.fill(base64.b64encode(signature),64)
@@ -2107,7 +2101,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
     def _get_send_status(self, track_id, signature_d,token):
         url = server_url[self.company_id.dte_service_provider] + 'QueryEstUp.jws?WSDL'
         ns = 'urn:'+ server_url[self.company_id.dte_service_provider] + 'QueryEstUp.jws'
-        _server = SOAPProxy(url, ns)
+        _server = Client(url, ns)
         rut = self.format_vat(self.company_id.vat, con_cero=True)
         respuesta = _server.getEstUp(
             rut[:8],
@@ -2135,7 +2129,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
     def _get_dte_status(self, signature_d, token):
         url = server_url[self.company_id.dte_service_provider] + 'QueryEstDte.jws?WSDL'
         ns = 'urn:'+ server_url[self.company_id.dte_service_provider] + 'QueryEstDte.jws'
-        _server = SOAPProxy(url, ns)
+        _server = Client(url, ns)
         receptor = self.format_vat(self.commercial_partner_id.vat)
         date_invoice = datetime.strptime(self.date_invoice, "%Y-%m-%d").strftime("%d-%m-%Y")
         rut = signature_d['subject_serial_number']
