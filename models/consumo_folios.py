@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from openerp import fields, models, api, _
-from openerp.exceptions import UserError
+from odoo import fields, models, api, _
+from odoo.exceptions import UserError
 from datetime import datetime, timedelta
 import dateutil.relativedelta as relativedelta
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 import logging
 from lxml import etree
 from lxml.etree import Element, SubElement
@@ -12,15 +12,8 @@ from lxml.etree import XMLSyntaxError
 
 import xml.dom.minidom
 import pytz
-
-
 import socket
 import collections
-
-try:
-    from cStringIO import StringIO
-except:
-    from StringIO import StringIO
 
 import traceback as tb
 import suds.metrics as metrics
@@ -557,8 +550,8 @@ version="1.0">
         from cryptography.hazmat.backends import default_backend
         from cryptography.hazmat.primitives.serialization import load_pem_private_key
         import OpenSSL
-        from OpenSSL.crypto import *
-        type_ = FILETYPE_PEM
+        from OpenSSL import crypto
+        type_ = crypto.FILETYPE_PEM
         key=OpenSSL.crypto.load_privatekey(type_,privkey.encode('ascii'))
         signature= OpenSSL.crypto.sign(key,signed_info_c14n,'sha1')
         signature_value.text =textwrap.fill(base64.b64encode(signature),64)

@@ -3,10 +3,12 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 from datetime import datetime, timedelta, date
-import logging
 from lxml import etree
 from lxml.etree import Element, SubElement
 from odoo import SUPERUSER_ID
+
+import logging
+_logger = logging.getLogger(__name__)
 
 import xml.dom.minidom
 import pytz
@@ -16,11 +18,9 @@ import socket
 import collections
 
 try:
-    from cStringIO import StringIO
+    from io import BytesIO
 except:
-    from StringIO import StringIO
-
-# ejemplo de suds
+    _logger.warning("no se ha cargado io")
 import traceback as tb
 import suds.metrics as metrics
 
@@ -49,52 +49,45 @@ try:
 except:
     pass
 
-_logger = logging.getLogger(__name__)
-
-try:
-    import xmltodict
-except ImportError:
-    _logger.info('Cannot import xmltodict library')
-
 try:
     import dicttoxml
 except ImportError:
-    _logger.info('Cannot import dicttoxml library')
+    _logger.warning('Cannot import dicttoxml library')
 
 try:
     import pdf417gen
 except ImportError:
-    _logger.info('Cannot import pdf417gen library')
+    _logger.warning('Cannot import pdf417gen library')
 
 try:
     import M2Crypto
 except ImportError:
-    _logger.info('Cannot import M2Crypto library')
+    _logger.warning('Cannot import M2Crypto library')
 
 try:
     import base64
 except ImportError:
-    _logger.info('Cannot import base64 library')
+    _logger.warning('Cannot import base64 library')
 
 try:
     import hashlib
 except ImportError:
-    _logger.info('Cannot import hashlib library')
+    _logger.warning('Cannot import hashlib library')
 
 try:
     import cchardet
 except ImportError:
-    _logger.info('Cannot import cchardet library')
+    _logger.warning('Cannot import cchardet library')
 
 try:
     from SOAPpy import SOAPProxy
 except ImportError:
-    _logger.info('Cannot import SOOAPpy')
+    _logger.warning('Cannot import SOOAPpy')
 
 try:
     from signxml import xmldsig, methods
 except ImportError:
-    _logger.info('Cannot import signxml')
+    _logger.warning('Cannot import signxml')
 
 # timbre patrón. Permite parsear y formar el
 # ordered-dict patrón corespondiente al documento
@@ -109,7 +102,12 @@ J1u5/1VbPF6ASXkKoMOF0Bb9EYGVzQ1AMawDNOy0xSuAMpkyQe3yoGFthdKVK4JaypQ/F8\
 afeqWjiRVMvV4+s4Q==</FRMA></CAF><TSTED>2014-04-24T12:02:20</TSTED></DD>\
 <FRMT algoritmo="SHA1withRSA">jiuOQHXXcuwdpj8c510EZrCCw+pfTVGTT7obWm/\
 fHlAa7j08Xff95Yb2zg31sJt6lMjSKdOK+PQp25clZuECig==</FRMT></TED>"""
-result = xmltodict.parse(timbre)
+
+try:
+    import xmltodict
+    result = xmltodict.parse(timbre)
+except ImportError:
+    _logger.warning('Cannot import xmltodict library')
 
 server_url = {
     'SIIHOMO':'https://maullin.sii.cl/DTEWS/',
@@ -226,6 +224,23 @@ class Referencias(models.Model):
 class invoice(models.Model):
     _inherit = "account.invoice"
 
+    def _default_journal_document_class_id(self, default=None):
+        ids = self._get_available_journal_document_class()
+        document_classes = self.env['account.journal.sii_document_class'].browse(ids)
+        if default:
+            for dc in document_classes:
+                if dc.sii_document_class_id.id == default:
+                    self.journal_document_class_id = dc.id
+        elif document_classes:
+            default = self.get_document_class_default(document_classes)
+        return default
+
+    def _domain_journal_document_class_id(self):
+        domain = []
+        for rec in self:
+            domain = rec._get_available_journal_document_class()
+        return [('id', 'in', domain)]
+
     turn_issuer = fields.Many2one(
         'partner.activities',
         'Giro Emisor',
@@ -275,7 +290,11 @@ class invoice(models.Model):
         related='commercial_partner_id.responsability_id',
         store=True,
         )
-    iva_uso_comun = fields.Boolean(string="Uso Común", readonly=True, states={'draft': [('readonly', False)]}) # solamente para compras tratamiento del iva
+    iva_uso_comun = fields.Boolean(
+            string="Uso Común",
+            readonly=True,
+            states={'draft': [('readonly', False)]}
+        ) # solamente para compras tratamiento del iva
     no_rec_code = fields.Selection([
                     ('1','Compras destinadas a IVA a generar operaciones no gravados o exentas.'),
                     ('2','Facturas de proveedores registrados fuera de plazo.'),
@@ -722,17 +741,6 @@ class invoice(models.Model):
         }}
         return result
 
-    def _default_journal_document_class_id(self, default=None):
-        ids = self._get_available_journal_document_class()
-        document_classes = self.env['account.journal.sii_document_class'].browse(ids)
-        if default:
-            for dc in document_classes:
-                if dc.sii_document_class_id.id == default:
-                    self.journal_document_class_id = dc.id
-        elif document_classes:
-            default = self.get_document_class_default(document_classes)
-        return default
-
     @api.depends('journal_id')
     @api.onchange('journal_id', 'partner_id', 'turn_issuer', 'invoice_turn')
     def set_default_journal(self, default=None):
@@ -787,12 +795,6 @@ a VAT."""))
         else:
             document_number = self.number
         self.document_number = document_number
-
-    def _domain_journal_document_class_id(self):
-        domain = []
-        for rec in self:
-            domain = rec._get_available_journal_document_class()
-        return [('id', 'in', domain)]
 
     @api.one
     @api.constrains('supplier_invoice_number', 'partner_id', 'company_id')
@@ -1248,8 +1250,8 @@ version="1.0">
         from cryptography.hazmat.backends import default_backend
         from cryptography.hazmat.primitives.serialization import load_pem_private_key
         import OpenSSL
-        from OpenSSL.crypto import *
-        type_ = FILETYPE_PEM
+        from OpenSSL import crypto
+        type_ = crypto.FILETYPE_PEM
         key=OpenSSL.crypto.load_privatekey(type_,privkey.encode('ascii'))
         signature= OpenSSL.crypto.sign(key,signed_info_c14n,'sha1')
         signature_value.text =textwrap.fill(base64.b64encode(signature),64)
@@ -1858,7 +1860,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         self.sii_barcode = ted
         image = False
         if ted:
-            barcodefile = StringIO()
+            barcodefile = BytesIO()
             image = self.pdf417bc(ted)
             image.save(barcodefile,'PNG')
             data = barcodefile.getvalue()

@@ -17,6 +17,7 @@ Facturación Electrónica para Chile.
             'account',
             'purchase',
             'l10n_cl_chart_of_account',
+            'report_xlsx',
         ],
     'external_dependencies': {
         'python': [
@@ -34,6 +35,8 @@ Facturación Electrónica para Chile.
             'ast',
             'pysftp',
             'num2words',
+            'xlsxwriter',
+            'io',
         ]
     },
     'data': [

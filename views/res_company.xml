@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<openerp>
+<odoo>
         <record model="ir.ui.view" id="view_company_activity_inherit_form">
             <field name="name">res.company.activities.form.inherit</field>
             <field name="inherit_id" ref="base.view_company_form"/>
@@ -15,4 +15,4 @@
             </field>
         </record>
 
-</openerp>
+</odoo>

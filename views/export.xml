@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<openerp>
+<odoo>
   <report
       id="libro_xlsx"
       model="account.move.book"
@@ -153,4 +153,4 @@
           </template>
 
 
-</openerp>
+</odoo>

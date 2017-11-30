@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from openerp.addons.report_xlsx.report.report_xlsx import ReportXlsx
+from odoo import models
 from datetime import datetime
 
-class LibroXlsx(ReportXlsx):
+class LibroXlsx(models.AbstractModel):
 
     def generate_xlsx_report(self, workbook, data, libro):
         for obj in libro:
@@ -54,8 +54,8 @@ class LibroXlsx(ReportXlsx):
             sheet.write(line, c, obj.total, bold)
 
 
-LibroXlsx('report.account.move.book.xlsx',
-            'account.move.book')
+#LibroXlsx('report.account.move.book.xlsx',
+#            'account.move.book')
 
-LibroXlsx('report.account.move.book.honorarios.xlsx',
-            'account.move.book.honorarios')
+#LibroXlsx('report.account.move.book.honorarios.xlsx',
+#            'account.move.book.honorarios')

@@ -1,24 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-import os, datetime
+import datetime
 from odoo import models, fields, api
 from odoo.tools.translate import _
 from odoo.exceptions import Warning
 from odoo import SUPERUSER_ID
+import base64
 try:
-    from M2Crypto import X509 as M2X509
-    from M2Crypto.EVP import MessageDigest
-    from OpenSSL.crypto import *
-    import base64
+    from OpenSSL import crypto
+    type_ = crypto.FILETYPE_PEM
 except ImportError:
-    pass
-
-try:
-    import cStringIO
-except ImportError:
-    pass
-
-type_ = FILETYPE_PEM
+    _logger.warning('Error en cargar crypto')
 
 zero_values = {
     "filename": "",

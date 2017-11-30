@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 
-from openerp.osv import fields, osv
+from odoo import models, fields
 
 
-class res_state(osv.osv):
+class res_state(models.Model):
 
     def name_get(self, cr, uid, ids, context=None):
         if not len(ids):
@@ -30,7 +30,7 @@ class res_state(osv.osv):
             ids = self.search(cr, user, [('name', operator, name)]+ args, limit=limit)
             if not ids and len(name.split()) >= 2:
                 #Separating code and name of account for searching
-                operand1,operand2 = name.split(': ',1) #name can contain spaces e.g. OpenERP S.A.
+                operand1,operand2 = name.split(': ',1) #name can contain spaces e.g. odoo S.A.
                 ids = self.search(cr, user, [('name', operator, operand2)]+ args, limit=limit)
         else:
             ids = self.search(cr, user, args, context=context, limit=limit)
@@ -51,13 +51,13 @@ class res_state(osv.osv):
         return dict(res)
 
     _inherit = 'res.country.state'
-    _columns = {
-            'code': fields.char('State Code', size=32,help='The state code.\n', required=True),
-            'complete_name': fields.function(_name_get_fnc, method=True, type="char", string='Complete Name', fnct_search=complete_name_search),
-            'parent_id': fields.many2one('res.country.state','Parent State', index=True, domain=[('type','=','view')]),
-            'child_ids': fields.one2many('res.country.state', 'parent_id', string='Child States'),
-            'type': fields.selection([('view','View'), ('normal','Normal')], 'Type'),
-        }
+
+    code = fields.Char('State Code', size=32,help='The state code.\n', required=True)
+    complete_name = fields.Char(compute='_name_get_fnc', string='Complete Name', fnct_search=complete_name_search)
+    parent_id = fields.Many2one('res.country.state','Parent State', index=True, domain=[('type','=','view')])
+    child_ids = fields.One2many('res.country.state', 'parent_id', string='Child States')
+    type = fields.Selection([('view','View'), ('normal','Normal')], 'Type')
+
     _defaults = {
             'type': 'normal',
         }

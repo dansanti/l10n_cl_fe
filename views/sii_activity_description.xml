@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<openerp>
+<odoo>
       <record model="ir.ui.view" id="activity_search_view">
            <field name="name">activity.search</field>
            <field name="model">sii.activity.description</field>
@@ -44,4 +44,4 @@
           <!-- <field name="view_mode">tree,form</field>-->
       </record>
       <menuitem name="SII Partner Activities" action="act_sii_activity_description" id="menu_action_act_sii_activity_description" parent="menu_sii_config"/>
-</openerp>
+</odoo>

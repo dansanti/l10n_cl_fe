@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from openerp import api, models, fields, _
-from openerp.exceptions import Warning
+from odoo import api, models, fields, _
+from odoo.exceptions import Warning
 import logging
 _logger = logging.getLogger(__name__)
 

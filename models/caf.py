@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from openerp import models, fields, api, SUPERUSER_ID
-from openerp.tools.translate import _
-from openerp.exceptions import UserError
+from odoo import models, fields, api, SUPERUSER_ID
+from odoo.tools.translate import _
+from odoo.exceptions import UserError
 import logging
 _logger = logging.getLogger(__name__)
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<openerp>
+<odoo>
     <data>
         <record id="electronic_consumo_folios_tree" model="ir.ui.view">
             <field name="name">l10n_cl.libro_compra_venta.tree</field>
@@ -158,4 +158,4 @@ validar_consumo_folios()</field>
                 <field name="signal">validar_consumo_folios</field>
         </record>
     </data>
-</openerp>
+</odoo>

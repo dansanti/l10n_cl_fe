@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<openerp>
+<odoo>
         <record model="ir.ui.view" id="view_partner_activity_inherit_form">
             <field name="name">res.partner.activities.form.inherit</field>
             <field name="inherit_id" ref="base.view_partner_form"/>
@@ -28,4 +28,4 @@
                 </kanban>
             </field>
         </record>-->
-</openerp>
+</odoo>
