@@ -122,20 +122,11 @@
                   <field name="document_number" class="oe_inline"/>
               </field>
 
-              <!-- Esto es por un mini bug de odoo ya que no se deberia poder cabmiar de diario y que se mantenga secuencia o numeraion de otro diario, hay que exigir borrar los numeros  -->
-              <field name="journal_id" position="attributes">
-                  <attribute name="attrs">{'readonly':['|','|',('state','!=','draft'),('sii_document_number','!=',False),('move_name','!=',False)]}</attribute>
-                  <attribute name="options">{'no_create': True}</attribute>
-                  <attribute name="domains">[('journal_id', 'in', available_journals)]</attribute>
-              </field>
-
               <field name="journal_id" position="after">
-                  <field name="turn_issuer"
-                         attrs="{'required':[('use_documents','=',True)]}"
-                       options="{'no_create': True}"/>
                   <field name="journal_document_class_id"
                         attrs="{'invisible':[('use_documents','=',False)],'required':[('use_documents','=',True)],'readonly':['|',('state','!=','draft'),('sii_document_number','!=',False)]}"
                         options="{'no_create': True}"/>
+                  <field name="ticket" />
               </field>
 
               <field name="account_id" position="attributes">
@@ -150,11 +141,6 @@
               <field name="amount_tax" position="after">
                 <field name="amount_retencion" attrs="{'invisible':[('amount_retencion', '=', 0)]}" />
               </field>
-                <!-- TODO ver si es necesario cambiar este contexto o no -->
-                <!-- TODO cambiar color del boton de envio una vez enviado -->
-                <field name="journal_id" position="after">
-                  <field name="ticket" />
-                </field>
                 <field name="invoice_line_ids" position="attributes">
                     <attribute name="context">{'partner_id': partner_id, 'price_type': context.get('price_type') or False, 'type': type}" name="invoice_line_ids" on_change="onchange_invoice_line(invoice_line_ids)</attribute>
                 </field>
@@ -223,16 +209,7 @@
                   <field name="document_number" class="oe_inline"/>
               </field>
 
-              <!-- Esto es por un mini bug de odoo ya que no se deberia poder cabmiar de diario y que se mantenga secuencia o numeraion de otro diario, hay que exigir borrar los numeros  -->
-              <field name="journal_id" position="attributes">
-                  <attribute name="attrs">{'readonly':['|','|',('state','!=','draft'),('sii_document_number','!=',False),('move_name','!=',False)]}</attribute>
-              </field>
-
               <field name="journal_id" position="after">
-                <field name="turn_issuer"
-                         domain="[('journal_ids', '=', journal_id)]"
-                         attrs="{'required':[('use_documents','=',True)]}"
-                         options="{'no_create': True}"/>
                   <field name="journal_document_class_id"
                           attrs="{'invisible':[('use_documents','=',False)],
                               'required':[('use_documents','=',True)],
@@ -261,10 +238,6 @@
                     </tree>
                   </field>
               </xpath>
-              <field name="turn_issuer" position="attributes">
-                  <attribute name="string">Giro de compra</attribute>
-                  <attribute name="help">Indique a cuál giro de la compañía se asigna esta compra</attribute>
-              </field>
               <xpath expr="//field[@name='tax_line_ids']/tree/field[@name='account_id']" position="after">
                 <field name="retencion_account_id" />
               </xpath>

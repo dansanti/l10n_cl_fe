@@ -596,18 +596,18 @@ class invoice(models.Model):
 
     def get_document_class_default(self, document_classes):
         document_class_id = None
-        if self.turn_issuer.vat_affected not in ['SI', 'ND']:
-            exempt_ids = [
-                self.env.ref('l10n_cl_fe.dc_y_f_dtn').id,
-                self.env.ref('l10n_cl_fe.dc_y_f_dte').id]
-            for document_class in document_classes:
-                if document_class.sii_document_class_id.id in exempt_ids:
-                    document_class_id = document_class.id
-                    break
-                else:
-                    document_class_id = document_classes.ids[0]
-        else:
-            document_class_id = document_classes.ids[0]
+        #if self.turn_issuer.vat_affected not in ['SI', 'ND']:
+        #    exempt_ids = [
+        #        self.env.ref('l10n_cl_fe.dc_y_f_dtn').id,
+        #        self.env.ref('l10n_cl_fe.dc_y_f_dte').id]
+        #    for document_class in document_classes:
+        #        if document_class.sii_document_class_id.id in exempt_ids:
+        #            document_class_id = document_class.id
+        #            break
+        #        else:
+        #            document_class_id = document_classes.ids[0]
+        #else:
+        document_class_id = document_classes.ids[0]
         return document_class_id
 
     @api.onchange('journal_id', 'company_id')
@@ -750,7 +750,7 @@ class invoice(models.Model):
                     # If not specific document type found, we choose another one
         return document_class_ids
 
-    @api.onchange('journal_id',  'turn_issuer', 'invoice_turn')
+    @api.onchange('journal_id', 'invoice_turn')
     def update_domain_journal(self):
         document_classes = self._get_available_journal_document_class()
         result = {'domain':{
@@ -759,7 +759,7 @@ class invoice(models.Model):
         return result
 
     @api.depends('journal_id')
-    @api.onchange('journal_id', 'partner_id', 'turn_issuer', 'invoice_turn')
+    @api.onchange('journal_id', 'partner_id', 'invoice_turn')
     def set_default_journal(self, default=None):
         if not self.journal_document_class_id or self.journal_document_class_id.journal_id != self.journal_id:
             query = []
