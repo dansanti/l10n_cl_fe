@@ -10,7 +10,10 @@
                   <attribute name="filter_domain">['|','|','|','|', ('sii_document_number','ilike',self), ('number','ilike',self), ('origin','ilike',self), ('supplier_invoice_number', 'ilike', self), ('partner_id', 'child_of', self)]</attribute>
               </field>
               <field name="partner_id" position="after">
-                  <field name="sii_document_class_id"/>
+                <field name="invoice_turn" domain="[('partner_id', '=', partner_id)]" invisible="True"/>
+                <field name="activity_description"
+                        placeholder="Glosa descriptiva" options="{'no_edit': True}"/>
+                <field name="sii_document_class_id"/>
               </field>
               <xpath expr="//group[last()]" position="inside">
                   <filter string="Document Type" icon="terp-folder-orange" domain="[]" context="{'group_by':'sii_document_class_id'}"/>
@@ -59,6 +62,11 @@
               <button name="invoice_print" position="after">
                  <button string="Imprimir Cedible" type="object" name="print_cedible" />
               </button>
+              <field name='partner_id' position="after">
+                  <field name="invoice_turn" domain="[('partner_id', '=', partner_id)]"  invisible="True"/>
+                  <field name="activity_description"
+                          placeholder="Glosa descriptiva" options="{'no_edit': True}"/>
+              </field>
 
               <field name="user_id" position="after">
                 <field name="forma_pago" />
