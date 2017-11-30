@@ -144,6 +144,7 @@
             parent="account.menu_finance_entries"
             groups="account.group_account_manager"
             sequence="3"/>
+      <!--
         <record id="wkf" model="workflow">
             <field name="name">account.move.libro.basic</field>
             <field name="osv">account.move.book</field>
@@ -166,5 +167,6 @@ validar_libro()</field>
                 <field name="act_to" ref="act_open"/>
                 <field name="signal">validar_libro</field>
         </record>
+      -->
     </data>
 </odoo>

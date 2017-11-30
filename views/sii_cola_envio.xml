@@ -40,5 +40,5 @@
           <field name="view_mode">tree,form</field>
       </record>
 
-      <menuitem name="Cola de envío" action="cola_envio" id="menu_action_sii_cola_envio" parent="l10n_cl_partner_activities.menu_sii_config"/>
+      <menuitem name="Cola de envío" action="cola_envio" id="menu_action_sii_cola_envio" parent="l10n_cl_fe.menu_sii_config"/>
 </odoo>

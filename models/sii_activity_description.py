@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-
 from odoo import models, fields
-
 class partner_activities(models.Model):
 
     _description = 'SII Economical Activities Printable Description'
@@ -19,18 +17,3 @@ class partner_activities(models.Model):
     _defaults = {
         'active': 1,
     }
-
-class partner_turns(models.Model):
-    _inherit = 'res.partner'
-
-    activity_description = fields.Many2one(
-        'sii.activity.description',
-        string='Glosa Giro', ondelete="restrict")
-
-class company_turns(models.Model):
-    _inherit = 'res.company'
-
-    activity_description = fields.Many2one(
-        string='Glosa Giro',
-        related='partner_id.activity_description',
-        relation='sii.activity.description')

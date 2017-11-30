@@ -353,10 +353,3 @@ class account_journal(models.Model):
 class res_currency(models.Model):
     _inherit = "res.currency"
     sii_code = fields.Char('SII Code', size=4)
-
-
-class partnerActivities(models.Model):
-    _inherit = 'partner.activities'
-    journal_ids = fields.Many2many(
-        'account.journal', id1='activities_id', id2='journal_id',
-        string='Journals')

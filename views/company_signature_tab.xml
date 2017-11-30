@@ -99,14 +99,12 @@
 
         <record id="popup_certificate_form" model="ir.ui.view">
             <field name="name">res.user_cert_popup.form</field>
-            <field name="model">res.users</field>
+            <field name="model">res.company</field>
             <field name="arch" type="xml">
-				<form string="Certificate Stuff">
-					<field name="filename"/>
-				</form>
-			</field>
-		</record>
-
-
+	            <form string="Certificate Stuff">
+		             <field name="filename"/>
+	            </form>
+			         </field>
+         </record>
     </data>
 </odoo>

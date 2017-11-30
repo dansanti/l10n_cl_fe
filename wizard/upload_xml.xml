@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
         <record id="sii_dte_upload_xml_form" model="ir.ui.view">
             <field name="name">Subir XML de Envío</field>
             <field name="model">sii.dte.upload_xml.wizard</field>
@@ -40,5 +39,4 @@
            id="menu_action_account_upload_xml"
            parent="account.menu_finance_payables"
            sequence="4"/>
-    </data>
 </odoo>

@@ -53,9 +53,10 @@
                   <field name="sii_document_number" invisible="1"/>
                   <field name="move_name" invisible="1"/>
               </form>
+              <!--
               <button name="invoice_cancel" position="attributes">
                   <attribute name="invisible">1</attribute>
-              </button>
+              </button>-->
               <field name="state" position="before">
                 <button name="%(account.action_account_invoice_refund)d" type='action' string='Refund Invoice' groups="base.group_user" attrs="{'invisible': ['|',('type', '=', 'out_invoice'), ('state', 'not in', ('open','proforma2','paid'))]}"/>
               </field>
@@ -140,12 +141,12 @@
               <field name="account_id" position="attributes">
                   <attribute name="options">{'no_create': True}</attribute>
               </field>
-
+<!--
               <xpath expr="//form/sheet/h1/label[1]" position="after">
                       <label string="- Next Number: " attrs="{'invisible': ['|',('document_number','!=',False),('state','!=','draft')]}" class="oe_inline"/>
                       <field name="next_invoice_number" attrs="{'invisible': ['|',('document_number','!=',False),('state','!=','draft')]}" class="oe_inline"/>
               </xpath>
-
+-->
               <field name="amount_tax" position="after">
                 <field name="amount_retencion" attrs="{'invisible':[('amount_retencion', '=', 0)]}" />
               </field>
@@ -208,9 +209,10 @@
                   <field name="sii_document_number" invisible="1"/>
                   <field name="move_name" invisible="1"/>
               </form>
+              <!--
               <button name="invoice_cancel" position="attributes">
                   <attribute name="invisible">1</attribute>
-              </button>
+              </button>-->
               <field name="state" position="before">
                 <button name="%(account.action_account_invoice_refund)d" type='action' string='Ask Refund' groups="account.group_account_invoice" attrs="{'invisible': ['|',('type', '=', 'in_invoice'),('state','not in',('open','paid'))]}"/>
               </field>

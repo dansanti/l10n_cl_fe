@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields
 
-class partner_activities(models.Model):
+class PartnerActivities(models.Model):
     _name = 'partner.activities'
     _description = 'SII Economical Activities'
 
@@ -29,6 +29,13 @@ class partner_activities(models.Model):
     partner_ids = fields.Many2many(
         'res.partner', id1='activities_id', id2='partner_id',
         string='Partners')
+
+    journal_ids = fields.Many2many(
+        'account.journal',
+        id1='activities_id',
+        id2='journal_id',
+        string='Journals',
+    )
 
     _defaults = {
         'active': 1,

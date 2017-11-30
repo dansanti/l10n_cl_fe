@@ -1,22 +1,14 @@
 # -*- encoding: utf-8 -*-
+from odoo import fields, models
 
-from odoo import models, fields
-
-
-class res_state(models.Model):
+class res_state_city(models.Model):
 
     def name_get(self, cr, uid, ids, context=None):
         if not len(ids):
             return []
         res = []
-        for state in self.browse(cr, uid, ids, context=context):
-            data = []
-            acc = state
-            while acc:
-                data.insert(0, acc.name)
-                acc = acc.parent_id
-            data = ' / '.join(data)
-            res.append((state.id, (state.code and '[' + state.code + '] ' or '') + data))
+        for city in self.browse(cr, uid, ids, context=context):
+            res.append((city.id, (city.code and '[' + city.code + '] ' or '') + city.name))
 
         return res
 
@@ -30,7 +22,7 @@ class res_state(models.Model):
             ids = self.search(cr, user, [('name', operator, name)]+ args, limit=limit)
             if not ids and len(name.split()) >= 2:
                 #Separating code and name of account for searching
-                operand1,operand2 = name.split(': ',1) #name can contain spaces e.g. odoo S.A.
+                operand1,operand2 = name.split(': ',1) #name can contain spaces e.g. OpenERP S.A.
                 ids = self.search(cr, user, [('name', operator, operand2)]+ args, limit=limit)
         else:
             ids = self.search(cr, user, args, context=context, limit=limit)
@@ -40,22 +32,27 @@ class res_state(models.Model):
         if not ids:
             return []
         res = []
-        for state in self.browse(cr, uid, ids, context=context):
+        for city in self.browse(cr, uid, ids, context=context):
             data = []
-            acc = state
+            acc = city
             while acc:
                 data.insert(0, acc.name)
-                acc = acc.parent_id
+                if hasattr(acc,'state_id'):
+                    acc = acc.state_id
+                else :
+                    acc = acc.parent_id
             data = ' / '.join(data)
-            res.append((state.id, data))
+            res.append((city.id, data))
         return dict(res)
 
-    _inherit = 'res.country.state'
+    _name = 'res.country.state.city'
+    _description = "City of state"
 
-    code = fields.Char('State Code', size=32,help='The state code.\n', required=True)
-    #complete_name = fields.Char(compute='_name_get_fnc', string='Complete Name', fnct_search=complete_name_search)
-    parent_id = fields.Many2one('res.country.state','Parent State', index=True, domain=[('type','=','view')])
-    child_ids = fields.One2many('res.country.state', 'parent_id', string='Child States')
+    name = fields.Char('City Name',help='The City Name.',required=True)
+    code = fields.Char('City Code', size=32,help='The city code.\n', required=True)
+    #complete_name = fields.Char(compute="_name_get_fnc", string='Complete Name', fnct_search=complete_name_search)
+    country_id = fields.Many2one('res.country', 'Country', required=True)
+    state_id = fields.Many2one('res.country.state','State', index=True, domain="[('country_id','=',country_id),('type','=','normal')]")
     type = fields.Selection([('view','View'), ('normal','Normal')], 'Type')
 
     _defaults = {

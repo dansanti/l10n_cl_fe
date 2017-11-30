@@ -193,7 +193,7 @@
       name="XML Recibidos"
       action="act_xml_recept"
       id="menu_action_xml_recept"
-      parent="l10n_cl_partner_activities.menu_sii_config"/>
+      parent="l10n_cl_fe.menu_sii_config"/>
 
   <act_window id="action_masive_validate"
           multi="True"

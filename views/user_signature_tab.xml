@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <data>
         <record id="view_user_signature_tab_form" model="ir.ui.view">
             <field name="name">user.signature.tab.form</field>
             <field name="model">res.users</field>
@@ -80,20 +79,20 @@
             <field name="name">view.clean.signature.confirmation</field>
             <field name="model">res.users</field>
             <field name="arch" type="xml">
-				<form string="Clean Signature Information">
-					<group>
-						<label string="This operation will clear all your
-							signature information. After this, you will need to
-							attach a signature file again. Are you sure of this?
-							"/>
-					</group>
-					<footer>
-						<button name="action_clean" string="Yes" type="object"
-							class="oe_highlight"/>
-						or
-						<button string="Cancel" class="oe_link" special="cancel"/>
-					</footer>
-				</form>
+        				<form string="Clean Signature Information">
+        					<group>
+        						<label string="This operation will clear all your
+        							signature information. After this, you will need to
+        							attach a signature file again. Are you sure of this?
+        							"/>
+        					</group>
+        					<footer>
+        						<button name="action_clean" string="Yes" type="object"
+        							class="oe_highlight"/>
+        						or
+        						<button string="Cancel" class="oe_link" special="cancel"/>
+        					</footer>
+        				</form>
             </field>
         </record>
 
@@ -101,12 +100,9 @@
             <field name="name">res.user_cert_popup.form</field>
             <field name="model">res.users</field>
             <field name="arch" type="xml">
-				<form string="Certificate Stuff">
-					<field name="filename"/>
-				</form>
-			</field>
-		</record>
-
-
-    </data>
+      				<form string="Certificate Stuff">
+      					<field name="filename"/>
+      				</form>
+	         </field>
+	       </record>
 </odoo>

@@ -264,7 +264,7 @@
           </template>
 
           <template id="dte_invoice" inherit_id="account.report_invoice">
-              <t t-call="report.html_container" position="replace">
+              <t t-call="web.html_container" position="replace">
                   <t t-foreach="docs" t-as="o">
                       <t t-call="l10n_cl_fe.dte_external_layout" t-lang="o.partner_id.lang"/>
                   </t>

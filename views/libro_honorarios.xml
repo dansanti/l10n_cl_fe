@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
         <record id="libro_honorarios_tree" model="ir.ui.view">
             <field name="name">l10n_cl.libro_honorarios.tree</field>
             <field name="model">account.move.book.honorarios</field>
@@ -91,6 +90,7 @@
             parent="account.menu_finance_entries"
             groups="account.group_account_manager"
             sequence="4"/>
+      <!--
         <record id="wkf_libro_h" model="workflow">
             <field name="name">account.move.libro_honorarios.basic</field>
             <field name="osv">account.move.book.honorarios</field>
@@ -113,5 +113,5 @@ validar_libro()</field>
                 <field name="act_to" ref="act_open_libro_h"/>
                 <field name="signal">validar_libro</field>
         </record>
-    </data>
+      -->
 </odoo>

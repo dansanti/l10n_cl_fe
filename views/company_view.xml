@@ -24,6 +24,26 @@
                                        'required':  [('dte_service_provider', 'in', ['SII', 'SIIHOMO'])]}"/>
                     </group>
                 </field>
+                <field name="vat" position="after">
+                    <field name="responsability_id" widget="selection"/>
+                    <field name="start_date"/>
+                    <field name="tp_sii_code" invisible="True"/>
+                    <field name="company_activities_ids"
+                        placeholder="Giros de La Compañia" widget="many2many_tags"
+                        options="{'no_create': True}"
+                        domain="[('parent_id', '>=', 1),
+                        ('tax_category', '=', tp_sii_code)]"/>
+                    <field name="activity_description"
+                                placeholder="Glosa descriptiva" required="True"/>
+                </field>
+                <field name="state_id" position="after">
+                    <field name="city_id" placeholder="Comuna" style="width: 100%" options='{"no_open": True}'/>
+                </field>
+                <!--
+                 <group name="account_grp">
+                    <field name="invoice_vat_discrimination_default"/>
+                </group>
+              -->
             </field>
         </record>
     </data>
