@@ -1,0 +1,60 @@
+# -*- coding: utf-8 -*-
+{
+    "name": """Facturación Electrónica para Chile\
+    """,
+    'version': '11.0.0.0.0',
+    'category': 'Localization/Chile',
+    'sequence': 12,
+    'author':  'Daniel Santibáñez Polanco, Cooperativa OdooCoop',
+    'website': 'https://globalresponse.cl',
+    'license': 'AGPL-3',
+    'summary': '',
+    'description': """
+Facturación Electrónica para Chile.
+""",
+    'depends': [
+            'account',
+            'report',
+            'purchase',
+            'l10n_cl_chart_of_account',
+        ],
+    'external_dependencies': {
+        'python': [
+            'xmltodict',
+            'dicttoxml',
+            'pdf417gen',
+            'M2Crypto',
+            'base64',
+            'hashlib',
+            'cchardet',
+            'suds',
+            'urllib3',
+            'SOAPpy',
+            'signxml',
+            'ast',
+            'pysftp',
+        ]
+    },
+    'data': [
+        'views/invoice_view.xml',
+        'views/partner_view.xml',
+        'views/company_view.xml',
+        'views/payment_t_view.xml',
+        'views/sii_regional_offices_view.xml',
+        'views/layout.xml',
+        'views/sii_cola_envio.xml',
+        'views/mail_dte.xml',
+        'wizard/masive_send_dte.xml',
+        'wizard/masive_dte_process.xml',
+        'wizard/upload_xml.xml',
+        'wizard/validar.xml',
+        'data/sii.regional.offices.csv',
+        'data/sequence.xml',
+        'data/product.xml',
+        'data/cron.xml',
+        'security/ir.model.access.csv',
+    ],
+    'installable': True,
+    'auto_install': False,
+    'application': False,
+}

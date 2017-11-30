@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+        <record model="ir.ui.view" id="view_company_activity_inherit_form">
+            <field name="name">res.company.activities.form.inherit</field>
+            <field name="inherit_id" ref="base.view_company_form"/>
+            <field name="model">res.company</field>
+            <field name="arch" type="xml">
+                <field name="vat" position="after">
+                    <field name="company_activities_ids"
+                        placeholder="Giros de la Compañía" widget="many2many_tags"
+                        options="{'no_create': True}" domain="[('parent_id', '>=', 1)]"/>
+                    <field name="activity_description"
+                            placeholder="Glosa descriptiva" required="True"/>
+                </field>
+            </field>
+        </record>
+
+</openerp>

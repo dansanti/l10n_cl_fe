@@ -1,0 +1,22 @@
+# -*- coding: utf-8 -*-
+import account
+import caf
+import company_signature_key
+import company
+import consumo_folios
+import country
+import currency
+import export
+import honorarios
+import invoice
+import libro
+import mail
+import partner_activities
+import payment_term
+import res_partner
+import res_state
+import sale_order
+import sii_cola_envio
+import sii_regional_offices
+import sii
+import user_signature_key

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+        <record model="ir.ui.view" id="view_partner_activity_inherit_form">
+            <field name="name">res.partner.activities.form.inherit</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="model">res.partner</field>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="partner_activities_ids"
+                        placeholder="Giros del Partner" widget="many2many_tags"
+                        options="{'no_create': True}" domain="[('parent_id', '>=', 1)]"
+                        invisible="True"/>
+                    <!-- posiblemente sea eliminada como obsoleto, ya que no se necesita actividad sii en clientes, solamente en compñia-->
+                    <field name="activity_description" placeholder="Glosa Descriptiva (Giro)"/>
+                </field>
+            </field>
+        </record>
+
+        <!--<record model="ir.ui.view" id="view_partner_activity_kanban_view">
+            <field name="name">view.partner.activities.kanban.inherit</field>
+            <field name="inherit_id" ref="base.res_partner_kanban_view"/>
+            <field name="model">res.partner</field>
+            <field name="arch" type="xml">
+                <kanban>
+                    <field name="display_name" position="after">
+                        <field name="partner_activities_ids"/>
+                    </field>
+                </kanban>
+            </field>
+        </record>-->
+</openerp>
