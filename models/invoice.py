@@ -863,7 +863,7 @@ a VAT."""))
             obj_inv.move_id.write(guardar)
         return True
 
-    def get_operation_type(self, cr, uid, invoice_type, context=None):
+    def get_operation_type(self, invoice_type):
         if invoice_type in ['in_invoice', 'in_refund']:
             operation_type = 'purchase'
         elif invoice_type in ['out_invoice', 'out_refund']:
@@ -952,7 +952,7 @@ a VAT."""))
             inv_types = inv_type if isinstance(inv_type, list) else [inv_type]
             domain = [
                 ('journal_document_class_ids.sii_document_class_id.document_letter_id.name','=','M'),
-                ('type', 'in', filter(None, map(TYPE2JOURNAL.get, inv_types))),
+                ('type', 'in', [TYPE2JOURNAL[ty] for ty in inv_types if ty in TYPE2JOURNAL])
                 ('company_id', '=', company_id.id),
             ]
             journal_id = self.env['account.journal'].search(domain, limit=1)
@@ -960,7 +960,7 @@ a VAT."""))
         inv_type = self._context.get('type', 'out_invoice')
         inv_types = inv_type if isinstance(inv_type, list) else [inv_type]
         domain = [
-            ('type', 'in', filter(None, map(TYPE2JOURNAL.get, inv_types))),
+            ('type', 'in', [TYPE2JOURNAL[ty] for ty in inv_types if ty in TYPE2JOURNAL]),
             ('company_id', '=', company_id.id),
         ]
         return self.env['account.journal'].search(domain, limit=1, order="sequence asc")
