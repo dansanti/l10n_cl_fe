@@ -87,7 +87,7 @@ class ProccessMail(models.Model):
                     }
                     val = self.env['sii.dte.upload_xml.wizard'].create(vals)
                     created = val.confirm(ret=True)
-        xml_id = 'l10n_cl_dte.action_dte_process'
+        xml_id = 'l10n_cl_fe.action_dte_process'
         result = self.env.ref('%s' % (xml_id)).read()[0]
         if created:
             domain = eval(result['domain'])

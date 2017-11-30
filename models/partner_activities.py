@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-
 from odoo import models, fields
 
-
 class partner_activities(models.Model):
-
-    _description = 'SII Economical Activities'
     _name = 'partner.activities'
+    _description = 'SII Economical Activities'
 
     code = fields.Char('Activity Code', required=True, translate=True)
 

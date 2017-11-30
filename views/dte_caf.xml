@@ -33,10 +33,10 @@
         </record>
 
 
-        <!--<record id="view_l10n_cl_invoice_sequence_enabled_subtree" model="ir.ui.view">
+        <!--<record id="view_l10n_cl_fe_sequence_enabled_subtree" model="ir.ui.view">
             <field name="name">ir.sequence.journal.caf.subtree</field>
             <field name="model">ir.sequence</field>
-            <field name="inherit_id" ref="l10n_cl_invoice.view_account_journal_cl_form" />
+            <field name="inherit_id" ref="l10n_cl_fe.view_account_journal_cl_form" />
             <field name="arch" type="xml">
                 <field name="journal_document_class_ids" position="inside">
                     <field name="is_dte"/>

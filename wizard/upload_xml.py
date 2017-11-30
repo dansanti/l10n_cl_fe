@@ -78,7 +78,7 @@ class UploadXMLWizard(models.TransientModel):
             self.dte_id = dte_id
         if self.pre_process:
             created = self.do_create_pre()
-            xml_id = 'l10n_cl_dte.action_dte_process'
+            xml_id = 'l10n_cl_fe.action_dte_process'
         elif self.option == 'reject':
             self.do_reject()
             return
@@ -305,7 +305,7 @@ class UploadXMLWizard(models.TransientModel):
                 ('vat','=', self.format_rut(envio['SetDTE']['Caratula']['RutReceptor']))
             ],
             limit=1)
-        id_seq = self.env.ref('l10n_cl_dte.response_sequence').id
+        id_seq = self.env.ref('l10n_cl_fe.response_sequence').id
         IdRespuesta = self.env['ir.sequence'].browse(id_seq).next_by_id()
         try:
             signature_d = self.env['account.invoice'].get_digital_signature(company_id)
@@ -390,8 +390,8 @@ class UploadXMLWizard(models.TransientModel):
             'name': data['RznSoc'],
             'activity_description': giro_id.id,
             'vat': rut,
-            'document_type_id': self.env.ref('l10n_cl_invoice.dt_RUT').id,
-            'responsability_id': self.env.ref('l10n_cl_invoice.res_IVARI').id,
+            'document_type_id': self.env.ref('l10n_cl_fe.dt_RUT').id,
+            'responsability_id': self.env.ref('l10n_cl_fe.res_IVARI').id,
             'document_number': data['RUTEmisor'],
             'street': data['DirOrigen'],
             'city':data['CiudadOrigen'] if 'CiudadOrigen' in data else '',
@@ -681,7 +681,7 @@ class UploadXMLWizard(models.TransientModel):
                 if new_line:
                     lines.append(new_line)
         product_id = self.env['product.product'].search([
-                ('product_tmpl_id', '=', self.env.ref('l10n_cl_dte.product_imp').id),
+                ('product_tmpl_id', '=', self.env.ref('l10n_cl_fe.product_imp').id),
             ]
         ).id
         if 'ImptoReten' in dte['Encabezado']['Totales']:

@@ -580,8 +580,8 @@ class invoice(models.Model):
         document_class_id = None
         if self.turn_issuer.vat_affected not in ['SI', 'ND']:
             exempt_ids = [
-                self.env.ref('l10n_cl_invoice.dc_y_f_dtn').id,
-                self.env.ref('l10n_cl_invoice.dc_y_f_dte').id]
+                self.env.ref('l10n_cl_fe.dc_y_f_dtn').id,
+                self.env.ref('l10n_cl_fe.dc_y_f_dte').id]
             for document_class in document_classes:
                 if document_class.sii_document_class_id.id in exempt_ids:
                     document_class_id = document_class.id
@@ -764,8 +764,8 @@ class invoice(models.Model):
     @api.onchange('sii_document_class_id')
     def _check_vat(self):
         boleta_ids = [
-            self.env.ref('l10n_cl_invoice.dc_bzf_f_dtn').id,
-            self.env.ref('l10n_cl_invoice.dc_b_f_dtm').id]
+            self.env.ref('l10n_cl_fe.dc_bzf_f_dtn').id,
+            self.env.ref('l10n_cl_fe.dc_b_f_dtm').id]
         if self.sii_document_class_id not in boleta_ids and self.partner_id.document_number == '' or self.partner_id.document_number == '0':
             raise UserError(_("""The customer/supplier does not have a VAT \
 defined. The type of invoicing document you selected requires you tu settle \
@@ -2294,14 +2294,14 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         self.ensure_one()
         self.sent = True
         if self.ticket:
-            return self.env['report'].get_action(self, 'l10n_cl_dte.report_ticket')
+            return self.env['report'].get_action(self, 'l10n_cl_fe.report_ticket')
         return self.env['report'].get_action(self, 'account.report_invoice')
 
     @api.multi
     def print_cedible(self):
         """ Print Cedible
         """
-        return self.env['report'].get_action(self, 'l10n_cl_dte.invoice_cedible')
+        return self.env['report'].get_action(self, 'l10n_cl_fe.invoice_cedible')
 
     @api.multi
     def getTotalDiscount(self):

@@ -134,7 +134,7 @@ class ValidarDTEWizard(models.TransientModel):
     def do_reject(self, document_ids):
         dicttoxml.set_debug(False)
         inv_obj = self.env['account.invoice']
-        id_seq = self.env.ref('l10n_cl_dte.response_sequence').id
+        id_seq = self.env.ref('l10n_cl_fe.response_sequence').id
         IdRespuesta = self.env['ir.sequence'].browse(id_seq).next_by_id()
         NroDetalles = 1
         for doc in document_ids:
@@ -222,7 +222,7 @@ class ValidarDTEWizard(models.TransientModel):
             )
 
     def do_validar_comercial(self):
-        id_seq = self.env.ref('l10n_cl_dte.response_sequence').id
+        id_seq = self.env.ref('l10n_cl_fe.response_sequence').id
         IdRespuesta = self.env['ir.sequence'].browse(id_seq).next_by_id()
         NroDetalles = 1
         dicttoxml.set_debug(False)
