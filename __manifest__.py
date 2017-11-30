@@ -33,6 +33,7 @@ Facturación Electrónica para Chile.
             'signxml',
             'ast',
             'pysftp',
+            'num2words',
         ]
     },
     'data': [
