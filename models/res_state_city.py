@@ -22,7 +22,7 @@ class res_state_city(models.Model):
             ids = self.search(cr, user, [('name', operator, name)]+ args, limit=limit)
             if not ids and len(name.split()) >= 2:
                 #Separating code and name of account for searching
-                operand1,operand2 = name.split(': ',1) #name can contain spaces e.g. OpenERP S.A.
+                operand1,operand2 = name.split(': ',1) #name can contain spaces e.g. odoo S.A.
                 ids = self.search(cr, user, [('name', operator, operand2)]+ args, limit=limit)
         else:
             ids = self.search(cr, user, args, context=context, limit=limit)

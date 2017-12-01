@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<openerp>
+<odoo>
 <data>
 <record model="res.country.state" id="CL01"><field name="name">Tarapacá</field><field name="code">CL01000</field><field name="type">view</field><field name="country_id" ref="base.cl"/></record>
 <record model="res.country.state" id="CL02"><field name="name">Antofagasta</field><field name="code">CL02000</field><field name="type">view</field><field name="country_id" ref="base.cl"/></record>
@@ -418,4 +418,4 @@
 <record model="res.country.state.city" id="CL15202"><field name="name">General Lagos</field><field name="code">CL15202</field><field name="state_id" ref="CL152"/><field name="type">normal</field><field name="country_id" ref="base.cl"/></record>
 
     </data>
-</openerp>
+</odoo>

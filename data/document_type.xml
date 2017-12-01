@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<openerp>
+<odoo>
     <data noupdate="False">
         <record model='sii.document_type' id='dt_RUT'>
             <field name='code'>RUT</field>
@@ -38,5 +38,5 @@
             <field name='active' eval="True"/>
         </record> 
     </data>
-</openerp>
+</odoo>
         
