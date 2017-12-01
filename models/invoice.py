@@ -424,24 +424,12 @@ class invoice(models.Model):
         readonly=True,
         states={'draft': [('readonly', False)]},
     )
-    invoice_turn = fields.Many2one(
-        'partner.activities',
-        'Giro',
-        readonly=True,
-        store=True,
-        states={'draft': [('readonly', False)]})
     activity_description = fields.Many2one(
         'sii.activity.description',
         string="Giro",
         related="partner_id.activity_description",
         readonly=True,
     )
-
-    @api.onchange('partner_id')
-    def _set_partner_activity(self):
-        for inv in self:
-            for act in inv.partner_id.partner_activities_ids:
-                inv.invoice_turn = act # El último giro, @TODO set default
 
     def _repairDiff(self, move_lines, dif):#usualmente es de 1 $ cuando se aplica descuentoo es valor iva incluido
         total = self.amount_total
@@ -750,7 +738,7 @@ class invoice(models.Model):
                     # If not specific document type found, we choose another one
         return document_class_ids
 
-    @api.onchange('journal_id', 'invoice_turn')
+    @api.onchange('journal_id')
     def update_domain_journal(self):
         document_classes = self._get_available_journal_document_class()
         result = {'domain':{
@@ -759,7 +747,7 @@ class invoice(models.Model):
         return result
 
     @api.depends('journal_id')
-    @api.onchange('journal_id', 'partner_id', 'invoice_turn')
+    @api.onchange('journal_id', 'partner_id')
     def set_default_journal(self, default=None):
         if not self.journal_document_class_id or self.journal_document_class_id.journal_id != self.journal_id:
             query = []
