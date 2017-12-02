@@ -11,12 +11,6 @@ class account_journal_document_config(models.TransientModel):
 
     _name = 'account.journal.document_config'
 
-    debit_notes = fields.Selection(
-            [('dont_use','Do not use'), ('own_sequence','Use')],
-            string='Debit Notes', required=True, default='own_sequence')
-    credit_notes = fields.Selection(
-            [('own_sequence','Use')], string='Credit Notes', required=True,
-            default='own_sequence')
     dte_register = fields.Boolean(
             'Register Electronic Documents?', default=True, help="""
 This option allows you to register electronic documents (DTEs) issued by MiPyme SII Portal, Third parties services, or by
@@ -34,9 +28,6 @@ Odoo itself (to register  DTEs issued by Odoo l10n_cl_dte/caf modules are needed
             'Unusual Documents', help="""
 Include unusual taxes documents, as transfer invoice, and reissue
 """)
-#        'excempt_documents': fields.boolean(
-#            'VAT Excempt Invoices', readonly=True,
-#            default='_get_journal_excempt'),
 
     other_available = fields.Boolean(
             'Others available?', default='_get_other_avail')
@@ -45,14 +36,19 @@ Include unusual taxes documents, as transfer invoice, and reissue
     def _get_other_avail(self):
         return True
 
-    # @api.model
-    # def _get_journal_excempt(self):
-    #     return True
-
-    _defaults= {
-#        'debit_notes': 'own_sequence',
-#        'credit_notes': 'own_sequence',
-    }
+    def _check_activities(self):
+        for r in self:
+            if 'purchase' in r.type:
+                r.excempt_documents = True
+            elif 'sale' in r.type:
+                no_vat = False
+                for turn in r.journal_activities_ids:
+                    if turn.vat_affected == 'SI':
+                        continue
+                    else:
+                        no_vat = True
+                        break
+                self.excempt_documents = no_vat
 
     @api.multi
     def confirm(self):
@@ -67,8 +63,6 @@ Include unusual taxes documents, as transfer invoice, and reissue
                 raise orm.except_orm(
                     _('Your company has not setted any responsability'),
                     _('Please, set your company responsability in the company partner before continue.'))
-                _logger.warning(
-                    'Your company "%s" has not setted any responsability.' % journal.company_id.name)
 
             journal_type = journal.type
             if journal_type in ['sale', 'sale_refund']:
@@ -88,7 +82,6 @@ Include unusual taxes documents, as transfer invoice, and reissue
         vals = {
             'name': journal.name + ' - ' + name,
             'padding': 6,
-            #'prefix': journal.point_of_sale,
         }
         sequence_id = self.env['ir.sequence'].create( vals )
         return sequence_id

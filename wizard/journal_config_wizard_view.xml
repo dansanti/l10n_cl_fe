@@ -5,16 +5,12 @@
             <field name="model">account.journal.document_config</field>
             <field name="arch" type="xml">
             <form string="Journal Documents Configuration" version="7.0">
-                <div class="row">
-                    <div class="col-md-4">
+                <sheet>
                     <group>
                         <field name="dte_register"/>
                         <field name="non_dte_register"/>
                     </group>
-                    </div>
-                    <div class="col-md-4">
-                    <group
-                           attrs="{'invisible':[('dte_register', '=', False),
+                    <group attrs="{'invisible':[('dte_register', '=', False),
                            ('non_dte_register', '=', False)]}">
                            <field name="electronic_ticket"
                                attrs="{'invisible':[('dte_register', '=', False)]}"
@@ -26,8 +22,7 @@
                                attrs="{'invisible':[('non_dte_register', '=', False)]}"/>
 
                     </group>
-                    </div>
-                </div>
+                </sheet>
                 <footer>
                     <button string="Confirm" name="confirm" type="object"
                             class="oe_highlight"/>
