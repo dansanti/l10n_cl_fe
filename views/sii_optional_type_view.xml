@@ -36,7 +36,5 @@
             <field name="view_mode">tree,form</field>
         </record>
 
-        <!--<menuitem name="Optional Types" action="act_sii_optional_type" id="menu_action_sii_optional_type" parent="l10n_cl_partner_activities.menu_sii_config"/>-->
-
     </data>
 </odoo>

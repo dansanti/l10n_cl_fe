@@ -7,8 +7,8 @@
             <field name="arch" type="xml">
                 <form string="SII Document class">
                     <group>
-                        <field name="name"/>                    
-                        <field name="active"/>                    
+                        <field name="name"/>
+                        <field name="active"/>
                         <field name="issuer_ids"/>
                         <field name="receptor_ids"/>
                         <field name="vat_discriminated"/>
@@ -36,8 +36,6 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
         </record>
-
-        <!--<menuitem name="Document Letters" action="act_sii_document_letter" id="menu_action_sii_document_letter" parent="l10n_cl_partner_activities.menu_sii_config"/>-->
 
     </data>
 </odoo>
