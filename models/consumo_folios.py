@@ -924,8 +924,11 @@ version="1.0">
                 resumenes[TpoDoc] = self._setResumen(resumen, resumenes[TpoDoc])
             #rec.sended = marc
         if 'pos.order' in self.env:
-            current = self.fecha_inicio + ' 03:00:00'
-            next_day = (datetime.strptime(current, DTF) + relativedelta.relativedelta(days=1)).strftime('%Y-%m-%d') + ' 03:00:00'
+            current = self.fecha_inicio + ' 00:00:00'
+            tz = pytz.timezone('America/Santiago')
+            tz_current = tz.localize(current).astimezone(pytz.utc)
+            current = tz_current.strftime(DTF)
+            next_day = (tz_current + relativedelta.relativedelta(days=1)).strftime(DTF)
             orders_array = sorted(self.env['pos.order'].search(
                 [
                  ('invoice_id' , '=', False),
