@@ -124,14 +124,14 @@ class sii_concept_type(models.Model):
         consu and service separated by commas.',
         required=True)
 
-    @api.one
     @api.constrains('product_types')
     def _check_product_types(self):
-        if self.product_types:
-            types = set(self.product_types.split(','))
-            if not types.issubset(['adjust', 'consu', 'service']):
-                raise Warning(_('You provided an invalid list of product types.\
-                Must been separated by commas'))
+        for r in self:
+            if r.product_types:
+                types = set(r.product_types.split(','))
+                if not types.issubset(['adjust', 'consu', 'service']):
+                    raise Warning(_('You provided an invalid list of product types.\
+                    Must been separated by commas'))
 
 
 class sii_optional_type(models.Model):

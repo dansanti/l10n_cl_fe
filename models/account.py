@@ -54,7 +54,7 @@ class SiiTax(models.Model):
             default=False,
         )
 
-    @api.v8
+    @api.multi
     def compute_all(self, price_unit, currency=None, quantity=1.0, product=None, partner=None, discount=None):
         """ Returns all information required to apply taxes (in self + their children in case of a tax goup).
             We consider the sequence of the parent for group of taxes.

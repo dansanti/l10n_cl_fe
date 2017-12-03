@@ -148,25 +148,25 @@ TYPE2JOURNAL = {
 class AccountInvoiceLine(models.Model):
     _inherit = 'account.invoice.line'
 
-    @api.one
     @api.depends('price_unit', 'discount', 'invoice_line_tax_ids', 'quantity',
         'product_id', 'invoice_id.partner_id', 'invoice_id.currency_id', 'invoice_id.company_id')
     def _compute_price(self):
-        currency = self.invoice_id and self.invoice_id.currency_id or None
-        taxes = False
-        total = self.quantity * self.price_unit
-        if self.invoice_line_tax_ids:
-            taxes = self.invoice_line_tax_ids.compute_all(self.price_unit, currency, self.quantity, product=self.product_id, partner=self.invoice_id.partner_id, discount=self.discount)
-        if taxes:
-            self.price_subtotal = price_subtotal_signed = taxes['total_excluded']
-        else:
-            total_discount = total * ((self.discount or 0.0) / 100.0)
-            self.price_subtotal = price_subtotal_signed = total - total_discount
-        if self.invoice_id.currency_id and self.invoice_id.currency_id != self.invoice_id.company_id.currency_id:
-            price_subtotal_signed = self.invoice_id.currency_id.compute(price_subtotal_signed, self.invoice_id.company_id.currency_id)
-        sign = self.invoice_id.type in ['in_refund', 'out_refund'] and -1 or 1
-        self.price_subtotal_signed = price_subtotal_signed * sign
-        self.price_tax_included = taxes['total_included'] if (taxes and taxes['total_included'] > total) else total
+        for line in self:
+            currency = line.invoice_id and line.invoice_id.currency_id or None
+            taxes = False
+            total = line.quantity * line.price_unit
+            if line.invoice_line_tax_ids:
+                taxes = line.invoice_line_tax_ids.compute_all(line.price_unit, currency, line.quantity, product=line.product_id, partner=line.invoice_id.partner_id, discount=line.discount)
+            if taxes:
+                line.price_subtotal = price_subtotal_signed = taxes['total_excluded']
+            else:
+                total_discount = total * ((line.discount or 0.0) / 100.0)
+                line.price_subtotal = price_subtotal_signed = total - total_discount
+            if line.invoice_id.currency_id and line.invoice_id.currency_id != line.invoice_id.company_id.currency_id:
+                price_subtotal_signed = line.invoice_id.currency_id.compute(price_subtotal_signed, line.invoice_id.company_id.currency_id)
+            sign = line.invoice_id.type in ['in_refund', 'out_refund'] and -1 or 1
+            line.price_subtotal_signed = price_subtotal_signed * sign
+            line.price_tax_included = taxes['total_included'] if (taxes and taxes['total_included'] > total) else total
 
     price_tax_included = fields.Monetary(string='Amount', readonly=True, compute='_compute_price')
 
@@ -777,7 +777,6 @@ class invoice(models.Model):
 defined. The type of invoicing document you selected requires you tu settle \
 a VAT."""))
 
-    @api.one
     @api.depends(
         'sii_document_class_id',
         'sii_document_class_id.document_letter_id',
@@ -785,37 +784,39 @@ a VAT."""))
         'company_id',
         'company_id.invoice_vat_discrimination_default',)
     def get_vat_discriminated(self):
-        vat_discriminated = False
-        # agregarle una condicion: si el giro es afecto a iva, debe seleccionar factura, de lo contrario boleta (to-do)
-        if self.sii_document_class_id.document_letter_id.vat_discriminated or self.company_id.invoice_vat_discrimination_default == 'discriminate_default':
-            vat_discriminated = True
-        self.vat_discriminated = vat_discriminated
+        for inv in self:
+            vat_discriminated = False
+            # agregarle una condicion: si el giro es afecto a iva, debe seleccionar factura, de lo contrario boleta (to-do)
+            if inv.sii_document_class_id.document_letter_id.vat_discriminated or inv.company_id.invoice_vat_discrimination_default == 'discriminate_default':
+                vat_discriminated = True
+            inv.vat_discriminated = vat_discriminated
 
-    @api.one
     @api.depends('sii_document_number', 'number')
     def _get_document_number(self):
-        if self.sii_document_number and self.sii_document_class_id:
-            document_number = (
-                self.sii_document_class_id.doc_code_prefix or '') + self.sii_document_number
-        else:
-            document_number = self.number
-        self.document_number = document_number
+        for inv in self:
+            if inv.sii_document_number and inv.sii_document_class_id:
+                document_number = (
+                    inv.sii_document_class_id.doc_code_prefix or '') + inv.sii_document_number
+            else:
+                document_number = inv.number
+            inv.document_number = document_number
 
-    @api.one
     @api.constrains('supplier_invoice_number', 'partner_id', 'company_id')
     def _check_reference(self):
-        if self.type in ['out_invoice', 'out_refund'] and self.reference and self.state == 'open':
-            domain = [('type', 'in', ('out_invoice', 'out_refund')),
-                      # ('reference', '=', self.reference),
-                      ('document_number', '=', self.document_number),
-                      ('journal_document_class_id.sii_document_class_id', '=',
-                       self.journal_document_class_id.sii_document_class_id.id),
-                      ('company_id', '=', self.company_id.id),
-                      ('id', '!=', self.id)]
-            invoice_ids = self.search(domain)
-            if invoice_ids:
-                raise UserError(
-                    _('Supplier Invoice Number must be unique per Supplier and Company!'))
+        for inv in self:
+            if inv.type in ['out_invoice', 'out_refund'] and inv.reference and inv.state == 'open':
+                domain = [
+                            ('type', 'in', ('out_invoice', 'out_refund')),
+                              # ('reference', '=', self.reference),
+                              ('document_number', '=', inv.document_number),
+                              ('journal_document_class_id.sii_document_class_id', '=', inv.journal_document_class_id.sii_document_class_id.id),
+                              ('company_id', '=', inv.company_id.id),
+                              ('id', '!=', inv.id),
+                        ]
+                invoice_ids = inv.search(domain)
+                if invoice_ids:
+                    raise UserError(
+                        _('Supplier Invoice Number must be unique per Supplier and Company!'))
 
     _sql_constraints = [
         ('number_supplier_invoice_number',
@@ -907,10 +908,8 @@ a VAT."""))
         return document_letter_ids
 
     @api.multi
-    def invoice_validate(self):
+    def _check_duplicate_supplier_reference(self):
         for invoice in self:
-            #refuse to validate a vendor bill/refund if there already exists one with the same reference for the same partner,
-            #because it's probably a double encoding of the same bill/refund
             if invoice.type in ('in_invoice', 'in_refund') and invoice.reference:
                 if self.search(
                     [
@@ -921,7 +920,28 @@ a VAT."""))
                         ('id', '!=', invoice.id),
                      ]):
                     raise UserError('El documento %s, Folio %s de la Empresa %s ya se en cuentra registrado' % ( invoice.journal_document_class_id.sii_document_class_id.name, invoice.reference, invoice.partner_id.name))
-        return self.write({'state': 'open'})
+
+    @api.multi
+    def invoice_validate(self):
+        for inv in self:
+            inv.sii_result = 'NoEnviado'
+            inv.responsable_envio = self.env.user.id
+            if inv.type in ['out_invoice', 'out_refund']:
+                if inv.journal_id.restore_mode:
+                    inv.sii_result = 'Proceso'
+                else:
+                    inv._timbrar()
+                    self.env['sii.cola_envio'].create({
+                                                'doc_ids':[inv.id],
+                                                'model':'account.invoice',
+                                                'user_id':self.env.user.id,
+                                                'tipo_trabajo': 'pasivo',
+                                                'date_time': (datetime.now() + timedelta(hours=12)),
+                                                })
+            if inv.purchase_to_done:
+                for ptd in inv.purchase_to_done:
+                    ptd.write({'state': 'done'})
+        return super(inv, self).invoice_validate()
 
     @api.model
     def create(self, vals):
@@ -1633,28 +1653,6 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             cadena += texto[c]
             c += 1
         return cadena
-
-    @api.multi
-    def invoice_validate(self):
-        for inv in self.with_context(lang='es_CL'):
-            inv.sii_result = 'NoEnviado'
-            inv.responsable_envio = self.env.user.id
-            if inv.type in ['out_invoice', 'out_refund']:
-                if inv.journal_id.restore_mode:
-                    inv.sii_result = 'Proceso'
-                else:
-                    inv._timbrar()
-                    self.env['sii.cola_envio'].create({
-                                                'doc_ids':[inv.id],
-                                                'model':'account.invoice',
-                                                'user_id':self.env.user.id,
-                                                'tipo_trabajo': 'pasivo',
-                                                'date_time': (datetime.now() + timedelta(hours=12)),
-                                                })
-            if inv.purchase_to_done:
-                for ptd in inv.purchase_to_done:
-                    ptd.write({'state': 'done'})
-        super(invoice,self).invoice_validate()
 
     @api.multi
     def do_dte_send_invoice(self, n_atencion=None):
