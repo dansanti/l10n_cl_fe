@@ -7,20 +7,52 @@ _logger = logging.getLogger(__name__)
 class SiiTaxTemplate(models.Model):
     _inherit = 'account.tax.template'
 
-    sii_code = fields.Integer('SII Code')
-    sii_type = fields.Selection([ ('A','Anticipado'),('R','Retención')], string="Tipo de impuesto para el SII")
-    retencion = fields.Float(string="Valor retención", default=0.00)
-    no_rec = fields.Boolean(string="Es No Recuperable")#esto es distinto al código no recuperable, depende del manejo de recuperación de impuesto
-    activo_fijo = fields.Boolean(string="Activo Fijo", default=False)
+    sii_code = fields.Integer(
+            string='SII Code',
+        )
+    sii_type = fields.Selection(
+            [
+                    ('A','Anticipado'),
+                    ('R','Retención'),
+            ],
+            string="Tipo de impuesto para el SII",
+        )
+    retencion = fields.Float(
+            string="Valor retención",
+            default=0.00,
+        )
+    no_rec = fields.Boolean(
+            string="Es No Recuperable",
+        )
+    activo_fijo = fields.Boolean(
+            string="Activo Fijo",
+            default=False,
+        )
 
 class SiiTax(models.Model):
     _inherit = 'account.tax'
 
-    sii_code = fields.Integer('SII Code')
-    sii_type = fields.Selection([ ('A','Anticipado'),('R','Retención')], string="Tipo de impuesto para el SII")
-    retencion = fields.Float(string="Valor retención", default=0.00)
-    no_rec = fields.Boolean(string="Es No Recuperable")#esto es distinto al código no recuperable, depende del manejo de recuperación de impuesto
-    activo_fijo = fields.Boolean(string="Activo Fijo", default=False)
+    sii_code = fields.Integer(
+            string='SII Code',
+        )
+    sii_type = fields.Selection(
+            [
+                    ('A','Anticipado'),
+                    ('R','Retención'),
+            ],
+            string="Tipo de impuesto para el SII",
+        )
+    retencion = fields.Float(
+            string="Valor retención",
+            default=0.00,
+        )
+    no_rec = fields.Boolean(
+            string="Es No Recuperable",
+        )
+    activo_fijo = fields.Boolean(
+            string="Activo Fijo",
+            default=False,
+        )
 
     @api.v8
     def compute_all(self, price_unit, currency=None, quantity=1.0, product=None, partner=None, discount=None):
@@ -160,7 +192,6 @@ class account_move(models.Model):
             res[record.id] = document_number
         return res
 
-    @api.one
     @api.depends(
         'sii_document_number',
         'name',
@@ -168,40 +199,68 @@ class account_move(models.Model):
         'document_class_id.doc_code_prefix',
         )
     def _get_document_number(self):
-        if self.sii_document_number and self.document_class_id:
-            document_number = (self.document_class_id.doc_code_prefix or '') + self.sii_document_number
-        else:
-            document_number = self.name
-        self.document_number = document_number
+        for r in self:
+            if r.sii_document_number and r.document_class_id:
+                document_number = (r.document_class_id.doc_code_prefix or '') + r.sii_document_number
+            else:
+                document_number = r.name
+            r.document_number = document_number
 
     document_class_id = fields.Many2one(
-        'sii.document_class',
-        'Document Type',
-        copy=False,
-        readonly=True, states={'draft': [('readonly', False)]}
-    )
+            'sii.document_class',
+            string='Document Type',
+            copy=False,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
     sii_document_number = fields.Char(
-        string='Document Number',
-        copy=False,readonly=True, states={'draft': [('readonly', False)]})
+            string='Document Number',
+            copy=False,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
 
-    canceled = fields.Boolean(string="Canceled?", readonly=True, states={'draft': [('readonly', False)]})
-    iva_uso_comun = fields.Boolean(string="Iva Uso Común", readonly=True, states={'draft': [('readonly', False)]})
-    no_rec_code = fields.Selection([
-                    ('1','Compras destinadas a IVA a generar operaciones no gravados o exentas.'),
-                    ('2','Facturas de proveedores registrados fuera de plazo.'),
-                    ('3','Gastos rechazados.'),
-                    ('4','Entregas gratuitas (premios, bonificaciones, etc.) recibidos.'),
-                    ('9','Otros.')],
-                    string="Código No recuperable",
-                    readonly=True, states={'draft': [('readonly', False)]})# @TODO select 1 automático si es emisor 2Categoría
-
+    canceled = fields.Boolean(
+            string="Canceled?",
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
+    iva_uso_comun = fields.Boolean(
+            string="Iva Uso Común",
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
+    no_rec_code = fields.Selection(
+            [
+                ('1','Compras destinadas a IVA a generar operaciones no gravados o exentas.'),
+                ('2','Facturas de proveedores registrados fuera de plazo.'),
+                ('3','Gastos rechazados.'),
+                ('4','Entregas gratuitas (premios, bonificaciones, etc.) recibidos.'),
+                ('9','Otros.')
+            ],
+            string="Código No recuperable",
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )# @TODO select 1 automático si es emisor 2Categoría
     document_number = fields.Char(
-        compute='_get_document_number',
-        string='Document Number',
-        store=True,
-        readonly=True, states={'draft': [('readonly', False)]})
-    sended = fields.Boolean(string="Enviado al SII", default=False,readonly=True, states={'draft': [('readonly', False)]})
-    factor_proporcionalidad = fields.Float(string="Factor proporcionalidad", default=0.00, readonly=True, states={'draft': [('readonly', False)]})
+            compute='_get_document_number',
+            string='Document Number',
+            store=True,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
+    sended = fields.Boolean(
+            string="Enviado al SII",
+            default=False,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
+    factor_proporcionalidad = fields.Float(
+            string="Factor proporcionalidad",
+            default=0.00,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
 
     def _get_move_imps(self):
         imps = {}
@@ -260,7 +319,9 @@ class account_journal_sii_document_class(models.Model):
     _description = "Journal SII Documents"
     _order = 'sequence'
 
-    name = fields.Char(related='sii_document_class_id.name')
+    name = fields.Char(
+            related='sii_document_class_id.name',
+        )
     sii_document_class_id = fields.Many2one(
             'sii.document_class',
             string='Document Type',
@@ -278,7 +339,9 @@ class account_journal_sii_document_class(models.Model):
             string='Journal',
             required=True,
         )
-    sequence = fields.Integer('Sequence',)
+    sequence = fields.Integer(
+            string='Sequence',
+        )
 
 
 class account_journal(models.Model):
@@ -287,36 +350,44 @@ class account_journal(models.Model):
     sucursal_id = fields.Many2one(
             'sii.sucursal',
             string="Sucursal",
-    )
+        )
     sii_code = fields.Char(
             related='sucursal_id.name',
             string="Código SII Sucursal",
             readonly=True,
-    )
+        )
     journal_document_class_ids = fields.One2many(
             'account.journal.sii_document_class',
             'journal_id',
             'Documents Class',
-    )
+        )
     use_documents = fields.Boolean(
-            'Use Documents?', default='_get_default_doc',
-    )
+            string='Use Documents?',
+            default='_get_default_doc',
+        )
     journal_activities_ids = fields.Many2many(
-            'partner.activities',id1='journal_id', id2='activities_id',
-            string='Journal Turns', help="""Select the turns you want to \
+            'partner.activities',
+            id1='journal_id',
+            id2='activities_id',
+            string='Journal Turns',
+            help="""Select the turns you want to \
             invoice in this Journal""",
-    )
+        )
     restore_mode = fields.Boolean(
             string="Restore Mode",
             default=False,
-    )
+        )
 
     @api.multi
     def _get_default_doc(self):
         self.ensure_one()
-        if 'sale' in self.type or 'purchase' in self.type:
+        if self.type == 'sale' or self.type == 'purchase':
             self.use_documents = True
 
 class res_currency(models.Model):
     _inherit = "res.currency"
-    sii_code = fields.Char('SII Code', size=4)
+
+    sii_code = fields.Char(
+            string='SII Code',
+            size=4,
+        )
