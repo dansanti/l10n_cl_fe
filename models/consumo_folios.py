@@ -150,12 +150,16 @@ class ConsumoFolios(models.Model):
     	readonly=True,
         states={'draft': [('readonly', False)]},)
     correlativo = fields.Integer(
-        string="Correlativo",
-    	readonly=True,
-        states={'draft': [('readonly', False)]},)
+            string="Correlativo",
+        	readonly=True,
+            states={'draft': [('readonly', False)]},
+            invisible=True,
+        )
     sec_envio = fields.Integer(
-        string="Secuencia de Envío",
-        states={'draft': [('readonly', False)]},)
+            string="Secuencia de Envío",
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
     total_neto = fields.Monetary(
         string="Total Neto",
         compute='get_totales',)
@@ -212,9 +216,9 @@ class ConsumoFolios(models.Model):
         states={'draft': [('readonly', False)]},)
 
     _defaults = {
-        'date' : datetime.now(),
-        'fecha_inicio': datetime.now().strftime('%Y-%m-%d'),
-        'fecha_final': datetime.now().strftime('%Y-%m-%d')
+        'date' : lambda *a: datetime.now(),
+        'fecha_inicio': lambda *a: datetime.now().strftime('%Y-%m-%d'),
+        'fecha_final': lambda *a: datetime.now().strftime('%Y-%m-%d')
     }
 
     _order = 'fecha_inicio desc'
@@ -328,7 +332,7 @@ class ConsumoFolios(models.Model):
             ('company_id', '=', self.company_id.id),
             ])
         if consumos > 0:
-            self.correlativo = (consumos+1)
+            self.sec_envio = (consumos+1)
 
     @api.multi
     def unlink(self):
@@ -926,7 +930,7 @@ version="1.0">
         if 'pos.order' in self.env:
             current = self.fecha_inicio + ' 00:00:00'
             tz = pytz.timezone('America/Santiago')
-            tz_current = tz.localize(current).astimezone(pytz.utc)
+            tz_current = tz.localize(datetime.strptime(current, DTF)).astimezone(pytz.utc)
             current = tz_current.strftime(DTF)
             next_day = (tz_current + relativedelta.relativedelta(days=1)).strftime(DTF)
             orders_array = sorted(self.env['pos.order'].search(
