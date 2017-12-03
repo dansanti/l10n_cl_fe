@@ -1,65 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
 
-        <record id="view_country_state_tree_inherit" model="ir.ui.view">
-            <field name="name">res.country.state.tree.inherit</field>
-            <field name="model">res.country.state</field>
-            <field name="type">tree</field>
-            <field name='inherit_id' ref='base.view_country_state_tree'/>
-            <field name="arch" type="xml">
-                <xpath expr="/tree/field[@name='code']" position="after">
-                    <!--<field name="complete_name"/>-->
-                    <field name="type"/>
-                </xpath>
-            </field>
-        </record>
+      <record id="view_country_state_form_inherit" model="ir.ui.view">
+          <field name="name">res.country.state.form.inherit</field>
+          <field name="model">res.country.state</field>
+          <field name="type">form</field>
+          <field name='inherit_id' ref='base.view_country_state_form'/>
+          <field name="arch" type="xml">
+              <field name="code" position="after">
+                  <field name="region_id"/>
+              </field>
+          </field>
+      </record>
+      <record id="view_region_state_tree" model="ir.ui.view">
+          <field name="name">res.country.state.city.tree</field>
+          <field name="model">res.country.state.region</field>
+          <field name="arch" type="xml">
+              <tree string="City">
+                  <field name="code"/>
+                  <field name="name"/>
+              </tree>
+          </field>
+      </record>
 
-        <record id="view_country_state_form_inherit" model="ir.ui.view">
-            <field name="name">res.country.state.form.inherit</field>
-            <field name="model">res.country.state</field>
-            <field name="type">form</field>
-            <field name='inherit_id' ref='base.view_country_state_form'/>
-            <field name="arch" type="xml">
-                <xpath expr="/form/group/field[@name='code']" position="replace">
-                    <field name="code"/>
-                    <field name="parent_id"/>
-                    <field name="type"/>
-        </xpath>
-            </field>
-        </record>
+      <record id="view_country_state_city_tree" model="ir.ui.view">
+          <field name="name">res.country.state.city.tree</field>
+          <field name="model">res.country.state.city</field>
+          <field name="arch" type="xml">
+              <tree string="City">
+                  <field name="name"/>
+                  <field name="state_id"/>
+              </tree>
+          </field>
+      </record>
 
-        <record id="view_country_state_city_tree" model="ir.ui.view">
-            <field name="name">res.country.state.city.tree</field>
-            <field name="model">res.country.state.city</field>
-            <field name="arch" type="xml">
-                <tree string="City">
-                    <field name="name"/>
-                    <!--<field name="complete_name"/>-->
-                    <field name="country_id"/>
-                    <field name="type"/>
-                </tree>
-            </field>
-        </record>
-
-        <record id="view_country_state_city_form" model="ir.ui.view">
-            <field name="name">res.country.state.city.form</field>
-            <field name="model">res.country.state.city</field>
-            <field name="arch" type="xml">
-                <form>
-                    <label for="name" string="Name"/>
-                    <field name="name"/>
-                    <label for="code" string="City Code"/>
-                    <field name="code"/>
-                    <label for="country_id" string="Country"/>
-                    <field name="country_id"/>
-                    <label for="state_id" string="State"/>
-                    <field name="state_id"/>
-                    <label for="type" string="Type"/>
-                    <field name="type"/>
-                </form>
-            </field>
-        </record>
-
-    </data>
+      <record id="view_country_state_city_form" model="ir.ui.view">
+          <field name="name">res.country.state.city.form</field>
+          <field name="model">res.country.state.city</field>
+          <field name="arch" type="xml">
+              <form>
+                  <field name="name"/>
+                  <field name="code"/>
+                  <field name="state_id"/>
+              </form>
+          </field>
+      </record>
 </odoo>

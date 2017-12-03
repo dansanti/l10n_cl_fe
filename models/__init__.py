@@ -15,6 +15,7 @@ from . import partner_activities
 from . import payment_term
 from . import res_partner
 from . import res_state_city
+from . import res_state_region
 from . import res_state
 from . import sale_order
 from . import sii_activity_description

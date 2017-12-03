@@ -12,33 +12,6 @@ class SIISucursal(models.Model):
         default=lambda self: self.env.user.company_id.id,
         )
 
-class sii_point_of_sale(models.Model):
-    _name = 'sii.point_of_sale'
-    _description = 'SII Point Of Sale'
-
-    @api.one
-    @api.depends('number')
-    def _get_code(self):
-        code = False
-        if self.number:
-            # TODO rellenar el number a cuatro
-            code = str(self.number)
-        self.code = code
-    name = fields.Char(
-        'Name', required=True)
-    number = fields.Integer(
-        'Number', required=True)
-    code = fields.Char(
-        'Code', compute="_get_code")
-    company_id = fields.Many2one(
-        'res.company', 'Company', required=True,
-        default=lambda self: self.env.user.company_id.id,
-        )
-
-    _sql_constraints = [('number_unique', 'unique(number, company_id)',
-                         'Number Must be Unique per Company!'), ]
-
-
 class sii_document_class(models.Model):
     _name = 'sii.document_class'
     _description = 'SII Document Class'

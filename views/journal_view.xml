@@ -9,7 +9,6 @@
                 <field name="name" position="after">
                     <field name="sii_code" />
                     <field name="sucursal_id" />
-                    <field name="point_of_sale_id"/>
                 </field>
             </field>
         </record>

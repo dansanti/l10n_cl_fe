@@ -7,7 +7,6 @@ class ResPartner(models.Model):
     state_id = fields.Many2one(
             "res.country.state",
             'Ubication',
-            domain="[('country_id','=',country_id),('type','=','normal')]",
         )
     partner_activities_ids = fields.Many2many(
             'partner.activities',
@@ -18,7 +17,6 @@ class ResPartner(models.Model):
     city_id = fields.Many2one(
             "res.country.state.city",
             'City',
-            domain="[('state_id','=',state_id),('type','=','normal')]"
         )
     def _get_default_tp_type(self):
         try:

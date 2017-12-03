@@ -40,7 +40,6 @@ stamp to be legally valid.''',
     state_id = fields.Many2one(
             "res.country.state",
             'Ubication',
-            domain="[('country_id','=',country_id),('type','=','normal')]",
         )
     company_activities_ids = fields.Many2many(
         string='Activities Names',
@@ -78,7 +77,10 @@ stamp to be legally valid.''',
         related='partner_id.activity_description',
         relation='sii.activity.description',
     )
-    city_id = fields.Many2one("res.country.state.city", 'City', domain="[('state_id','=',state_id),('type','=','normal')]")
+    city_id = fields.Many2one(
+            "res.country.state.city",
+            string='City',
+        )
 
     @api.multi
     def _asign_city(self, source):

@@ -1,25 +1,20 @@
 # -*- encoding: utf-8 -*-
-
-from odoo import models, fields
-
+from odoo import models, fields, api
 
 class res_state(models.Model):
+    _inherit = 'res.country.state'
 
-    def name_get(self, cr, uid, ids, context=None):
-        if not len(ids):
-            return []
+    @api.multi
+    def name_get(self):
         res = []
-        for state in self.browse(cr, uid, ids, context=context):
+        for state in self:
             data = []
-            acc = state
-            while acc:
-                data.insert(0, acc.name)
-                acc = acc.parent_id
+            data.insert(0, state.name)
+            if state.region_id:
+                data.insert(0, state.region_id.name)
             data = ' / '.join(data)
             res.append((state.id, (state.code and '[' + state.code + '] ' or '') + data))
-
         return res
-
 
     def complete_name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
         if not args:
@@ -50,14 +45,9 @@ class res_state(models.Model):
             res.append((state.id, data))
         return dict(res)
 
-    _inherit = 'res.country.state'
-
-    code = fields.Char('State Code', size=32,help='The state code.\n', required=True)
-    #complete_name = fields.Char(compute='_name_get_fnc', string='Complete Name', fnct_search=complete_name_search)
-    parent_id = fields.Many2one('res.country.state','Parent State', index=True, domain=[('type','=','view')])
-    child_ids = fields.One2many('res.country.state', 'parent_id', string='Child States')
-    type = fields.Selection([('view','View'), ('normal','Normal')], 'Type')
-
-    _defaults = {
-            'type': 'normal',
-        }
+        #complete_name = fields.Char(compute='_name_get_fnc', string='Complete Name', fnct_search=complete_name_search)
+    region_id = fields.Many2one(
+            'res.country.state.region',
+            string='Region',
+            index=True,
+        )
