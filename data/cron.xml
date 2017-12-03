@@ -6,7 +6,7 @@
             <field name="interval_number">1</field>
             <field name="interval_type">minutes</field>
             <field name="numbercall">-1</field>
-            <field name="model">sii.cola_envio</field>
+            <field name="model_id" ref="model_sii_cola_envio"/>
             <field name="function">_cron_procesar_cola</field>
             <field name="active" eval="True" />
         </record>
@@ -16,7 +16,7 @@
             <field name="interval_number">1</field>
             <field name="interval_type">days</field>
             <field name="numbercall">-1</field>
-            <field name="model">mail.message.dte.document</field>
+            <field name="model_id" ref="model_sii_cola_envio"/>
             <field name="function">auto_acept_documents</field>
             <field name="active" eval="True" />
             <field name="nextcall">02/10/2017 00:00:01 AM</field>
