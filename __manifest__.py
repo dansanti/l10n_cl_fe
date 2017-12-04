@@ -41,6 +41,7 @@ Facturación Electrónica para Chile.
         ]
     },
     'data': [
+            'wizard/journal_config_wizard_view.xml',
             'views/sii_menuitem.xml',
             'views/company_signature_tab.xml',
             'views/invoice_view.xml',
@@ -77,7 +78,6 @@ Facturación Electrónica para Chile.
             'views/sii_document_type_view.xml',
             'views/sii_optional_type_view.xml',
             'views/sii_responsability_view.xml',
-            'wizard/journal_config_wizard_view.xml',
             'wizard/masive_send_dte.xml',
             'wizard/masive_dte_process.xml',
             'wizard/notas.xml',
