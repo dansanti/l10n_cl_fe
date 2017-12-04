@@ -39,7 +39,6 @@
                   <field name="name" />
                   <field name="fecha_inicio" />
                   <field name="fecha_final" />
-                  <field name="correlativo" />
                   <field name="sec_envio" />
                   <field name="date" />
                   <field name="company_id" />

@@ -207,13 +207,31 @@ class ConsumoFolios(models.Model):
        'cf_id',
        string="Detalle Impuestos")
     currency_id = fields.Many2one(
-        'res.currency',
-        string='Moneda',
-        default=lambda self: self.env.user.company_id.currency_id,
-        required=True,
-        track_visibility='always',
-    	readonly=True,
-        states={'draft': [('readonly', False)]},)
+            'res.currency',
+            string='Moneda',
+            default=lambda self: self.env.user.company_id.currency_id,
+            required=True,
+            track_visibility='always',
+        	readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
+    responsable_envio = fields.Many2one(
+            'res.users',
+        )
+    sii_result = fields.Selection(
+            [
+                ('draft', 'Borrador'),
+                ('NoEnviado', 'No Enviado'),
+                ('Enviado', 'Enviado'),
+                ('Aceptado', 'Aceptado'),
+                ('Rechazado', 'Rechazado'),
+                ('Reparo', 'Reparo'),
+                ('Proceso', 'Proceso'),
+                ('Reenviar', 'Reenviar'),
+                ('Anulado', 'Anulado')
+            ],
+            related="state",
+        )
 
     _defaults = {
         'date' : lambda *a: datetime.now(),
@@ -373,12 +391,6 @@ class ConsumoFolios(models.Model):
         tz = pytz.timezone('America/Santiago')
         return datetime.now(tz).strftime(formato)
 
-    '''
-    Funcion auxiliar para conversion de codificacion de strings
-     proyecto experimentos_dte
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2014-12-01
-    '''
     def convert_encoding(self, data, new_coding = 'UTF-8'):
         encoding = cchardet.detect(data)['encoding']
         if new_coding.upper() != encoding.upper():
@@ -402,13 +414,6 @@ class ConsumoFolios(models.Model):
         except AssertionError as e:
             raise UserError(_('XML Malformed Error:  %s') % e.args)
 
-    '''
-    Funcion usada en autenticacion en SII
-    Obtencion de la semilla desde el SII.
-    Basada en función de ejemplo mostrada en el sitio edreams.cl
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2015-04-01
-    '''
     def get_seed(self, company_id):
         #En caso de que haya un problema con la validación de certificado del sii ( por una mala implementación de ellos)
         #esto omite la validacion
@@ -424,13 +429,6 @@ class ConsumoFolios(models.Model):
         semilla = root[0][0].text
         return semilla
 
-    '''
-    Funcion usada en autenticacion en SII
-    Creacion de plantilla xml para realizar el envio del token
-    Previo a realizar su firma
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def create_template_seed(self, seed):
         xml = u'''<getToken>
 <item>
@@ -440,13 +438,6 @@ class ConsumoFolios(models.Model):
 '''.format(seed)
         return xml
 
-    '''
-    Funcion usada en autenticacion en SII
-    Creacion de plantilla xml para envolver el Envio de DTEs
-    Previo a realizar su firma (2da)
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def create_template_env(self, doc,simplificado=False):
         xsd = 'http://www.sii.cl/SiiDte ConsumoFolio_v10.xsd'
         xml = '''<ConsumoFolios xmlns="http://www.sii.cl/SiiDte" \
@@ -456,14 +447,6 @@ version="1.0">
 {1}</ConsumoFolios>'''.format(xsd, doc)
         return xml
 
-    '''
-    Funcion usada en autenticacion en SII
-    Firma de la semilla utilizando biblioteca signxml
-    De autoria de Andrei Kislyuk https://github.com/kislyuk/signxml
-    (en este caso particular esta probada la efectividad de la libreria)
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def sign_seed(self, message, privkey, cert):
         doc = etree.fromstring(message)
         signed_node = xmldsig(
@@ -475,13 +458,6 @@ version="1.0">
             signed_node, pretty_print=True).replace('ds:', '')
         return msg
 
-    '''
-    Funcion usada en autenticacion en SII
-    Obtencion del token a partir del envio de la semilla firmada
-    Basada en función de ejemplo mostrada en el sitio edreams.cl
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def get_token(self, seed_file,company_id):
         url = server_url[company_id.dte_service_provider] + 'GetTokenFromSeed.jws?WSDL'
         ns = 'urn:'+ server_url[company_id.dte_service_provider] +'GetTokenFromSeed.jws'
@@ -499,13 +475,6 @@ version="1.0">
             x = x.decode(encoding)
         return x
     def long_to_bytes(self, n, blocksize=0):
-        """long_to_bytes(n:long, blocksize:int) : string
-        Convert a long integer to a byte string.
-        If optional blocksize is given and greater than zero, pad the front of the
-        byte string with binary zeros so that the length is a multiple of
-        blocksize.
-        """
-        # after much testing, this algorithm was deemed to be the fastest
         s = b''
         n = long(n)  # noqa
         import struct
@@ -522,8 +491,6 @@ version="1.0">
             s = b'\000'
             i = 0
         s = s[i:]
-        # add back some pad bytes.  this could be done more efficiently w.r.t. the
-        # de-padding being done above, but sigh...
         if blocksize > 0 and len(s) % blocksize:
             s = (blocksize - len(s) % blocksize) * b'\000' + s
         return s
@@ -603,13 +570,6 @@ version="1.0">
             'cert': obj.cert}
         return signature_data
 
-    '''
-    Funcion usada en SII
-    Toma los datos referentes a la resolución SII que autoriza a
-    emitir DTE
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def get_resolution_data(self, comp_id):
         resolution_data = {
             'dte_resolution_date': comp_id.dte_resolution_date,
@@ -669,11 +629,6 @@ version="1.0">
             retorno.update({'sii_result': 'Enviado','sii_send_ident':respuesta_dict['RECEPCIONDTE']['TRACKID']})
         return retorno
 
-    '''
-    Funcion para descargar el xml en el sistema local del usuario
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-05-01
-    '''
     @api.multi
     def get_xml_file(self):
         file_name = self.name.replace(' ','_')
@@ -694,12 +649,6 @@ version="1.0">
         rut = rut.replace('CL0','').replace('CL','')
         return rut
 
-    '''
-    Funcion usada en SII
-    para firma del timbre (dio errores de firma para el resto de los doc)
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2015-03-01
-    '''
     def digest(self, data):
         sha1 = hashlib.new('sha1', data)
         return sha1.digest()
@@ -1070,6 +1019,14 @@ version="1.0">
         envio_dte, doc_id =  self._validar()
         company_id = self.company_id
         result = self.send_xml_file(envio_dte, doc_id, company_id)
+        if result['sii_result'] == 'Enviado':
+            self.env['sii.cola_envio'].create(
+                    {
+                        'doc_ids':[self.id],
+                        'model':'account.move.consumo_folios',
+                        'user_id':self.env.user.id,
+                        'tipo_trabajo': 'consulta',
+                    })
         self.write({
             'sii_xml_response':result['sii_xml_response'],
             'sii_send_ident':result['sii_send_ident'],
