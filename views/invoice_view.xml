@@ -79,6 +79,16 @@
                   <field name="origin" attrs="{'readonly':[('state','not in',['draft'])]}" />
               </field>
 
+              <field name="payment_term_id" position="after">
+                <field name="global_discount" />
+                <field name="global_discount_type" attrs="{'required':[('global_discount','>',0)], 'invisible':[('global_discount','==',0)]}" />
+                <field name="global_discount_detail" attrs="{'required':[('global_discount','>',0)], 'invisible':[('global_discount','==',0)]}" />
+              </field>
+
+              <field name="amount_untaxed" position="after">
+                <field name="amount_untaxed_global_discount" widget="monetary" attrs="{'invisible':[('amount_untaxed_global_discount','=',0)]}"/>
+              </field>
+
               <xpath expr="//page/field[@name='tax_line_ids']/tree/field[@name='account_id']" position="after">
                 <field name="retencion_account_id" />
               </xpath>
@@ -200,6 +210,15 @@
               <field name="state" position="before">
                 <button name="%(account.action_account_invoice_refund)d" type='action' string='Ask Refund' groups="account.group_account_invoice" attrs="{'invisible': ['|',('type', '=', 'in_invoice'),('state','not in',('open','paid'))]}"/>
               </field>
+
+              <field name="payment_term_id" position="after">
+                <field name="global_discount" />
+                <field name="global_discount_type" attrs="{'required':[('global_discount','>',0)], 'invisible':[('global_discount','==',0)]}" />
+                <field name="global_discount_detail" attrs="{'required':[('global_discount','>',0)], 'invisible':[('global_discount','==',0)]}" />
+              </field>
+              <field name="amount_untaxed" position="after">
+                <field name="amount_untaxed_global_discount" widget="monetary" attrs="{'invisible':[('amount_untaxed_global_discount','=',0)]}"/>
+              </field>
               <field name="number" position="attributes">
                   <attribute name="invisible">1</attribute>
               </field>
@@ -251,8 +270,6 @@
               <field name="amount_tax" position="after">
                 <field name="amount_retencion" attrs="{'invisible':[('amount_retencion', '=', 0)]}" />
               </field>
-                <!-- TODO ver si es necesario cambiar este contexto o no -->
-                <!-- TODO cambiar color del boton de envio una vez enviado -->
                 <field name="invoice_line_ids" position="attributes">
                     <attribute name="context">{'partner_id': partner_id, 'price_type': context.get('price_type') or False, 'type': type}" name="invoice_line_ids" on_change="onchange_invoice_line(invoice_line_ids)</attribute>
                 </field>

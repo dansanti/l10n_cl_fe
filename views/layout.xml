@@ -207,6 +207,12 @@
                                       <span t-field="o.amount_untaxed" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
                                   </td>
                                </tr>
+                               <tr t-if="o.global_discount > 0" class="border-black" style="max-height:11px; font-size:12px !important;">
+                                <td><strong>Descuento Global</strong></td>
+                                <td class="text-right">
+                                    <span t-esc="o.global_discount if o.global_discount_type=='amount' else o.amount_untaxed_global_discount" t-esc-options='{"widget": "monetary", "display_currency": "o.currency_id"}'/>
+                                </td>
+                              </tr>
                                <tr name="discount" t-if="display_discount" class="border-black" style="max-height:11px; font-size:12px !important;">
                                  <td><strong>Descuento</strong></td>
                                  <td class="text-right">

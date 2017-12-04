@@ -316,14 +316,32 @@ class invoice(models.Model):
         related='journal_id.use_documents',
         string='Use Documents?',
         readonly=True)
-    referencias = fields.One2many('account.invoice.referencias','invoice_id', readonly=True, states={'draft': [('readonly', False)]})
-    forma_pago = fields.Selection([('1','Contado'),('2','Crédito'),('3','Gratuito')],string="Forma de pago", readonly=True, states={'draft': [('readonly', False)]},
-                    default='1')
-    contact_id = fields.Many2one('res.partner', string="Contacto")
-    amount_retencion = fields.Monetary(string="Retención",
-        default=0.00,
-        compute='_compute_amount')
-
+    referencias = fields.One2many(
+            'account.invoice.referencias',
+            'invoice_id',
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+    )
+    forma_pago = fields.Selection(
+            [
+                    ('1','Contado'),
+                    ('2','Crédito'),
+                    ('3','Gratuito')
+            ]
+            ,string="Forma de pago",
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+            default='1',
+        )
+    contact_id = fields.Many2one(
+            'res.partner',
+            string="Contacto",
+        )
+    amount_retencion = fields.Monetary(
+            string="Retención",
+            default=0.00,
+            compute='_compute_amount',
+        )
     sii_batch_number = fields.Integer(
         copy=False,
         string='Batch Number',
@@ -379,7 +397,9 @@ class invoice(models.Model):
         copy=False,
         help="SII request result",
         default = '')
-    canceled = fields.Boolean(string="Canceled?")
+    canceled = fields.Boolean(
+            string="Canceled?",
+        )
     estado_recep_dte = fields.Selection(
         [
             ('recibido', 'Recibido en DTE'),
@@ -418,18 +438,44 @@ class invoice(models.Model):
         readonly=True,
     )
     purchase_to_done = fields.Many2many(
-        'purchase.order',
-        string="Ordenes de Compra a validar",
-        domain=[('state', 'not in',['done', 'cancel'] )],
-        readonly=True,
-        states={'draft': [('readonly', False)]},
+            'purchase.order',
+            string="Ordenes de Compra a validar",
+            domain=[('state', 'not in',['done', 'cancel'] )],
+            readonly=True,
+            states={'draft': [('readonly', False)]},
     )
     activity_description = fields.Many2one(
-        'sii.activity.description',
-        string="Giro",
-        related="partner_id.activity_description",
-        readonly=True,
+            'sii.activity.description',
+            string="Giro",
+            related="partner_id.activity_description",
+            readonly=True,
     )
+    global_discount = fields.Float(
+            string="Descuento Global",
+            default=0.00,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
+    global_discount_type = fields.Selection(
+            [
+                ('amount','Monto'),
+                ('percent','Porcentaje'),
+            ],
+            string="Tipo de descuento",
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
+    global_discount_detail = fields.Char(
+            string="Razón del descuento",
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
+    amount_untaxed_global_discount = fields.Float(
+            string="Global Discount Amount",
+            store=True,
+            default=0.00,
+            compute='_compute_amount',
+        )
 
     def _repairDiff(self, move_lines, dif):#usualmente es de 1 $ cuando se aplica descuentoo es valor iva incluido
         total = self.amount_total
@@ -461,8 +507,53 @@ class invoice(models.Model):
             new_lines = self._repairDiff(new_lines, dif)
         return new_lines
 
+    def _gd_move_lines(self, move_lines):
+        new_lines = []
+        discount = self.global_discount
+        if self.global_discount_type == 'amount':
+            afecto = 0
+            for line in self.invoice_line_ids:
+                for t in line.invoice_line_tax_ids:
+                    if t.amount > 0:
+                        afecto += line.price_subtotal
+            discount = ((self.global_discount * 100) / afecto )
+        hold = False
+        total = 0
+        for line in move_lines:
+            if line[2]['tax_ids'] and not line[2]['tax_line_id']:#iva ya viene con descuento
+                if line[2]['tax_ids']:
+                    for t in line[2]['tax_ids']:
+                        imp = self.env['account.tax'].browse(t[1])
+                        if imp.amount > 0  and line[2]['debit'] > 0:
+                            line[2]['debit'] -= int(round((line[2]['debit'] * (discount / 100))))
+                            total += line[2]['debit']
+                        elif imp.amount > 0:
+                            line[2]['credit'] -= int(round((line[2]['credit'] * (discount /100))))
+                            total += line[2]['credit']
+                        elif line[2]['debit'] > 0:
+                            total += line[2]['debit']
+                        else:
+                            total += line[2]['credit']
+            elif line[2]['tax_line_id']:
+                if line[2]['debit'] > 0:
+                    total += line[2]['debit']
+                else:
+                    total += line[2]['credit']
+            if line[2]['name'] != '/' and line[2]['name'] != self.name:
+                new_lines.extend([line])
+            else:
+                hold = line
+        if hold and hold[2]['debit'] > 0:
+            hold[2]['debit'] = total
+        else:
+            hold[2]['credit'] = total
+        new_lines.extend([hold])
+        return new_lines
+
     @api.multi
     def finalize_invoice_move_lines(self, move_lines):
+        if self.global_discount > 0:
+            move_lines = self._gd_move_lines(move_lines)
         taxes = self.tax_line_move_line_get()
         retencion = 0
         for t in taxes:
@@ -481,8 +572,49 @@ class invoice(models.Model):
             move_lines = self._repairDiff( move_lines, dif)
         return move_lines
 
+    #@TODO Mejorar
+    def _compute_global_discount(self):
+        taxes_grouped = self.get_taxes_values()
+        tax_lines = self.tax_line_ids.browse([])
+        for tax in taxes_grouped.values():
+            tax_lines += tax_lines.new(tax)
+        self.tax_line_ids = tax_lines
+        discount = self.global_discount
+        amount_untaxed = round(sum(line.price_subtotal for line in self.invoice_line_ids))
+        afecto = 0
+        for line in self.invoice_line_ids:
+            for t in line.invoice_line_tax_ids:
+                if t.amount > 0:
+                    afecto += line.price_subtotal
+        if self.global_discount_type in ['amount'] and afecto > 0:
+            discount = ((self.global_discount * 100) / afecto )
+        self.amount_untaxed = amount_untaxed
+        if afecto > 0 and discount > 0:
+            self.amount_untaxed_global_discount = (afecto * (discount / 100))
+        amount_untaxed -= round(self.amount_untaxed_global_discount)
+        amount_tax = sum(line.amount for line in self.tax_line_ids)
+        self.amount_tax = amount_tax
+        amount_total = amount_untaxed + amount_tax
+        amount_total_company_signed = amount_total
+        self.amount_total = amount_total
+        amount_untaxed_signed = amount_untaxed
+        if self.currency_id and self.currency_id != self.company_id.currency_id:
+            amount_total_company_signed = self.currency_id.compute(amount_total, self.company_id.currency_id)
+            amount_untaxed_signed = self.currency_id.compute(amount_untaxed, self.company_id.currency_id)
+        sign = self.type in ['in_refund', 'out_refund'] and -1 or 1
+        self.amount_total_company_signed = amount_total_company_signed * sign
+        self.amount_total_signed = amount_total * sign
+        self.amount_untaxed_signed = amount_untaxed_signed * sign
+
+    @api.depends('invoice_line_ids.price_subtotal', 'tax_line_ids.amount', 'tax_line_ids.amount_rounding',
+                 'currency_id', 'company_id', 'date_invoice', 'type')
+    @api.onchange('global_discount','global_discount_type')
     def _compute_amount(self):
         for inv in self:
+            #@TODO Mejorar
+            if inv.global_discount > 0  and inv.global_discount_type:
+                inv._compute_global_discount()
+                continue
             amount_tax = 0
             amount_retencion = 0
             included = False
@@ -580,6 +712,26 @@ class invoice(models.Model):
                     tax_grouped[key]['amount'] += val['amount']
                     tax_grouped[key]['amount_retencion'] += val['amount_retencion']
                     tax_grouped[key]['base'] += val['base']
+        if self.global_discount > 0:
+            discount = self.global_discount
+            if self.global_discount_type in ['amount']:
+                discount = 0
+                afecto = 0
+                for line in self.invoice_line_ids:
+                    for tl in line.invoice_line_tax_ids:
+                        if tl.amount > 0:
+                            afecto += line.price_subtotal
+                if afecto > 0:
+                    discount = ((self.global_discount * 100) / afecto )
+            taxes = tax_grouped
+            tax_grouped = {}
+            for id, t in taxes.iteritems():
+                tax = self.env['account.tax'].browse(t['tax_id'])
+                if tax.amount > 0 and discount > 0:
+                    base = round(round(t['base']) * (1 - ((discount / 100.0) or 0.0)))
+                    t['base'] = base
+                    t['amount'] = tax._compute_amount(base, base, 1)
+                tax_grouped[id] = t
         return tax_grouped
 
     def get_document_class_default(self, document_classes):
@@ -1809,6 +1961,25 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 'tax_include': taxInclude,
                 }
 
+    def _gd(self):
+        result = collections.OrderedDict()
+        lin_dr = 1
+        dr_line = {}
+        dr_line = collections.OrderedDict()
+        dr_line['NroLinDR'] = lin_dr
+        dr_line['TpoMov'] = 'D'
+        if self.global_discount_detail:
+            dr_line['GlosaDR'] = self.global_discount_detail
+        disc_type = "%"
+        if self.global_discount_type == "amount":
+            disc_type = "$"
+        dr_line['TpoValor'] = disc_type
+        dr_line['ValorDR'] = round(self.global_discount,2)
+        if self.sii_document_class_id.sii_code in [34] and (self.referencias and self.referencias[0].sii_referencia_TpoDocRef.sii_code == '34'):#solamente si es exento
+            dr_line['IndExeDR'] = 1
+        dr_lines= [{'DscRcgGlobal':dr_line}]
+        return dr_lines
+
     def _dte(self, n_atencion=None):
         dte = collections.OrderedDict()
         invoice_lines = self._invoice_lines()
@@ -1846,6 +2017,8 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         dte['item'] = invoice_lines['invoice_lines']
 
         dte['reflines'] = ref_lines
+        if self.global_discount > 0:
+            result['drlines'] = self._gd()
         dte['TEDd'] = self.get_barcode(invoice_lines['no_product'])
         return dte
 
@@ -1857,7 +2030,8 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             .replace('<item>','').replace('</item>','')\
             .replace('<reflines>','').replace('</reflines>','')\
             .replace('<TEDd>','').replace('</TEDd>','')\
-            .replace('</'+ tpo_dte + '_ID>','\n'+ted+'\n</'+ tpo_dte + '_ID>')
+            .replace('</'+ tpo_dte + '_ID>','\n'+ted+'\n</'+ tpo_dte + '_ID>')\
+            .replace('<drlines>','').replace('</drlines>','')
         return xml
 
     def _tpo_dte(self):
