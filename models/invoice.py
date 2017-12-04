@@ -979,11 +979,6 @@ a VAT."""))
             certf += cert[76 * i:76 * (i + 1)] + '\n'
         return certf
 
-    '''
-    Funcion que permite crear una plantilla para el EnvioDTE
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def create_template_envio(self, RutEmisor, RutReceptor, FchResol, NroResol,
                               TmstFirmaEnv, EnvioDTE,signature_d,SubTotDTE):
         xml = '''<SetDTE ID="SetDoc">
@@ -1004,12 +999,6 @@ a VAT."""))
         tz = pytz.timezone('America/Santiago')
         return datetime.now(tz).strftime(formato)
 
-    '''
-    Funcion auxiliar para conversion de codificacion de strings
-     proyecto experimentos_dte
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2014-12-01
-    '''
     def convert_encoding(self, data, new_coding = 'UTF-8'):
         encoding = cchardet.detect(data)['encoding']
         if new_coding.upper() != encoding.upper():
@@ -1047,16 +1036,7 @@ a VAT."""))
             _logger.warning(etree.tostring(xml_doc))
             raise UserError(_('XML Malformed Error:  %s') % e.args)
 
-    '''
-    Funcion usada en autenticacion en SII
-    Obtencion de la semilla desde el SII.
-    Basada en función de ejemplo mostrada en el sitio edreams.cl
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2015-04-01
-    '''
     def get_seed(self, company_id):
-        #En caso de que haya un problema con la validación de certificado del sii ( por una mala implementación de ellos)
-        #esto omite la validacion
         try:
             import ssl
             ssl._create_default_https_context = ssl._create_unverified_context
@@ -1069,13 +1049,6 @@ a VAT."""))
         semilla = root[0][0].text
         return semilla
 
-    '''
-    Funcion usada en autenticacion en SII
-    Creacion de plantilla xml para realizar el envio del token
-    Previo a realizar su firma
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def create_template_seed(self, seed):
         xml = u'''<getToken>
 <item>
@@ -1085,26 +1058,12 @@ a VAT."""))
 '''.format(seed)
         return xml
 
-    '''
-    Funcion usada en autenticacion en SII
-    Creacion de plantilla xml para envolver el DTE
-    Previo a realizar su firma (1)
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def create_template_doc(self, doc):
         xml = '''<DTE xmlns="http://www.sii.cl/SiiDte" version="1.0">
 {}
 </DTE>'''.format(doc)
         return xml
 
-    '''
-    Funcion usada en autenticacion en SII
-    Creacion de plantilla xml para envolver el Envio de DTEs
-    Previo a realizar su firma (2da)
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def create_template_env(self, doc):
         xml = '''<?xml version="1.0" encoding="ISO-8859-1"?>
 <EnvioDTE xmlns="http://www.sii.cl/SiiDte" \
@@ -1125,24 +1084,10 @@ version="1.0">
 </EnvioBOLETA>'''.format(doc)
         return xml
 
-    '''
-    Funcion usada en autenticacion en SII
-    Insercion del nodo de firma (1ra) dentro del DTE
-    Una vez firmado.
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def create_template_doc1(self, doc, sign):
         xml = doc.replace('</DTE>', '') + sign + '</DTE>'
         return xml
 
-    '''
-    Funcion usada en autenticacion en SII
-    Insercion del nodo de firma (2da) dentro del DTE
-    Una vez firmado.
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def create_template_env1(self, doc, sign):
         xml = doc.replace('</EnvioDTE>', '') + sign + '</EnvioDTE>'
         return xml
@@ -1163,10 +1108,6 @@ version="1.0">
         xml = doc.replace('</EnvioBOLETA>', '') + sign + '</EnvioBOLETA>'
         return xml
 
-    '''
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def sign_seed(self, message, privkey, cert):
         doc = etree.fromstring(message)
         signed_node = xmldsig(
@@ -1178,13 +1119,6 @@ version="1.0">
             signed_node, pretty_print=True).replace('ds:', '')
         return msg
 
-    '''
-    Funcion usada en autenticacion en SII
-    Obtencion del token a partir del envio de la semilla firmada
-    Basada en función de ejemplo mostrada en el sitio edreams.cl
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def get_token(self, seed_file,company_id):
         url = server_url[company_id.dte_service_provider] + 'GetTokenFromSeed.jws?WSDL'
         ns = 'urn:'+ server_url[company_id.dte_service_provider] +'GetTokenFromSeed.jws'
@@ -1203,13 +1137,6 @@ version="1.0">
         return x
 
     def long_to_bytes(self, n, blocksize=0):
-        """long_to_bytes(n:long, blocksize:int) : string
-        Convert a long integer to a byte string.
-        If optional blocksize is given and greater than zero, pad the front of the
-        byte string with binary zeros so that the length is a multiple of
-        blocksize.
-        """
-        # after much testing, this algorithm was deemed to be the fastest
         s = b''
         n = long(n)  # noqa
         import struct
@@ -1329,13 +1256,6 @@ version="1.0">
             'cert': obj.cert}
         return signature_data
 
-    '''
-    Funcion usada en SII
-    Toma los datos referentes a la resolución SII que autoriza a
-    emitir DTE
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def get_resolution_data(self, comp_id):
         resolution_data = {
             'dte_resolution_date': comp_id.dte_resolution_date,
@@ -1485,11 +1405,6 @@ version="1.0">
             'context': ctx,
         }
 
-    '''
-    Funcion para descargar el xml en el sistema local del usuario
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-05-01
-    '''
     @api.multi
     def get_xml_file(self):
         filename = (self.document_number+'.xml').replace(' ','')
@@ -1512,22 +1427,10 @@ version="1.0">
             'target': 'self',
         }
 
-    '''
-    Funcion para descargar el folio tomando el valor desde la secuencia
-    correspondiente al tipo de documento.
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-05-01
-    '''
     def get_folio(self):
         # saca el folio directamente de la secuencia
         return int(self.sii_document_number)
 
-    '''
-         Se Retorna el CAF que corresponda a la secuencia, independiente del estado
-         ya que si se suben 2 CAF y uno está por terminar y se hace un evío masivo
-         Deja fuera Los del antiguo CAF, que son válidos aún, porque no se han enviado; y arroja Error
-         de que la secuencia no está en el rango del CAF
-    '''
     def get_caf_file(self):
         caffiles = self.journal_document_class_id.sequence_id.dte_caf_ids
         if not caffiles:
@@ -1576,23 +1479,10 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         )
         return image
 
-
-    '''
-    Funcion usada en SII
-    para firma del timbre (dio errores de firma para el resto de los doc)
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2015-03-01
-    '''
     def digest(self, data):
         sha1 = hashlib.new('sha1', data)
         return sha1.digest()
 
-    '''
-    Funcion usada en SII
-    para firma del timbre (dio errores de firma para el resto de los doc)
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2015-03-01
-    '''
     def signrsa(self, MESSAGE, KEY, digst=''):
         KEY = KEY.encode('ascii')
         rsa = M2Crypto.EVP.load_key_string(KEY)
@@ -1611,12 +1501,6 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 'exponent': base64.b64encode(rsa_m.e),
                 'digest': base64.b64encode(self.digest(MESSAGE))}
 
-    '''
-    Funcion usada en SII
-    para firma del timbre (dio errores de firma para el resto de los doc)
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2015-03-01
-    '''
     def signmessage(self, MESSAGE, KEY, pubk='', digst=''):
         rsa = M2Crypto.EVP.load_key_string(KEY)
         rsa.reset_context(md='sha1')

@@ -16,12 +16,7 @@ class dteEmail(models.Model):
             ('SIIHOMO', 'SII - Certification process'),
             ('SII', 'www.sii.cl'),
         ), 'DTE Service Provider', help='''Please select your company service \
-provider for DTE service. Select \'None\' if you use manual invoices, fiscal \
-controllers or MiPYME Sii Service. Also take in account that if you select \
-\'www.sii.cl\' you will need to provide SII exempt resolution number in order \
-to be legally enabled to use the service. If your service provider is not \
-listed here, please send us an email to soporte@blancomartin.cl in order to \
-add the option.
+provider for DTE service.
 ''', default='SIIHOMO')
     dte_resolution_number = fields.Char(
         string='SII Exempt Resolution Number',
