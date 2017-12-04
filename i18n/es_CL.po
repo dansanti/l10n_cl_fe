@@ -1,24 +1,23 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* l10n_cl_fe
+# * l10n_cl_fe
 # 
 # Translators:
 # Daniel Santibáñez Polanco <dansanti@gmail.com>, 2017
 # Carlos Rafael Soto <odoo.soporte@gmail.com>, 2017
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 11.0-20171130\n"
+"Project-Id-Version: Odoo Server 11.0-20171202\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-12-02 21:49+0000\n"
-"PO-Revision-Date: 2017-12-02 18:50-0300\n"
+"POT-Creation-Date: 2017-12-04 10:15+0000\n"
+"PO-Revision-Date: 2017-12-04 10:15+0000\n"
 "Last-Translator: Carlos Rafael Soto <odoo.soporte@gmail.com>, 2017\n"
 "Language-Team: Spanish (Chile) (https://www.transifex.com/odoocoop/teams/81257/es_CL/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Content-Transfer-Encoding: \n"
 "Language: es_CL\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.0.4\n"
 
 #. module: l10n_cl_fe
 #: model:ir.model.fields,help:l10n_cl_fe.field_account_journal_document_config_weird_documents
@@ -5166,7 +5165,7 @@ msgstr "Alquiler de Transporte Por Vía Acuática Sin Tripulación"
 #. module: l10n_cl_fe
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_account_invoice_line_price_tax_included
 msgid "Amount"
-msgstr "Importe"
+msgstr "Monto"
 
 #. module: l10n_cl_fe
 #: selection:account.tax,sii_type:0 selection:account.tax.template,sii_type:0
@@ -5260,7 +5259,7 @@ msgstr ""
 #: model:ir.ui.view,arch_db:l10n_cl_fe.honorarios_form
 #: model:ir.ui.view,arch_db:l10n_cl_fe.view_supplier_invoice_form
 msgid "Ask Refund"
-msgstr "Pedir reembolso"
+msgstr "Nota de Crédito"
 
 #. module: l10n_cl_fe
 #: model:ir.ui.view,arch_db:l10n_cl_fe.view_electroinic_book_compra_venta_form
@@ -5570,21 +5569,21 @@ msgid "Check Signature"
 msgstr "Verificar firma"
 
 #. module: l10n_cl_fe
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_child_ids
-msgid "Child States"
-msgstr "Estados secundarios"
+#: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_region_child_ids
+msgid "Child Regions"
+msgstr "Provincias"
 
 #. module: l10n_cl_fe
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_res_company_city_id
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_res_partner_city_id
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_res_users_city_id
 #: model:ir.ui.view,arch_db:l10n_cl_fe.view_country_state_city_tree
+#: model:ir.ui.view,arch_db:l10n_cl_fe.view_region_state_tree
 msgid "City"
 msgstr "Ciudad"
 
 #. module: l10n_cl_fe
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_city_code
-#: model:ir.ui.view,arch_db:l10n_cl_fe.view_country_state_city_form
 msgid "City Code"
 msgstr "Código de la ciudad"
 
@@ -5647,7 +5646,6 @@ msgstr ""
 
 #. module: l10n_cl_fe
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_document_type_code
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_point_of_sale_code
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_responsability_code
 msgid "Code"
 msgstr "Código"
@@ -5800,7 +5798,6 @@ msgstr "Compañías"
 #. module: l10n_cl_fe
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_account_move_consumo_folios_company_id
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_dte_caf_company_id
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_point_of_sale_company_id
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_sucursal_company_id
 msgid "Company"
 msgstr "Compañía"
@@ -5821,7 +5818,7 @@ msgid "Compañía"
 msgstr "Compañía"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/invoice.py:1457
+#: code:addons/l10n_cl_fe/models/invoice.py:1397
 #, python-format
 msgid "Compose Email"
 msgstr "Escribir Email"
@@ -5847,7 +5844,7 @@ msgid "Compras destinadas a IVA a generar operaciones no gravados o exentas."
 msgstr "Compras destinadas a IVA a generar operaciones no gravados o exentas."
 
 #. module: l10n_cl_fe
-#: model:ir.ui.view,arch_db:l10n_cl_fe.view_company_dte_email_form
+#: model:ir.ui.view,arch_db:l10n_cl_fe.view_company_activity_inherit_form
 #: model:ir.ui.view,arch_db:l10n_cl_fe.view_partner_activity_inherit_form
 #: model:ir.ui.view,arch_db:l10n_cl_fe.view_partner_address_form_states_city_inherit
 msgid "Comuna"
@@ -6016,8 +6013,6 @@ msgstr "Comunas"
 
 #. module: l10n_cl_fe
 #: model:ir.model,name:l10n_cl_fe.model_res_country
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_city_country_id
-#: model:ir.ui.view,arch_db:l10n_cl_fe.view_country_state_city_form
 msgid "Country"
 msgstr "País"
 
@@ -6080,6 +6075,7 @@ msgstr "Crear documentos de diario"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_mail_message_dte_document_line_create_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_partner_activities_create_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_city_create_uid
+#: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_region_create_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_activity_description_create_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_cola_envio_create_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_concept_type_create_uid
@@ -6091,7 +6087,6 @@ msgstr "Crear documentos de diario"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_dte_upload_xml_wizard_create_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_dte_validar_wizard_create_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_optional_type_create_uid
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_point_of_sale_create_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_regional_offices_create_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_responsability_create_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_sucursal_create_uid
@@ -6117,6 +6112,7 @@ msgstr "Creado por"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_mail_message_dte_document_line_create_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_partner_activities_create_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_city_create_date
+#: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_region_create_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_activity_description_create_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_cola_envio_create_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_concept_type_create_date
@@ -6128,7 +6124,6 @@ msgstr "Creado por"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_dte_upload_xml_wizard_create_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_dte_validar_wizard_create_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_optional_type_create_date
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_point_of_sale_create_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_regional_offices_create_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_responsability_create_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_sucursal_create_date
@@ -6138,13 +6133,26 @@ msgstr "Creado en"
 #. module: l10n_cl_fe
 #: model:ir.model,name:l10n_cl_fe.model_account_invoice_refund
 msgid "Credit Note"
-msgstr "Note de Crédito"
+msgstr "Nota de Crédito"
 
 #. module: l10n_cl_fe
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_account_journal_document_config_credit_notes
 #: selection:sii.document_class,document_type:0
 msgid "Credit Notes"
 msgstr "Notas de Crédito"
+
+#. module: l10n_cl_fe
+#: model:ir.actions.server,name:l10n_cl_fe.ir_cron_auto_acept_documents_ir_actions_server
+#: model:ir.cron,cron_name:l10n_cl_fe.ir_cron_auto_acept_documents
+#: model:ir.cron,name:l10n_cl_fe.ir_cron_auto_acept_documents
+msgid "Cron AutoAceptación Documentos"
+msgstr "Cron AutoAceptación Documentos"
+
+#. module: l10n_cl_fe
+#: model:ir.actions.server,name:l10n_cl_fe.ir_cron_sii_request_ir_actions_server
+#: model:ir.cron,cron_name:l10n_cl_fe.ir_cron_sii_request
+#: model:ir.cron,name:l10n_cl_fe.ir_cron_sii_request
+msgid "Cron de envío y consulta estado documento en el sii"
+msgstr "Cron de envío y consulta estado documento en el sii"
 
 #. module: l10n_cl_fe
 #: selection:account.invoice,forma_pago:0
@@ -6485,7 +6493,6 @@ msgid "Date"
 msgstr "Fecha"
 
 #. module: l10n_cl_fe
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_account_journal_document_config_debit_notes
 #: selection:sii.document_class,document_type:0
 msgid "Debit Notes"
 msgstr "Notas de debito"
@@ -6599,6 +6606,7 @@ msgstr "Disenadores de Vestuario"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_mail_message_dte_document_line_display_name
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_partner_activities_display_name
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_city_display_name
+#: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_region_display_name
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_activity_description_display_name
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_cola_envio_display_name
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_concept_type_display_name
@@ -6610,7 +6618,6 @@ msgstr "Disenadores de Vestuario"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_dte_upload_xml_wizard_display_name
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_dte_validar_wizard_display_name
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_optional_type_display_name
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_point_of_sale_display_name
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_regional_offices_display_name
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_responsability_display_name
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_sucursal_display_name
@@ -6626,11 +6633,6 @@ msgstr "Distribución de Energia Eléctrica"
 #: model:partner.activities,name:l10n_cl_fe.eco_acti_921120
 msgid "Distribuidora Cinematográficas"
 msgstr "Distribuidora Cinematográficas"
-
-#. module: l10n_cl_fe
-#: selection:account.journal.document_config,debit_notes:0
-msgid "Do not use"
-msgstr "No utilizar"
 
 #. module: l10n_cl_fe
 #: model:ir.ui.view,arch_db:l10n_cl_fe.view_account_move_line_filter
@@ -6660,11 +6662,6 @@ msgstr "Documento Carta"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_account_move_sii_document_number
 msgid "Document Number"
 msgstr "Número de documento"
-
-#. module: l10n_cl_fe
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_account_journal_document_sequence_type
-msgid "Document Sequence Type"
-msgstr "Tipo de secuencia de documento"
 
 #. module: l10n_cl_fe
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_account_invoice_sii_document_class_id
@@ -6747,7 +6744,7 @@ msgstr "Factura borrador"
 #. module: l10n_cl_fe
 #: model:ir.ui.view,arch_db:l10n_cl_fe.honorarios_form
 msgid "Draft Refund"
-msgstr "Borrador de factura rectificativa"
+msgstr "Borrador Nota de Crédito"
 
 #. module: l10n_cl_fe
 #: model:ir.model.fields,help:l10n_cl_fe.field_res_company_status
@@ -6829,13 +6826,13 @@ msgid "El documento ya se encuentra regsitrado"
 msgstr "El documento ya se encuentra regsitrado"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/res_partner.py:139
+#: code:addons/l10n_cl_fe/models/res_partner.py:137
 #, python-format
 msgid "El rut debe ser único"
 msgstr "El rut debe ser único"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/res_partner.py:93
+#: code:addons/l10n_cl_fe/models/res_partner.py:91
 #, python-format
 msgid "El usuario %s está utilizando este documento"
 msgstr "El usuario %s está utilizando este documento"
@@ -7184,35 +7181,35 @@ msgid "Envío"
 msgstr "Envío"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/consumo_folios.py:1082
-#: code:addons/l10n_cl_fe/models/libro.py:1423
+#: code:addons/l10n_cl_fe/models/consumo_folios.py:1046
+#: code:addons/l10n_cl_fe/models/libro.py:1361
 #, python-format
 msgid "Error -11"
 msgstr "Error -11"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/consumo_folios.py:1082
-#: code:addons/l10n_cl_fe/models/libro.py:1423
+#: code:addons/l10n_cl_fe/models/consumo_folios.py:1046
+#: code:addons/l10n_cl_fe/models/libro.py:1361
 #, python-format
 msgid "Error -11: Espere a que sea aceptado por el SII, intente en 5s más"
 msgstr "Error -11: Espere a que sea aceptado por el SII, intente en 5s más"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/consumo_folios.py:1089
-#: code:addons/l10n_cl_fe/models/invoice.py:2132
-#: code:addons/l10n_cl_fe/models/libro.py:1430
+#: code:addons/l10n_cl_fe/models/consumo_folios.py:1053
+#: code:addons/l10n_cl_fe/models/invoice.py:2014
+#: code:addons/l10n_cl_fe/models/libro.py:1368
 #, python-format
 msgid "Error RCT"
 msgstr "Error RCT"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/invoice.py:2158
+#: code:addons/l10n_cl_fe/models/invoice.py:2040
 #, python-format
 msgid "Error code: 2"
 msgstr "Error code: 2"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/invoice.py:833
+#: code:addons/l10n_cl_fe/models/invoice.py:834
 #, python-format
 msgid "Error!"
 msgstr "Error!"
@@ -7300,20 +7297,20 @@ msgid "Estado"
 msgstr "Estado"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/invoice.py:2122
-#: code:addons/l10n_cl_fe/models/invoice.py:2124
+#: code:addons/l10n_cl_fe/models/invoice.py:2004
+#: code:addons/l10n_cl_fe/models/invoice.py:2006
 #, python-format
 msgid "Estado -11"
 msgstr "Estado -11"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/invoice.py:2122
+#: code:addons/l10n_cl_fe/models/invoice.py:2004
 #, python-format
 msgid "Estado -11: Espere a que sea aceptado por el SII, intente en 5s más"
 msgstr "Estado -11: Espere a que sea aceptado por el SII, intente en 5s más"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/invoice.py:2124
+#: code:addons/l10n_cl_fe/models/invoice.py:2006
 #, python-format
 msgid "Estado -11: error 1Algo a salido mal, revisar carátula"
 msgstr "Estado -11: error 1Algo a salido mal, revisar carátula"
@@ -7327,11 +7324,6 @@ msgstr "Estado de Recepcion del Envio"
 #: model:partner.activities,name:l10n_cl_fe.eco_acti_749912
 msgid "Evaluación y Calificación Del Grado de Solvencia"
 msgstr "Evaluación y Calificación Del Grado de Solvencia"
-
-#. module: l10n_cl_fe
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_account_journal_excempt_documents
-msgid "Excempt Documents Available"
-msgstr "Documentos exentos disponibles"
 
 #. module: l10n_cl_fe
 #: model:ir.ui.view,arch_db:l10n_cl_fe.layout_libro
@@ -8436,7 +8428,7 @@ msgid "File Name"
 msgstr "Nombre del archivo"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/invoice.py:1816
+#: code:addons/l10n_cl_fe/models/invoice.py:1698
 #, python-format
 msgid "Fill Partner VAT"
 msgstr "Llenar RUT del Cliente"
@@ -8580,14 +8572,9 @@ msgid "Giro:"
 msgstr "Giro:"
 
 #. module: l10n_cl_fe
-#: model:ir.ui.view,arch_db:l10n_cl_fe.view_company_dte_email_form
+#: model:ir.ui.view,arch_db:l10n_cl_fe.view_company_activity_inherit_form
 msgid "Giros de La Compañia"
 msgstr "Giros de La Compañia"
-
-#. module: l10n_cl_fe
-#: model:ir.ui.view,arch_db:l10n_cl_fe.view_company_activity_inherit_form
-msgid "Giros de la Compañía"
-msgstr "Giros de la Compañía"
 
 #. module: l10n_cl_fe
 #: model:ir.ui.view,arch_db:l10n_cl_fe.view_account_journal_cl_form
@@ -8614,7 +8601,6 @@ msgstr "Glosa Giro"
 #. module: l10n_cl_fe
 #: model:ir.ui.view,arch_db:l10n_cl_fe.view_account_invoice_filter
 #: model:ir.ui.view,arch_db:l10n_cl_fe.view_company_activity_inherit_form
-#: model:ir.ui.view,arch_db:l10n_cl_fe.view_company_dte_email_form
 #: model:ir.ui.view,arch_db:l10n_cl_fe.view_invoice_form
 msgid "Glosa descriptiva"
 msgstr "Glosa descriptiva"
@@ -8715,6 +8701,7 @@ msgstr "Hoteles; Campamentos y Otros Tipos de Hospedaje Temporal"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_mail_message_dte_id
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_partner_activities_id
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_city_id
+#: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_region_id_5919
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_activity_description_id
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_cola_envio_id
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_concept_type_id
@@ -8726,7 +8713,6 @@ msgstr "Hoteles; Campamentos y Otros Tipos de Hospedaje Temporal"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_dte_upload_xml_wizard_id
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_dte_validar_wizard_id
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_optional_type_id
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_point_of_sale_id
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_regional_offices_id
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_responsability_id
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_sucursal_id
@@ -8980,8 +8966,8 @@ msgstr "Apuntes contables"
 
 #. module: l10n_cl_fe
 #: model:ir.model,name:l10n_cl_fe.model_account_journal_sii_document_class
+#: model:ir.ui.view,arch_db:l10n_cl_fe.view_account_journal_cl_form
 #: model:ir.ui.view,arch_db:l10n_cl_fe.view_journal_sii_document_class_form
-#: model:ir.ui.view,arch_db:l10n_cl_fe.view_journal_sii_document_class_tree
 msgid "Journal SII Documents"
 msgstr "Documento diario del SII"
 
@@ -9036,6 +9022,7 @@ msgstr "Ultima fecha"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_mail_message_dte_document_line___last_update
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_partner_activities___last_update
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_city___last_update
+#: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_region___last_update
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_activity_description___last_update
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_cola_envio___last_update
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_concept_type___last_update
@@ -9047,7 +9034,6 @@ msgstr "Ultima fecha"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_dte_upload_xml_wizard___last_update
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_dte_validar_wizard___last_update
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_optional_type___last_update
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_point_of_sale___last_update
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_regional_offices___last_update
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_responsability___last_update
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_sucursal___last_update
@@ -9073,6 +9059,7 @@ msgstr "Última modificación en"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_mail_message_dte_write_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_partner_activities_write_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_city_write_uid
+#: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_region_write_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_activity_description_write_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_cola_envio_write_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_concept_type_write_uid
@@ -9084,7 +9071,6 @@ msgstr "Última modificación en"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_dte_upload_xml_wizard_write_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_dte_validar_wizard_write_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_optional_type_write_uid
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_point_of_sale_write_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_regional_offices_write_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_responsability_write_uid
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_sucursal_write_uid
@@ -9110,6 +9096,7 @@ msgstr "Última actualización de"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_mail_message_dte_write_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_partner_activities_write_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_city_write_date
+#: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_region_write_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_activity_description_write_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_cola_envio_write_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_concept_type_write_date
@@ -9121,7 +9108,6 @@ msgstr "Última actualización de"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_dte_upload_xml_wizard_write_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_dte_validar_wizard_write_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_optional_type_write_date
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_point_of_sale_write_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_regional_offices_write_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_responsability_write_date
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_sucursal_write_date
@@ -9361,9 +9347,7 @@ msgstr "ND"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_document_letter_name
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_document_type_name
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_optional_type_name
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_point_of_sale_name
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_responsability_name
-#: model:ir.ui.view,arch_db:l10n_cl_fe.view_country_state_city_form
 msgid "Name"
 msgstr "Nombre"
 
@@ -9448,11 +9432,6 @@ msgid "Nombre de la Sucursal"
 msgstr "Nombre de la Sucursal"
 
 #. module: l10n_cl_fe
-#: selection:res.country.state,type:0 selection:res.country.state.city,type:0
-msgid "Normal"
-msgstr "Normal"
-
-#. module: l10n_cl_fe
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_res_company_not_after
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_res_users_not_after
 msgid "Not After"
@@ -9477,9 +9456,9 @@ msgid "Not Before this Date"
 msgstr "No antes de esta fecha"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/consumo_folios.py:618
-#: code:addons/l10n_cl_fe/models/invoice.py:1344
-#: code:addons/l10n_cl_fe/models/libro.py:709
+#: code:addons/l10n_cl_fe/models/consumo_folios.py:582
+#: code:addons/l10n_cl_fe/models/invoice.py:1284
+#: code:addons/l10n_cl_fe/models/libro.py:660
 #, python-format
 msgid "Not Service provider selected!"
 msgstr "Proveedor de servicios seleccionado!"
@@ -9493,16 +9472,6 @@ msgstr "Nota de Crédito / Débito"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_mail_message_dte_document_line_new_product
 msgid "Nuevo Producto"
 msgstr "Nuevo Producto"
-
-#. module: l10n_cl_fe
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_point_of_sale_number
-msgid "Number"
-msgstr "Número"
-
-#. module: l10n_cl_fe
-#: sql_constraint:sii.point_of_sale:0
-msgid "Number Must be Unique per Company!"
-msgstr "El número debe ser único por empresa!"
 
 #. module: l10n_cl_fe
 #: model:ir.ui.view,arch_db:l10n_cl_fe.layout_libro
@@ -9556,13 +9525,13 @@ msgid "Opción"
 msgstr "Opción"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/invoice.py:896
+#: code:addons/l10n_cl_fe/models/invoice.py:897
 #, python-format
 msgid "Operation Type Error"
 msgstr "Error Tipo de operación"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/invoice.py:897
+#: code:addons/l10n_cl_fe/models/invoice.py:898
 #, python-format
 msgid "Operation Type Must be \"Sale\" or \"Purchase\""
 msgstr "Tipo de operación debe ser \"Venta\" o \"Compra\""
@@ -9807,11 +9776,6 @@ msgid "Otros."
 msgstr "Otros."
 
 #. module: l10n_cl_fe
-#: selection:account.journal,document_sequence_type:0
-msgid "Own Sequence"
-msgstr "Secuencia propia"
-
-#. module: l10n_cl_fe
 #: selection:account.move.book,tipo_envio:0
 msgid "Parcial"
 msgstr "Parcial"
@@ -9820,11 +9784,6 @@ msgstr "Parcial"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_partner_activities_parent_id
 msgid "Parent Activity"
 msgstr "Parent Activity"
-
-#. module: l10n_cl_fe
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_parent_id
-msgid "Parent State"
-msgstr "Estado Padre"
 
 #. module: l10n_cl_fe
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_partner_activities_partner_ids
@@ -9898,7 +9857,7 @@ msgid "Planes de Seguros Generales"
 msgstr "Planes de Seguros Generales"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/invoice.py:833
+#: code:addons/l10n_cl_fe/models/invoice.py:834
 #, python-format
 msgid ""
 "Please define sequence on the journal related documents to this invoice."
@@ -9929,7 +9888,7 @@ msgstr ""
 "la opción.\n"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/wizard/journal_config_wizard.py:65
+#: code:addons/l10n_cl_fe/wizard/journal_config_wizard.py:67
 #, python-format
 msgid ""
 "Please, set your company responsability in the company partner before "
@@ -9937,12 +9896,6 @@ msgid ""
 msgstr ""
 "Por favor, establezca la responsabilidad del asociado de su empresa antes de"
 " continuar."
-
-#. module: l10n_cl_fe
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_account_journal_point_of_sale
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_account_journal_point_of_sale_id
-msgid "Point of sale"
-msgstr "Punto de venta"
 
 #. module: l10n_cl_fe
 #: model:partner.activities,name:l10n_cl_fe.eco_acti_642030
@@ -10354,6 +10307,21 @@ msgstr "Nota de Crédito"
 #: model:ir.ui.view,arch_db:l10n_cl_fe.view_invoice_form
 msgid "Refund Invoice"
 msgstr "Nota de Crédito"
+
+#. module: l10n_cl_fe
+#: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_region_id
+msgid "Region"
+msgstr "Región"
+
+#. module: l10n_cl_fe
+#: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_region_code
+msgid "Region Code"
+msgstr "Código de la Región"
+
+#. module: l10n_cl_fe
+#: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_region_name
+msgid "Region Name"
+msgstr "Nombre de la Región"
 
 #. module: l10n_cl_fe
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_sii_regional_offices_name
@@ -10996,10 +10964,10 @@ msgid "SII request result"
 msgstr "SII solicitar resultado"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/consumo_folios.py:1089
-#: code:addons/l10n_cl_fe/models/invoice.py:2132
-#: code:addons/l10n_cl_fe/models/invoice.py:2158
-#: code:addons/l10n_cl_fe/models/libro.py:1430
+#: code:addons/l10n_cl_fe/models/consumo_folios.py:1053
+#: code:addons/l10n_cl_fe/models/invoice.py:2014
+#: code:addons/l10n_cl_fe/models/invoice.py:2040
+#: code:addons/l10n_cl_fe/models/libro.py:1368
 #, python-format
 msgid "SII:RESPUESTASII:RESP_HDRGLOSA"
 msgstr "SII:RESPUESTASII:RESP_HDRGLOSA"
@@ -11008,11 +10976,6 @@ msgstr "SII:RESPUESTASII:RESP_HDRGLOSA"
 #: model:partner.activities,name:l10n_cl_fe.eco_acti_924930
 msgid "Salas de Billar, Bowling, Pool y Juegos Electrónicos"
 msgstr "Salas de Billar, Bowling, Pool y Juegos Electrónicos"
-
-#. module: l10n_cl_fe
-#: selection:account.journal,document_sequence_type:0
-msgid "Same Invoice Sequence"
-msgstr "La misma secuencia de factura"
 
 #. module: l10n_cl_fe
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_account_move_consumo_folios_sec_envio
@@ -11025,7 +10988,7 @@ msgid "Securitizadoras"
 msgstr "Securitizadoras"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/invoice.py:1746
+#: code:addons/l10n_cl_fe/models/invoice.py:1628
 #, python-format
 msgid "Seleccione giro del partner"
 msgstr "Seleccione giro del asociado"
@@ -11468,7 +11431,6 @@ msgstr "Fecha de Inicio de actividad"
 #. module: l10n_cl_fe
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_mail_message_dte_document_state
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_city_state_id
-#: model:ir.ui.view,arch_db:l10n_cl_fe.view_country_state_city_form
 msgid "State"
 msgstr "Estado"
 
@@ -11482,7 +11444,7 @@ msgstr "State - City / Manager"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_res_company_status
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_res_users_status
 msgid "Status"
-msgstr "Estado"
+msgstr "Estados"
 
 #. module: l10n_cl_fe
 #: selection:sii.document_class,document_type:0
@@ -11565,7 +11527,7 @@ msgstr "Número de factura del proveedor"
 
 #. module: l10n_cl_fe
 #: sql_constraint:account.invoice:0
-#: code:addons/l10n_cl_fe/models/invoice.py:818
+#: code:addons/l10n_cl_fe/models/invoice.py:819
 #, python-format
 msgid "Supplier Invoice Number must be unique per Supplier and Company!"
 msgstr ""
@@ -11646,9 +11608,19 @@ msgstr ""
 "facturación que seleccionó requiere que liquide un IVA."
 
 #. module: l10n_cl_fe
+#: model:ir.model.fields,help:l10n_cl_fe.field_res_country_state_region_code
+msgid "The region code.\n"
+msgstr ""
+
+#. module: l10n_cl_fe
+#: model:ir.model.fields,help:l10n_cl_fe.field_res_country_state_region_name
+msgid "The state code.\n"
+msgstr ""
+
+#. module: l10n_cl_fe
 #: code:addons/l10n_cl_fe/models/caf.py:213
 #: code:addons/l10n_cl_fe/models/caf.py:228
-#: code:addons/l10n_cl_fe/models/invoice.py:1514
+#: code:addons/l10n_cl_fe/models/invoice.py:1437
 #, python-format
 msgid ""
 "There is no CAF file available or in use for this Document. Please enable "
@@ -11658,7 +11630,7 @@ msgstr ""
 "habilite uno."
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/invoice.py:2034
+#: code:addons/l10n_cl_fe/models/invoice.py:1916
 #: code:addons/l10n_cl_fe/wizard/validar.py:144
 #: code:addons/l10n_cl_fe/wizard/validar.py:235
 #: code:addons/l10n_cl_fe/wizard/validar.py:342
@@ -11674,9 +11646,9 @@ msgstr ""
 "o solicite que le asignen una."
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/consumo_folios.py:984
-#: code:addons/l10n_cl_fe/models/invoice.py:1991
-#: code:addons/l10n_cl_fe/models/libro.py:1299
+#: code:addons/l10n_cl_fe/models/consumo_folios.py:940
+#: code:addons/l10n_cl_fe/models/invoice.py:1873
+#: code:addons/l10n_cl_fe/models/libro.py:1237
 #: code:addons/l10n_cl_fe/wizard/upload_xml.py:313
 #, python-format
 msgid ""
@@ -11692,11 +11664,9 @@ msgstr ""
 #. module: l10n_cl_fe
 #: model:ir.model.fields,help:l10n_cl_fe.field_account_journal_sii_document_class_sequence_id
 msgid ""
-"This field contains the information related to the numbering         of the "
-"documents entries of this document type."
+"This field contains the information related to the numbering             of "
+"the documents entries of this document type."
 msgstr ""
-"This field contains the information related to the numbering of the "
-"documents entries of this document type."
 
 #. module: l10n_cl_fe
 #: model:ir.ui.view,arch_db:l10n_cl_fe.view_clean_signature_confirmation
@@ -12035,13 +12005,6 @@ msgstr ""
 "General"
 
 #. module: l10n_cl_fe
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_city_type
-#: model:ir.model.fields,field_description:l10n_cl_fe.field_res_country_state_type
-#: model:ir.ui.view,arch_db:l10n_cl_fe.view_country_state_city_form
-msgid "Type"
-msgstr "Tipo"
-
-#. module: l10n_cl_fe
 #: model:partner.activities,name:l10n_cl_fe.eco_acti_803010
 msgid "Universidades"
 msgstr "Universidades"
@@ -12073,12 +12036,6 @@ msgid "Upload the XML File in this holder"
 msgstr "Cargue aquí el archivo XML de CAF"
 
 #. module: l10n_cl_fe
-#: selection:account.journal.document_config,credit_notes:0
-#: selection:account.journal.document_config,debit_notes:0
-msgid "Use"
-msgstr "Utilizar"
-
-#. module: l10n_cl_fe
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_account_invoice_use_documents
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_account_journal_use_documents
 msgid "Use Documents?"
@@ -12088,15 +12045,6 @@ msgstr "¿Usa documentos?"
 #: model:ir.model.fields,field_description:l10n_cl_fe.field_dte_caf_use_level
 msgid "Use Level"
 msgstr "Nivel de uso"
-
-#. module: l10n_cl_fe
-#: model:ir.model.fields,help:l10n_cl_fe.field_account_journal_document_sequence_type
-msgid ""
-"Use own sequence or invoice sequence on Debit and Credit                  "
-"Notes?"
-msgstr ""
-"¿Usar secuencia propia o secuencia de factura en las notas de débito y "
-"crédito?"
 
 #. module: l10n_cl_fe
 #: model:ir.ui.view,arch_db:l10n_cl_fe.view_account_invoice_notas
@@ -12753,11 +12701,6 @@ msgid "Version"
 msgstr "Versión"
 
 #. module: l10n_cl_fe
-#: selection:res.country.state,type:0 selection:res.country.state.city,type:0
-msgid "View"
-msgstr "View"
-
-#. module: l10n_cl_fe
 #: selection:account.move.book.honorarios,state:0
 msgid "Válido"
 msgstr "Válido"
@@ -12783,9 +12726,9 @@ msgid "XML File"
 msgstr "XML File"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/consumo_folios.py:399
-#: code:addons/l10n_cl_fe/models/invoice.py:1028
-#: code:addons/l10n_cl_fe/models/libro.py:467
+#: code:addons/l10n_cl_fe/models/consumo_folios.py:415
+#: code:addons/l10n_cl_fe/models/invoice.py:1037
+#: code:addons/l10n_cl_fe/models/libro.py:461
 #, python-format
 msgid "XML Malformed Error:  %s"
 msgstr "XML Error mal formado: %s"
@@ -12840,7 +12783,7 @@ msgstr ""
 "lo que compró o recibió."
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/consumo_folios.py:337
+#: code:addons/l10n_cl_fe/models/consumo_folios.py:359
 #: code:addons/l10n_cl_fe/models/libro.py:380
 #, python-format
 msgid "You cannot delete a Validated book."
@@ -12852,14 +12795,12 @@ msgid "You have"
 msgstr "Tiene"
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/models/sii.py:160
+#: code:addons/l10n_cl_fe/models/sii.py:133
 #, python-format
 msgid ""
-"You provided an invalid list of product types.                Must been "
+"You provided an invalid list of product types.                    Must been "
 "separated by commas"
 msgstr ""
-"Proporcionó una lista no válida de tipos de productos. Debe estar separado "
-"por comas"
 
 #. module: l10n_cl_fe
 #: model:ir.ui.view,arch_db:l10n_cl_fe.view_account_invoice_notas
@@ -12875,7 +12816,7 @@ msgstr ""
 " su cliente/proveedor."
 
 #. module: l10n_cl_fe
-#: code:addons/l10n_cl_fe/wizard/journal_config_wizard.py:64
+#: code:addons/l10n_cl_fe/wizard/journal_config_wizard.py:66
 #, python-format
 msgid "Your company has not setted any responsability"
 msgstr "Su empresa no ha asumido ninguna responsabilidad"
@@ -13000,6 +12941,16 @@ msgstr "débitos pendientes"
 #: selection:sii.cola_envio,tipo_trabajo:0
 msgid "pasivo"
 msgstr "pasivo"
+
+#. module: l10n_cl_fe
+#: model:ir.model,name:l10n_cl_fe.model_res_country_state_region
+msgid "res.country.state.region"
+msgstr ""
+
+#. module: l10n_cl_fe
+#: model:ir.model,name:l10n_cl_fe.model_res_state
+msgid "res_state"
+msgstr ""
 
 #. module: l10n_cl_fe
 #: model:ir.model,name:l10n_cl_fe.model_sii_cola_envio
