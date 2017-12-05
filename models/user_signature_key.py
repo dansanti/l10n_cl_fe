@@ -55,7 +55,7 @@ class userSignature(models.Model):
         subject = cert.get_subject()
 
     def load_cert_pk12(self, filecontent):
-        p12 = load_pkcs12(filecontent, self.dec_pass)
+        p12 = crypto.load_pkcs12(filecontent, self.dec_pass)
 
         cert = p12.get_certificate()
         privky = p12.get_privatekey()
@@ -63,8 +63,8 @@ class userSignature(models.Model):
         issuer = cert.get_issuer()
         subject = cert.get_subject()
 
-        self.not_before = datetime.datetime.strptime(cert.get_notBefore(), '%Y%m%d%H%M%SZ')
-        self.not_after = datetime.datetime.strptime(cert.get_notAfter(), '%Y%m%d%H%M%SZ')
+        self.not_before = datetime.datetime.strptime(cert.get_notBefore().decode("utf-8"), '%Y%m%d%H%M%SZ')
+        self.not_after = datetime.datetime.strptime(cert.get_notAfter().decode("utf-8"), '%Y%m%d%H%M%SZ')
 
         # self.final_date =
         self.subject_c = subject.C
@@ -94,8 +94,8 @@ class userSignature(models.Model):
         certificate = p12.get_certificate()
         private_key = p12.get_privatekey()
 
-        self.priv_key = dump_privatekey(type_, private_key)
-        self.cert = dump_certificate(type_, certificate)
+        self.priv_key = crypto.dump_privatekey(type_, private_key)
+        self.cert = crypto.dump_certificate(type_, certificate)
 
         pubkey = cert.get_pubkey()
 
