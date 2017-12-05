@@ -52,16 +52,34 @@
                   <field name="sii_document_number" invisible="1"/>
                   <field name="move_name" invisible="1"/>
               </form>
+
+              <button name="invoice_print" position="after">
+                 <button string="Imprimir Cedible" type="object" name="print_cedible" />
+              </button>
+
               <!--
               <button name="invoice_cancel" position="attributes">
                   <attribute name="invisible">1</attribute>
               </button>-->
+
               <field name="state" position="before">
                 <button name="%(account.action_account_invoice_refund)d" type='action' string='Refund Invoice' groups="base.group_user" attrs="{'invisible': ['|',('type', '=', 'out_invoice'), ('state', 'not in', ('open','proforma2','paid'))]}"/>
               </field>
-              <button name="invoice_print" position="after">
-                 <button string="Imprimir Cedible" type="object" name="print_cedible" />
-              </button>
+
+              <xpath expr="//form/sheet/h1" position="attributes">
+                <attribute name="invisible">1</attribute>
+              </xpath>
+
+              <xpath expr="//form/sheet/h1" position="after">
+                      <label string="- Next Number: " attrs="{'invisible': ['|',('document_number','!=',False),('state','!=','draft')]}" class="oe_inline"/>
+                      <field name="next_invoice_number" attrs="{'invisible': ['|',('document_number','!=',False),('state','!=','draft')]}" class="oe_inline"/>
+                      <field name="document_number" class="oe_inline"/>
+              </xpath>
+
+              <field name='name' position="attributes">
+                  <attribute name="invisible">1</attribute>
+              </field>
+
               <field name='partner_id' position="after">
                   <field name="activity_description"
                           placeholder="Glosa descriptiva" options="{'no_edit': True}"/>
@@ -118,18 +136,6 @@
                   </field>
               </field>
 
-              <field name='name' position="attributes">
-                  <attribute name="invisible">1</attribute>
-              </field>
-
-              <field name="number" position="attributes">
-                  <attribute name="invisible">1</attribute>
-              </field>
-
-              <field name="number" position="after">
-                  <field name="document_number" class="oe_inline"/>
-              </field>
-
               <field name="journal_id" position="after">
                   <field name="journal_document_class_id"
                         attrs="{'invisible':[('use_documents','=',False)],'required':[('use_documents','=',True)],'readonly':['|',('state','!=','draft'),('sii_document_number','!=',False)]}"
@@ -140,54 +146,53 @@
               <field name="account_id" position="attributes">
                   <attribute name="options">{'no_create': True}</attribute>
               </field>
-<!--
-              <xpath expr="//form/sheet/h1/label[1]" position="after">
-                      <label string="- Next Number: " attrs="{'invisible': ['|',('document_number','!=',False),('state','!=','draft')]}" class="oe_inline"/>
-                      <field name="next_invoice_number" attrs="{'invisible': ['|',('document_number','!=',False),('state','!=','draft')]}" class="oe_inline"/>
-              </xpath>
--->
+
               <field name="amount_tax" position="after">
                 <field name="amount_retencion" attrs="{'invisible':[('amount_retencion', '=', 0)]}" />
               </field>
-                <field name="invoice_line_ids" position="attributes">
-                    <attribute name="context">{'partner_id': partner_id, 'price_type': context.get('price_type') or False, 'type': type}" name="invoice_line_ids" on_change="onchange_invoice_line(invoice_line_ids)</attribute>
-                </field>
-                <xpath expr="//page/field[@name='invoice_line_ids']/tree/field[@name='product_id']" position="after">
-                  <field name="name" />
-                </xpath>
-                <notebook>
-                    <page string="Electronic Invoice" name="electronic_invoice" >
-                        <header>
-                            <button string="Download XML" type="object"  name="get_xml_file"  attrs="{'invisible':[('state', 'in', ['draft'])]}"/>
-                            <button string="Download XML Exchange" type="object"  name="get_xml_exchange_file"  attrs="{'invisible':[('state', 'in', ['draft'])]}"/>
-                            <button string="Send XML" type="object" class="oe_highlight" name="do_dte_send_invoice" attrs="{'invisible': ['|', ('state', 'in', ['draft']),('sii_result', 'not in', ['','NoEnviado','Rechazado'])]}"/>
-                            <button string="Ask for DTE" type="object" class="oe_highlight" name="ask_for_dte_status" attrs="{'invisible':['|', ('state', 'in', ['draft']),('sii_result','in',['','NoEnviado'])]}"/>
-                            <field name='sii_result' widget="statusbar"/>
-                        </header>
-                        <group>
-                            <field name="responsable_envio" invisible="True" readonly="True"/>
-                            <field name='sii_batch_number' readonly="1"/>
-                            <field name='sii_barcode_img' widget="image" attrs="{'invisible':[('sii_result', '=', '')]}" readonly="1"/>
-                            <field name='sii_message' attrs="{'invisible':[('sii_result', 'in', ['','NoEnviado'])]}" readonly="1"/>
-                            <field name='sii_receipt' attrs="{'invisible':[('sii_result', 'in', ['','NoEnviado'])]}" readonly="1"/>
-                            <field name='sii_send_ident' attrs="{'invisible':[('sii_result', 'in', ['','NoEnviado'])]}" readonly="1"/>
-                            <field name='sii_xml_response' attrs="{'invisible':[('sii_result', 'in', ['','NoEnviado'])]}" readonly="1"/>
-                            <field name='sii_send_file_name' attrs="{'invisible':[('sii_result', 'in', ['','NoEnviado'])]}" readonly="1"/>
-                            <field name='sii_xml_dte' attrs="{'invisible':[('sii_result', '=', '')]}" readonly="1"/>
-                            <field name='sii_xml_exchange' attrs="{'invisible':[('sii_result', '=', '')]}" readonly="1"/>
-                            <field name='sii_xml_request' attrs="{'invisible':[('sii_result', '=', '')]}" readonly="1"/>
-                        </group>
-                    </page>
-                    <page name="client_claim" string="Registro de Reclamo en SII">
+
+              <field name="invoice_line_ids" position="attributes">
+                  <attribute name="context">{'partner_id': partner_id, 'price_type': context.get('price_type') or False, 'type': type}" name="invoice_line_ids" on_change="onchange_invoice_line(invoice_line_ids)</attribute>
+              </field>
+
+              <xpath expr="//page/field[@name='invoice_line_ids']/tree/field[@name='product_id']" position="after">
+                <field name="name" />
+              </xpath>
+
+              <notebook>
+                  <page string="Electronic Invoice" name="electronic_invoice" >
                       <header>
-                        <button name="get_dte_claim" string="Consultar estado de Reclamo" type="object"/>
-                        <field name='claim' widget="statusbar"/>
+                          <button string="Download XML" type="object"  name="get_xml_file"  attrs="{'invisible':[('state', 'in', ['draft'])]}"/>
+                          <button string="Download XML Exchange" type="object"  name="get_xml_exchange_file"  attrs="{'invisible':[('state', 'in', ['draft'])]}"/>
+                          <button string="Send XML" type="object" class="oe_highlight" name="do_dte_send_invoice" attrs="{'invisible': ['|', ('state', 'in', ['draft']),('sii_result', 'not in', ['','NoEnviado','Rechazado'])]}"/>
+                          <button string="Ask for DTE" type="object" class="oe_highlight" name="ask_for_dte_status" attrs="{'invisible':['|', ('state', 'in', ['draft']),('sii_result','in',['','NoEnviado'])]}"/>
+                          <field name='sii_result' widget="statusbar"/>
                       </header>
                       <group>
-                        <field name="claim_description" />
+                          <field name="responsable_envio" invisible="True" readonly="True"/>
+                          <field name='sii_batch_number' readonly="1"/>
+                          <field name='sii_barcode_img' widget="image" attrs="{'invisible':[('sii_result', '=', '')]}" readonly="1"/>
+                          <field name='sii_message' attrs="{'invisible':[('sii_result', 'in', ['','NoEnviado'])]}" readonly="1"/>
+                          <field name='sii_receipt' attrs="{'invisible':[('sii_result', 'in', ['','NoEnviado'])]}" readonly="1"/>
+                          <field name='sii_send_ident' attrs="{'invisible':[('sii_result', 'in', ['','NoEnviado'])]}" readonly="1"/>
+                          <field name='sii_xml_response' attrs="{'invisible':[('sii_result', 'in', ['','NoEnviado'])]}" readonly="1"/>
+                          <field name='sii_send_file_name' attrs="{'invisible':[('sii_result', 'in', ['','NoEnviado'])]}" readonly="1"/>
+                          <field name='sii_xml_dte' attrs="{'invisible':[('sii_result', '=', '')]}" readonly="1"/>
+                          <field name='sii_xml_exchange' attrs="{'invisible':[('sii_result', '=', '')]}" readonly="1"/>
+                          <field name='sii_xml_request' attrs="{'invisible':[('sii_result', '=', '')]}" readonly="1"/>
                       </group>
-                    </page>
-                </notebook>
+                  </page>
+
+                  <page name="client_claim" string="Registro de Reclamo en SII">
+                    <header>
+                      <button name="get_dte_claim" string="Consultar estado de Reclamo" type="object"/>
+                      <field name='claim' widget="statusbar"/>
+                    </header>
+                    <group>
+                      <field name="claim_description" />
+                    </group>
+                  </page>
+              </notebook>
             </field>
         </record>
 
