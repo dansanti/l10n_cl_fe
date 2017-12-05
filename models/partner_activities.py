@@ -38,6 +38,6 @@ class PartnerActivities(models.Model):
     )
 
     _defaults = {
-        'active': 1,
+        'active': True,
         'internet_available': 1
     }
