@@ -294,14 +294,17 @@ class invoice(models.Model):
             readonly=True,
             states={'draft': [('readonly', False)]}
         ) # solamente para compras tratamiento del iva
-    no_rec_code = fields.Selection([
-                    ('1','Compras destinadas a IVA a generar operaciones no gravados o exentas.'),
+    no_rec_code = fields.Selection(
+            [
+                        ('1','Compras destinadas a IVA a generar operaciones no gravados o exentas.'),
                     ('2','Facturas de proveedores registrados fuera de plazo.'),
                     ('3','Gastos rechazados.'),
                     ('4','Entregas gratuitas (premios, bonificaciones, etc.) recibidos.'),
-                    ('9','Otros.')],
-                    string="Código No recuperable",
-                    readonly=True, states={'draft': [('readonly', False)]})# @TODO select 1 automático si es emisor 2Categoría
+                    ('9','Otros.')
+            ],
+            string="Código No recuperable",
+            readonly=True, states={'draft': [('readonly', False)]},
+            )# @TODO select 1 automático si es emisor 2Categoría
 
     document_number = fields.Char(
         compute='_get_document_number',
