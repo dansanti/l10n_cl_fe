@@ -94,7 +94,7 @@ Include unusual taxes documents, as transfer invoice, and reissue
         if_tr = [] if self.weird_documents else [29, 108, 914, 911, 904, 905]
         # if_pr = [] if wz.purchase_invoices else [45, 46]
         journal = self.env['account.journal'].browse( journal_id )
-        if_na = [] if journal.excempt_documents else [32, 34]
+        if_na = [] #if journal.excempt_documents else [32, 34]
         dt_types_exclude = if_zf + if_lf + if_tr + if_na
         document_class_obj = self.env['sii.document_class']
         document_class_ids = document_class_obj.search(
