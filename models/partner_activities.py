@@ -12,6 +12,16 @@ class PartnerActivities(models.Model):
             res.append((r.id, (r.code and '[' + r.code + '] ' + r.name or '') ))
         return res
 
+    @api.model
+    def name_search(self, name, args=None, operator='ilike', limit=100):
+        args = args or []
+        recs = self.browse()
+        if name:
+            recs = self.search(['|',('name', '=', name),('code', '=', name)] + args, limit=limit)
+        if not recs:
+            recs = self.search(['|',('name', operator, name),('code', operator, name)] + args, limit=limit)
+        return recs.name_get()
+
     code = fields.Char(
             string='Activity Code',
             required=True,
