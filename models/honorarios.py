@@ -9,49 +9,60 @@ _logger = logging.getLogger(__name__)
 class Honorarios(models.Model):
     _name = 'account.move.book.honorarios'
 
-    tipo_libro = fields.Selection([
+    date = fields.Date(
+            string="Date",
+            required=True,
+        	readonly=True,
+            states={'draft': [('readonly', False)]},
+            default=lambda *a: datetime.now(),
+        )
+    tipo_libro = fields.Selection(
+            [
                 ('ANUAL','Anual'),
                 ('MENSUAL','Mensual'),
-                ],
-                string="Tipo de Libro",
-                default='MENSUAL',
-                required=True,
-                readonly=True,
-                states={'draft': [('readonly', False)]}
-            )
+            ],
+            string="Tipo de Libro",
+            default='MENSUAL',
+            required=True,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
     periodo_tributario = fields.Char(
-        string='Periodo Tributario',
-        required=True,
-        readonly=True,
-        states={'draft': [('readonly', False)]})
+            string='Periodo Tributario',
+            required=True,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+            default=lambda *a: datetime.now().strftime('%Y-%m'),
+        )
     company_id = fields.Many2one('res.company',
-        string="Compañía",
-        required=True,
-        default=lambda self: self.env.user.company_id.id,
-        readonly=True,
-        states={'draft': [('readonly', False)]})
+            string="Compañía",
+            required=True,
+            default=lambda self: self.env.user.company_id.id,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
     name = fields.Char(
-        string="Detalle",
-        required=True,
-        readonly=True,
-        states={'draft': [('readonly', False)]})
-    state = fields.Selection([
-        ('draft', 'Borrador'),
-        ('done', 'Válido'),
-        ],
-        default="draft",
-        string="Estado")
+            string="Detalle",
+            required=True,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
+    state = fields.Selection(
+            [
+                ('draft', 'Borrador'),
+                ('done', 'Válido'),
+            ],
+            default="draft",
+            string="Estado",
+        )
     move_ids = fields.Many2many('account.move',
-        readonly=True,
-        states={'draft': [('readonly', False)]})
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
     impuestos = fields.One2many('account.move.book.honorarios.tax',
-        'book_id',
-        string="Detalle Impuestos")
-
-    _defaults = {
-        'date' : datetime.now(),
-        'periodo_tributario': datetime.now().strftime('%Y-%m'),
-    }
+            'book_id',
+            string="Detalle Impuestos",
+        )
 
     @api.onchange('periodo_tributario','tipo_libro')
     def _setName(self):

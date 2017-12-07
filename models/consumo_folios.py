@@ -142,13 +142,17 @@ class ConsumoFolios(models.Model):
     	readonly=True,
         states={'draft': [('readonly', False)]},)
     fecha_inicio = fields.Date(
-        string="Fecha Inicio",
-    	readonly=True,
-        states={'draft': [('readonly', False)]},)
+            string="Fecha Inicio",
+        	readonly=True,
+            states={'draft': [('readonly', False)]},
+            default=lambda *a: datetime.now().strftime('%Y-%m-%d'),
+        )
     fecha_final = fields.Date(
-        string="Fecha Final",
-    	readonly=True,
-        states={'draft': [('readonly', False)]},)
+            string="Fecha Final",
+        	readonly=True,
+            states={'draft': [('readonly', False)]},
+            default=lambda *a: datetime.now().strftime('%Y-%m-%d'),
+        )
     correlativo = fields.Integer(
             string="Correlativo",
         	readonly=True,
@@ -187,10 +191,12 @@ class ConsumoFolios(models.Model):
     	readonly=True,
         states={'draft': [('readonly', False)]},)
     date = fields.Date(
-        string="Date",
-        required=True,
-    	readonly=True,
-        states={'draft': [('readonly', False)]},)
+            string="Date",
+            required=True,
+        	readonly=True,
+            states={'draft': [('readonly', False)]},
+            default=lambda *a: datetime.now(),
+        )
     detalles = fields.One2many(
         'account.move.consumo_folios.detalles',
        'cf_id',
@@ -232,12 +238,6 @@ class ConsumoFolios(models.Model):
             ],
             related="state",
         )
-
-    _defaults = {
-        'date' : lambda *a: datetime.now(),
-        'fecha_inicio': lambda *a: datetime.now().strftime('%Y-%m-%d'),
-        'fecha_final': lambda *a: datetime.now().strftime('%Y-%m-%d')
-    }
 
     _order = 'fecha_inicio desc'
 

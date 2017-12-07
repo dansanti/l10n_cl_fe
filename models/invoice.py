@@ -296,7 +296,7 @@ class invoice(models.Model):
         ) # solamente para compras tratamiento del iva
     no_rec_code = fields.Selection(
             [
-                        ('1','Compras destinadas a IVA a generar operaciones no gravados o exentas.'),
+                    ('1','Compras destinadas a IVA a generar operaciones no gravados o exentas.'),
                     ('2','Facturas de proveedores registrados fuera de plazo.'),
                     ('3','Gastos rechazados.'),
                     ('4','Entregas gratuitas (premios, bonificaciones, etc.) recibidos.'),
@@ -304,21 +304,23 @@ class invoice(models.Model):
             ],
             string="Código No recuperable",
             readonly=True, states={'draft': [('readonly', False)]},
-            )# @TODO select 1 automático si es emisor 2Categoría
+        )# @TODO select 1 automático si es emisor 2Categoría
 
     document_number = fields.Char(
-        compute='_get_document_number',
-        string='Document Number',
-        readonly=True,
-    )
+            compute='_get_document_number',
+            string='Document Number',
+            readonly=True,
+        )
     next_invoice_number = fields.Integer(
-        related='journal_document_class_id.sequence_id.number_next_actual',
-        string='Next Document Number',
-        readonly=True)
+            related='journal_document_class_id.sequence_id.number_next_actual',
+            string='Next Document Number',
+            readonly=True,
+        )
     use_documents = fields.Boolean(
-        related='journal_id.use_documents',
-        string='Use Documents?',
-        readonly=True)
+            related='journal_id.use_documents',
+            string='Use Documents?',
+            readonly=True,
+        )
     referencias = fields.One2many(
             'account.invoice.referencias',
             'invoice_id',
@@ -346,25 +348,26 @@ class invoice(models.Model):
             compute='_compute_amount',
         )
     sii_batch_number = fields.Integer(
-        copy=False,
-        string='Batch Number',
-        readonly=True,
-        help='Batch number for processing multiple invoices together')
-
+            copy=False,
+            string='Batch Number',
+            readonly=True,
+            help='Batch number for processing multiple invoices together',
+        )
     sii_barcode = fields.Char(
-        copy=False,
-        string=_('SII Barcode'),
-        readonly=True,
-        help='SII Barcode Name')
-
+            copy=False,
+            string=_('SII Barcode'),
+            readonly=True,
+            help='SII Barcode Name',
+        )
     sii_barcode_img = fields.Binary(
-        copy=False,
-        string=_('SII Barcode Image'),
-        help='SII Barcode Image in PDF417 format')
-
+            copy=False,
+            string=_('SII Barcode Image'),
+            help='SII Barcode Image in PDF417 format',
+        )
     sii_receipt = fields.Text(
-        string='SII Mensaje de recepción',
-        copy=False)
+            string='SII Mensaje de recepción',
+            copy=False,
+        )
     sii_message = fields.Text(
         string='SII Message',
         copy=False)
@@ -383,18 +386,20 @@ class invoice(models.Model):
     sii_send_ident = fields.Text(
         string='SII Send Identification',
         copy=False)
-    sii_result = fields.Selection([
-        ('', 'n/a'),
-        ('NoEnviado', 'No Enviado'),
-        ('EnCola','En cola de envío'),
-        ('Enviado', 'Enviado'),
-        ('Aceptado', 'Aceptado'),
-        ('Rechazado', 'Rechazado'),
-        ('Reparo', 'Reparo'),
-        ('Proceso', 'Procesado'),
-        ('Reenviar', 'Reenviar'),
-        ('Anulado', 'Anulado')],
-        'Resultado',
+    sii_result = fields.Selection(
+        [
+            ('', 'n/a'),
+            ('NoEnviado', 'No Enviado'),
+            ('EnCola','En cola de envío'),
+            ('Enviado', 'Enviado'),
+            ('Aceptado', 'Aceptado'),
+            ('Rechazado', 'Rechazado'),
+            ('Reparo', 'Reparo'),
+            ('Proceso', 'Procesado'),
+            ('Reenviar', 'Reenviar'),
+            ('Anulado', 'Anulado')
+        ],
+        string='Resultado',
         readonly=True,
         states={'draft': [('readonly', False)]},
         copy=False,

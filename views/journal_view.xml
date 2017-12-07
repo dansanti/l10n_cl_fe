@@ -41,7 +41,7 @@
                           <tree string="Journal SII Documents" editable="bottom">
                               <field name="sequence" widget="handle"/>
                               <field name="sii_document_class_id"/>
-                              <field name='sequence_id' attrs="{'required':[('journal_type', 'in', ['sale'])], 'readonly': [('journal_type', 'not in', ['sale'])]}"/>
+                              <field name='sequence_id'/>
                           </tree>
                         </field>
                     </page>

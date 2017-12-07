@@ -158,106 +158,126 @@ class Libro(models.Model):
                 readonly=True,
                 states={'draft': [('readonly', False)]}
             )
-    tipo_operacion = fields.Selection([
+    tipo_operacion = fields.Selection(
+            [
                 ('COMPRA','Compras'),
                 ('VENTA','Ventas'),
                 ('BOLETA','Boleta Electrónica'),
-                ],
-                string="Tipo de operación",
-                default="COMPRA",
-                required=True,
-                readonly=True,
-                states={'draft': [('readonly', False)]}
-            )
-    tipo_envio = fields.Selection([
+            ],
+            string="Tipo de operación",
+            default="COMPRA",
+            required=True,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
+    tipo_envio = fields.Selection(
+            [
                 ('AJUSTE','Ajuste'),
                 ('TOTAL','Total'),
                 ('PARCIAL','Parcial'),
                 ('TOTAL','Total'),
-                ],
-                string="Tipo de Envío",
-                default="TOTAL",
-                required=True,
-                readonly=True,
-                states={'draft': [('readonly', False)]}
-            )
+            ],
+            string="Tipo de Envío",
+            default="TOTAL",
+            required=True,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
     folio_notificacion = fields.Char(
-        string="Folio de Notificación",
-        readonly=True,
-        states={'draft': [('readonly', False)]})
-    impuestos = fields.One2many('account.move.book.tax',
-        'book_id',
-        string="Detalle Impuestos")
-    currency_id = fields.Many2one('res.currency',
-        string='Moneda',
-        default=lambda self: self.env.user.company_id.currency_id,
-        required=True,
-        track_visibility='always')
+            string="Folio de Notificación",
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
+    impuestos = fields.One2many(
+            'account.move.book.tax',
+            'book_id',
+            string="Detalle Impuestos",
+        )
+    currency_id = fields.Many2one(
+            'res.currency',
+            string='Moneda',
+            default=lambda self: self.env.user.company_id.currency_id,
+            required=True,
+            track_visibility='always',
+        )
     total_afecto = fields.Monetary(
-        string="Total Afecto",
-        readonly=True,
-        compute="set_resumen",
-        store=True,)
+            string="Total Afecto",
+            readonly=True,
+            compute="set_resumen",
+            store=True,
+        )
     total_exento = fields.Monetary(
-        string="Total Exento",
-        readonly=True,
-        compute='set_resumen',
-        store=True,)
+            string="Total Exento",
+            readonly=True,
+            compute='set_resumen',
+            store=True,
+        )
     total_iva = fields.Monetary(
-        string="Total IVA",
-        readonly=True,
-        compute='set_resumen',
-        store=True,)
+            string="Total IVA",
+            readonly=True,
+            compute='set_resumen',
+            store=True,
+        )
     total_otros_imps = fields.Monetary(
-        string="Total Otros Impuestos",
-        readonly=True,
-        compute='set_resumen',
-        store=True,)
+            string="Total Otros Impuestos",
+            readonly=True,
+            compute='set_resumen',
+            store=True,
+        )
     total = fields.Monetary(
-        string="Total Otros Impuestos",
-        readonly=True,
-        compute='set_resumen',
-        store=True,)
+            string="Total Otros Impuestos",
+            readonly=True,
+            compute='set_resumen',
+            store=True,
+        )
     periodo_tributario = fields.Char(
-        string='Periodo Tributario',
-        required=True,
-        readonly=True,
-        states={'draft': [('readonly', False)]})
-    company_id = fields.Many2one('res.company',
-        string="Compañía",
-        required=True,
-        default=lambda self: self.env.user.company_id.id,
-        readonly=True,
-        states={'draft': [('readonly', False)]})
+            string='Periodo Tributario',
+            required=True,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+            default=lambda *a: datetime.now().strftime('%Y-%m'),
+        )
+    company_id = fields.Many2one(
+            'res.company',
+            string="Compañía",
+            required=True,
+            default=lambda self: self.env.user.company_id.id,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
     name = fields.Char(
-        string="Detalle",
-        required=True,
-        readonly=True,
-        states={'draft': [('readonly', False)]})
+            string="Detalle",
+            required=True,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
     fact_prop = fields.Float(
-        string="Factor proporcionalidad",
-        readonly=True,
-        states={'draft': [('readonly', False)]})
+            string="Factor proporcionalidad",
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
     nro_segmento = fields.Integer(
-        string="Número de Segmento",
-        readonly=True,
-        states={'draft': [('readonly', False)]})
+            string="Número de Segmento",
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
     date = fields.Date(
-        string="Fecha",
-        required=True,
-        readonly=True,
-        states={'draft': [('readonly', False)]})
-    boletas = fields.One2many('account.move.book.boletas',
-        'book_id',
-        string="Boletas",
-        readonly=True,
-        states={'draft': [('readonly', False)]})
-    codigo_rectificacion = fields.Char(string="Código de Rectificación")
-
-    _defaults = {
-        'date' : datetime.now(),
-        'periodo_tributario': datetime.now().strftime('%Y-%m'),
-    }
+            string="Fecha",
+            required=True,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+            default=lambda *a: datetime.now(),
+        )
+    boletas = fields.One2many(
+            'account.move.book.boletas',
+            'book_id',
+            string="Boletas",
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
+    codigo_rectificacion = fields.Char(
+            string="Código de Rectificación",
+        )
 
     @api.onchange('periodo_tributario', 'tipo_operacion', 'company_id')
     def set_movimientos(self):

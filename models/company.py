@@ -8,43 +8,46 @@ class dteEmail(models.Model):
     _inherit = 'res.company'
 
     dte_email = fields.Char(
-            'DTE Email',
+            string='DTE Email',
             related='partner_id.dte_email'
     )
     dte_service_provider = fields.Selection(
-        (
-            ('SIIHOMO', 'SII - Certification process'),
-            ('SII', 'www.sii.cl'),
-        ), 'DTE Service Provider', help='''Please select your company service \
+            (
+                ('SIIHOMO', 'SII - Certification process'),
+                ('SII', 'www.sii.cl'),
+            ), 'DTE Service Provider', help='''Please select your company service \
 provider for DTE service.
-''', default='SIIHOMO')
+    ''',
+            default='SIIHOMO',
+        )
     dte_resolution_number = fields.Char(
-        string='SII Exempt Resolution Number',
-        help='''This value must be provided \
+            string='SII Exempt Resolution Number',
+            help='''This value must be provided \
 and must appear in your pdf or printed tribute document, under the electronic \
 stamp to be legally valid.''',
-        default='0',
+            default='0',
     )
     dte_resolution_date = fields.Date(
             'SII Exempt Resolution Date',
     )
     sii_regional_office_id = fields.Many2one(
-        'sii.regional.offices',
-        string='SII Regional Office',
+            'sii.regional.offices',
+            string='SII Regional Office',
         )
     state_id = fields.Many2one(
             "res.country.state",
             'Ubication',
         )
     company_activities_ids = fields.Many2many(
-        string='Activities Names',
-        related='partner_id.partner_activities_ids',
-        relation='partner.activities',
-    )
+            string='Activities Names',
+            related='partner_id.partner_activities_ids',
+            relation='partner.activities',
+        )
     responsability_id = fields.Many2one(
-        related='partner_id.responsability_id',
-        relation='sii.responsability',
-        string="Responsability",)
+            related='partner_id.responsability_id',
+            relation='sii.responsability',
+            string="Responsability",
+        )
     start_date = fields.Date(
         related='partner_id.start_date',
         string='Start-up Date',)

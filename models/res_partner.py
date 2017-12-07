@@ -8,6 +8,22 @@ _logger = logging.getLogger(__name__)
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
+    def _get_default_tp_type(self):
+        try:
+            return self.env.ref('l10n_cl_fe.res_IVARI')
+        except:
+            return self.env['sii.responsability']
+
+    def _get_default_doc_type(self):
+        try:
+            return self.env.ref('l10n_cl_fe.dt_RUT')
+        except:
+            return self.env['sii.document_type']
+
+    @api.model
+    def _get_default_country(self):
+        return self.env.user.company_id.country_id.id or self.env.user.partner_id.country_id.id
+
     state_id = fields.Many2one(
             "res.country.state",
             'Ubication',
@@ -22,18 +38,6 @@ class ResPartner(models.Model):
             "res.country.state.city",
             'City',
         )
-    def _get_default_tp_type(self):
-        try:
-            return self.env.ref('l10n_cl_fe.res_IVARI')
-        except:
-            return self.env['sii.responsability']
-
-    def _get_default_doc_type(self):
-        try:
-            return self.env.ref('l10n_cl_fe.dt_RUT')
-        except:
-            return self.env['sii.document_type']
-
     responsability_id = fields.Many2one(
         'sii.responsability',
         string='Responsability',
@@ -57,8 +61,12 @@ class ResPartner(models.Model):
         readonly=True,
     )
     activity_description = fields.Many2one(
-        'sii.activity.description',
-        string='Glosa Giro', ondelete="restrict")
+            'sii.activity.description',
+            string='Glosa Giro', ondelete="restrict",
+        )
+    dte_email = fields.Char(
+            string='DTE Email',
+        )
 
     @api.multi
     @api.onchange('responsability_id')
@@ -114,17 +122,6 @@ class ResPartner(models.Model):
     def _asign_city(self, source):
         if self.city_id:
             return {'value':{'city': self.city_id.name}}
-
-    @api.model
-    def _get_default_country(self):
-        return self.env.user.company_id.country_id.id or self.env.user.partner_id.country_id.id
-
-
-    _defaults ={
-        'country_id' : lambda self, cr, uid, c: self.pool.get('res.partner')._get_default_country(cr, uid, context=c)
-    }
-
-    dte_email = fields.Char('DTE Email')
 
     @api.constrains('vat')
     def _rut_unique(self):
