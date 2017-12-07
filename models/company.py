@@ -13,12 +13,12 @@ class dteEmail(models.Model):
     )
     dte_service_provider = fields.Selection(
             (
-                ('SIIHOMO', 'SII - Certification process'),
+                ('SIICERT', 'SII - Certification process'),
                 ('SII', 'www.sii.cl'),
             ), 'DTE Service Provider', help='''Please select your company service \
 provider for DTE service.
     ''',
-            default='SIIHOMO',
+            default='SIICERT',
         )
     dte_resolution_number = fields.Char(
             string='SII Exempt Resolution Number',

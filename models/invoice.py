@@ -109,12 +109,12 @@ except ImportError:
     _logger.warning('Cannot import xmltodict library')
 
 server_url = {
-    'SIIHOMO':'https://maullin.sii.cl/DTEWS/',
+    'SIICERT':'https://maullin.sii.cl/DTEWS/',
     'SII':'https://palena.sii.cl/DTEWS/',
 }
 
 claim_url = {
-    'SIIHOMO': 'https://ws2.sii.cl/WSREGISTRORECLAMODTECERT/registroreclamodteservice',
+    'SIICERT': 'https://ws2.sii.cl/WSREGISTRORECLAMODTECERT/registroreclamodteservice',
     'SII':'https://ws1.sii.cl/WSREGISTRORECLAMODTE/registroreclamodteservice',
 }
 
@@ -1456,7 +1456,7 @@ version="1.0">
         #    return
 
         url = 'https://palena.sii.cl'
-        if company_id.dte_service_provider == 'SIIHOMO':
+        if company_id.dte_service_provider == 'SIICERT':
             url = 'https://maullin.sii.cl'
         headers = {
             'Accept': 'image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/vnd.ms-powerpoint, application/ms-excel, application/msword, */*',
@@ -1994,7 +1994,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         dte['Encabezado'] = self._encabezado(invoice_lines['MntExe'], invoice_lines['no_product'], invoice_lines['tax_include'])
         lin_ref = 1
         ref_lines = []
-        if self.company_id.dte_service_provider == 'SIIHOMO' and isinstance(n_atencion, unicode) and n_atencion != '' and not self._es_boleta():
+        if self.company_id.dte_service_provider == 'SIICERT' and isinstance(n_atencion, unicode) and n_atencion != '' and not self._es_boleta():
             ref_line = {}
             ref_line = collections.OrderedDict()
             ref_line['NroLinRef'] = lin_ref
@@ -2102,7 +2102,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             signature.'''))
             certp = signature_d['cert'].replace(
                 BC, '').replace(EC, '').replace('\n', '')
-            if inv.company_id.dte_service_provider == 'SIIHOMO': #Retimbrar con número de atención y envío
+            if inv.company_id.dte_service_provider == 'SIICERT': #Retimbrar con número de atención y envío
                 inv._timbrar(n_atencion)
             #@TODO Mejarorar esto en lo posible
             if not inv.sii_document_class_id.sii_code in clases:

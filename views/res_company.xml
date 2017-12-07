@@ -9,17 +9,17 @@
                 <field name="dte_email" widget="email"/>
                 <field name="dte_service_provider"/>
                 <field name="dte_resolution_number"
-                       attrs="{'invisible': [('dte_service_provider', 'not in', ['SII', 'SIIHOMO'])],
-                               'required':  [('dte_service_provider', 'not in', ['SII', 'SIIHOMO'])]}"/>
+                       attrs="{'invisible': [('dte_service_provider', 'not in', ['SII', 'SIICERT'])],
+                               'required':  [('dte_service_provider', 'not in', ['SII', 'SIICERT'])]}"/>
                 <field name="dte_resolution_date"
-                       attrs="{'invisible': [('dte_service_provider', 'not in', ['SII', 'SIIHOMO'])],
-                               'required':  [('dte_service_provider', 'not in', ['SII', 'SIIHOMO'])]}"/>
+                       attrs="{'invisible': [('dte_service_provider', 'not in', ['SII', 'SIICERT'])],
+                               'required':  [('dte_service_provider', 'not in', ['SII', 'SIICERT'])]}"/>
                 <field name="sii_regional_office_id"
                         domain="['|',
                         ('state_ids', '=', city_id),
                         ('name', '=', 'Grandes Contribuyentes')]"
-                       attrs="{'invisible': [('dte_service_provider', 'not in', ['SII', 'SIIHOMO'])],
-                               'required':  [('dte_service_provider', 'in', ['SII', 'SIIHOMO'])]}"/>
+                       attrs="{'invisible': [('dte_service_provider', 'not in', ['SII', 'SIICERT'])],
+                               'required':  [('dte_service_provider', 'in', ['SII', 'SIICERT'])]}"/>
               </field>
               <field name="vat" position="after">
                   <field name="responsability_id" widget="selection"/>
@@ -29,7 +29,7 @@
                       placeholder="Giros de La Compañia" widget="many2many_tags"
                       options="{'no_create': True}"
                       domain="[('parent_id', '>=', 1),
-                      ('tax_category', '=', tp_sii_code)]"/>
+                      ('tax_category', '=', tp_sii_code)]" />
                   <field name="activity_description"
                               placeholder="Glosa descriptiva" required="True"/>
               </field>

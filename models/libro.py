@@ -76,7 +76,7 @@ try:
 except ImportError:
     _logger.info('Cannot import signxml')
 
-server_url = {'SIIHOMO':'https://maullin.sii.cl/DTEWS/','SII':'https://palena.sii.cl/DTEWS/'}
+server_url = {'SIICERT':'https://maullin.sii.cl/DTEWS/','SII':'https://palena.sii.cl/DTEWS/'}
 
 BC = '''-----BEGIN CERTIFICATE-----\n'''
 EC = '''\n-----END CERTIFICATE-----\n'''
@@ -692,7 +692,7 @@ version="1.0">
             raise UserError(connection_status)
 
         url = 'https://palena.sii.cl'
-        if company_id.dte_service_provider == 'SIIHOMO':
+        if company_id.dte_service_provider == 'SIICERT':
             url = 'https://maullin.sii.cl'
         post = '/cgi_dte/UPL/DTEUpload'
         headers = {
