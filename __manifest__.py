@@ -91,7 +91,7 @@ Facturación Electrónica para Chile.
             'data/partner.activities.csv',
             'data/partner.xml',
             'data/product.xml',
-            #'data/res.currency.csv',
+            'data/res_currency.xml',
             'data/sequence.xml',
             'data/sii.concept_type.csv',
             'data/sii.document_letter.csv',
