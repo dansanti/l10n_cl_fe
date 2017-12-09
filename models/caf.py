@@ -82,7 +82,7 @@ has been exhausted. Cancelled means it has been deprecated by hand.''',
             'res.company',
             string='Company',
             required=False,
-            default=lambda self: self.env.user.company_id,
+            default=lambda self: self.env.uid.company_id,
         )
     sequence_id = fields.Many2one(
             'ir.sequence',
