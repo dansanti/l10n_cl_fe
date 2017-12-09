@@ -15,9 +15,8 @@ try:
 except ImportError:
     pass
 
-
-
 class caf(models.Model):
+    _name = 'dte.caf'
 
     @api.depends('caf_file')
     def _compute_data(self):
@@ -25,69 +24,78 @@ class caf(models.Model):
             if caf:
                 caf.load_caf()
 
-    _name = 'dte.caf'
-
-    name = fields.Char('File Name',
-       readonly=True,
-       compute='_get_filename')
-
-    filename = fields.Char('File Name')
-
+    name = fields.Char(
+            string='File Name',
+           readonly=True,
+           compute='_get_filename',
+        )
+    filename = fields.Char(
+            string='File Name',
+        )
     caf_file = fields.Binary(
-        string='CAF XML File',
-        filters='*.xml',
-        required=True,
-        help='Upload the CAF XML File in this holder')
-
-    _sql_constraints=[(
-        'filename_unique','unique(filename)','Error! Filename Already Exist!')]
-
-    issued_date = fields.Date('Issued Date',
-        compute='_compute_data',
-        store=True,)
-
-    sii_document_class = fields.Integer('SII Document Class',
-        compute='_compute_data',
-        store=True, )
-
+            string='CAF XML File',
+            filters='*.xml',
+            required=True,
+            help='Upload the CAF XML File in this holder',
+        )
+    issued_date = fields.Date(
+            string='Issued Date',
+            compute='_compute_data',
+            store=True,
+        )
+    sii_document_class = fields.Integer(
+            string='SII Document Class',
+            compute='_compute_data',
+            store=True,
+        )
     start_nm = fields.Integer(
-        string='Start Number',
-        help='CAF Starts from this number',
-        compute='_compute_data',
-        store=True, )
-
+            string='Start Number',
+            help='CAF Starts from this number',
+            compute='_compute_data',
+            store=True,
+        )
     final_nm = fields.Integer(
-        string='End Number',
-        help='CAF Ends to this number',
-        compute='_compute_data',
-        store=True, )
-
-    status = fields.Selection([
-        ('draft', 'Draft'),
-        ('in_use', 'In Use'),
-        ('spent', 'Spent'),
-        ('cancelled', 'Cancelled')], string='Status',
-        default='draft',
-        help='''Draft: means it has not been used yet. You must put in in used
+            string='End Number',
+            help='CAF Ends to this number',
+            compute='_compute_data',
+            store=True,
+        )
+    status = fields.Selection(
+            [
+                ('draft', 'Draft'),
+                ('in_use', 'In Use'),
+                ('spent', 'Spent'),
+                ('cancelled', 'Cancelled')
+            ],
+            string='Status',
+            default='draft',
+            help='''Draft: means it has not been used yet. You must put in in used
 in order to make it available for use. Spent: means that the number interval
-has been exhausted. Cancelled means it has been deprecated by hand.''', )
-
-    rut_n = fields.Char(string='RUT',
-        compute='_compute_data',
-        store=True, )
-
+has been exhausted. Cancelled means it has been deprecated by hand.''',
+        )
+    rut_n = fields.Char(
+            string='RUT',
+            compute='_compute_data',
+            store=True,
+        )
     company_id = fields.Many2one(
-        'res.company',
-        string='Company',
-        required=False,
-        default=lambda self: self.env.user.company_id)
-
+            'res.company',
+            string='Company',
+            required=False,
+            default=lambda self: self.env.user.company_id,
+        )
     sequence_id = fields.Many2one(
-        'ir.sequence',
-        'Sequence',
-        required=True)
-
-    use_level = fields.Float(string="Use Level", compute='_use_level')
+            'ir.sequence',
+            'Sequence',
+            required=True,
+        )
+    use_level = fields.Float(
+            string="Use Level",
+            compute='_use_level',
+        )
+    _sql_constraints = [
+                ('filename_unique','unique(filename)','Error! Filename Already Exist!'),
+            ]
 
     @api.onchange("caf_file",)
     def load_caf(self, flags=False):
@@ -136,7 +144,7 @@ has been exhausted. Cancelled means it has been deprecated by hand.''', )
             r.name = r.filename
 
     def decode_caf(self):
-        post = base64.b64decode(self.caf_file)
+        post = base64.b64decode(self.caf_file).decode()
         post = xmltodict.parse(post.replace(
             '<?xml version="1.0"?>','',1))
         return post
