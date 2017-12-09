@@ -84,6 +84,7 @@ Include unusual taxes documents, as transfer invoice, and reissue
         vals = {
             'name': journal.name + ' - ' + name,
             'padding': 6,
+            'implementation': 'no_gap',
         }
         sequence_id = self.env['ir.sequence'].create( vals )
         return sequence_id
