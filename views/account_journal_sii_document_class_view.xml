@@ -13,7 +13,7 @@
                             <field name="name" readonly="True"/>
                               <field name="sequence"/>
                               <field name="journal_id"/>
-                              <field name="sii_document_class_id"/>
+                              <field name="sii_document_class_id" options="{'no_open': True, 'no_create': True}"/>
                               <field name="sequence_id" required="True"/>
                           </group>
                       </group>

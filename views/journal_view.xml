@@ -40,7 +40,7 @@
                         <field name='journal_document_class_ids' context="{'journal_type': type}" editable="bottom" widget="one2many">
                           <tree string="Journal SII Documents" editable="bottom">
                               <field name="sequence" widget="handle"/>
-                              <field name="sii_document_class_id"/>
+                              <field name="sii_document_class_id" options="{'no_open': True, 'no_create': True}"/>
                               <field name='sequence_id'/>
                           </tree>
                         </field>
