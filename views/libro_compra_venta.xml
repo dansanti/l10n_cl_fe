@@ -58,7 +58,7 @@
                   <field name="fact_prop" />
                 </group>
                 <group>
-                  <field name="impuestos" options="{'no_edit': True}" context="{'tipo_operacion': tipo_operacion}">
+                  <field name="impuestos" options="{'no_open': True}" context="{'tipo_operacion': tipo_operacion}">
                     <tree>
                       <field name="tax_id" />
                       <field name="debit" />

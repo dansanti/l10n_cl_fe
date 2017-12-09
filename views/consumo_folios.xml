@@ -48,7 +48,7 @@
                   <field name="total" />
                 </group>
                 <group>
-                  <field name="impuestos" options="{'no_edit': True, 'no_create': True}">
+                  <field name="impuestos" options="{'no_open': True, 'no_create': True}">
                           <tree >
                             <field name="monto_neto" />
                             <field name="monto_iva" />

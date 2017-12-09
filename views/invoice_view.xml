@@ -11,7 +11,7 @@
               </field>
               <field name="partner_id" position="after">
                 <field name="activity_description"
-                        placeholder="Glosa descriptiva" options="{'no_edit': True}"/>
+                        placeholder="Glosa descriptiva" options="{'no_open': True}"/>
                 <field name="sii_document_class_id"/>
               </field>
               <xpath expr="//group[last()]" position="inside">
@@ -82,7 +82,7 @@
 
               <field name='partner_id' position="after">
                   <field name="activity_description"
-                          placeholder="Glosa descriptiva" options="{'no_edit': True}"/>
+                          placeholder="Glosa descriptiva" options="{'no_open': True}"/>
               </field>
 
               <field name="user_id" position="after">
