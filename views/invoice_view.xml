@@ -89,12 +89,9 @@
                 <field name="forma_pago" />
                 <field name="contact_id" domain="[('parent_id','=',partner_id)]" />
               </field>
+              
               <field name="partner_bank_id" position="before">
                   <field name="vat_discriminated"/>
-              </field>
-
-              <field name="origin" position="replace">
-                  <field name="origin" attrs="{'readonly':[('state','not in',['draft'])]}" />
               </field>
 
               <field name="payment_term_id" position="after">
