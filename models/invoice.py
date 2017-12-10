@@ -12,6 +12,7 @@ _logger = logging.getLogger(__name__)
 
 import xml.dom.minidom
 import pytz
+from six import string_types
 
 
 import socket
@@ -220,7 +221,7 @@ class Referencias(models.Model):
     invoice_id = fields.Many2one('account.invoice', ondelete='cascade',index=True,copy=False,string="Documento")
     fecha_documento = fields.Date(string="Fecha Documento", required=True)
 
-class invoice(models.Model):
+class AccountInvoice(models.Model):
     _inherit = "account.invoice"
 
     def _default_journal_document_class_id(self, default=None):
@@ -651,7 +652,7 @@ class invoice(models.Model):
             inv.amount_untaxed_signed = amount_untaxed_signed * sign
 
     def _prepare_tax_line_vals(self, line, tax):
-        vals = super(account_invoice, self)._prepare_tax_line_vals(line, tax)
+        vals = super(AccountInvoice, self)._prepare_tax_line_vals(line, tax)
         vals['amount_retencion'] = tax['retencion']
         vals['retencion_account_id'] = self.type in ('out_invoice', 'in_invoice') and (tax['refund_account_id'] or line.account_id.id) or (tax['account_id'] or line.account_id.id)
         return vals
@@ -999,7 +1000,7 @@ a VAT."""))
                     obj_inv.write({'move_name': move_name})
                 elif invtype in ('in_invoice', 'in_refund'):
                     sii_document_number = obj_inv.supplier_invoice_number
-        super(account_invoice, self).action_move_create()
+        super(AccountInvoice, self).action_move_create()
         for obj_inv in self:
             invtype = obj_inv.type
             if obj_inv.journal_document_class_id and not obj_inv.sii_document_number:
@@ -1101,11 +1102,11 @@ a VAT."""))
             if inv.purchase_to_done:
                 for ptd in inv.purchase_to_done:
                     ptd.write({'state': 'done'})
-        return super(inv, self).invoice_validate()
+        return super(AccountInvoice, self).invoice_validate()
 
     @api.model
     def create(self, vals):
-        inv = super(account_invoice, self).create(vals)
+        inv = super(AccountInvoice, self).create(vals)
         inv.update_domain_journal()
         inv.set_default_journal()
         return inv
@@ -1707,7 +1708,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                     inv._timbrar()
                 inv.sii_result = 'EnCola'
                 ids.append(inv.id)
-        if not isinstance(n_atencion, unicode):
+        if not isinstance(n_atencion, string_types):
             n_atencion = ''
         if ids:
             self.env['sii.cola_envio'].create({
@@ -1994,7 +1995,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         dte['Encabezado'] = self._encabezado(invoice_lines['MntExe'], invoice_lines['no_product'], invoice_lines['tax_include'])
         lin_ref = 1
         ref_lines = []
-        if self.company_id.dte_service_provider == 'SIICERT' and isinstance(n_atencion, unicode) and n_atencion != '' and not self._es_boleta():
+        if self.company_id.dte_service_provider == 'SIICERT' and isinstance(n_atencion, string_types) and n_atencion != '' and not self._es_boleta():
             ref_line = {}
             ref_line = collections.OrderedDict()
             ref_line['NroLinRef'] = lin_ref
