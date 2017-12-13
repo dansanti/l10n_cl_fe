@@ -49,3 +49,5 @@ access_res_country_state_region_group_all,res_country_state_region group_user_al
 access_res_country_state_region_group_user,res_country_state_region group_user,model_res_country_state_region,state_manager,1,1,1,1
 access_res_country_state_city_group_all,res_country_state_city group_user_all,model_res_country_state_city,,1,0,0,0
 access_res_country_state_city_group_user,res_country_state_city group_user,model_res_country_state_city,state_manager,1,1,1,1
+access_dte_caf_manager,access_dte_caf_manager,model_dte_caf,account.group_account_manager,1,1,1,1
+access_dte_caf,access_dte_caf,model_dte_caf,,1,0,0,0
