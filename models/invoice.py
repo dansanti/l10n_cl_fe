@@ -1956,9 +1956,7 @@ version="1.0">
                 }
 
     def _gd(self):
-        result = collections.OrderedDict()
         lin_dr = 1
-        dr_line = {}
         dr_line = collections.OrderedDict()
         dr_line['NroLinDR'] = lin_dr
         dr_line['TpoMov'] = 'D'
@@ -1969,7 +1967,7 @@ version="1.0">
             disc_type = "$"
         dr_line['TpoValor'] = disc_type
         dr_line['ValorDR'] = round(self.global_discount,2)
-        if self.sii_document_class_id.sii_code in [34] and (self.referencias and self.referencias[0].sii_referencia_TpoDocRef.sii_code == '34'):#solamente si es exento
+        if self.sii_document_class_id.sii_code in [34]:#solamente si es exento
             dr_line['IndExeDR'] = 1
         dr_lines= [{'DscRcgGlobal':dr_line}]
         return dr_lines
@@ -2012,7 +2010,7 @@ version="1.0">
 
         dte['reflines'] = ref_lines
         if self.global_discount > 0:
-            result['drlines'] = self._gd()
+            dte['drlines'] = self._gd()
         dte['TEDd'] = self.get_barcode(invoice_lines['no_product'])
         return dte
 
