@@ -87,31 +87,7 @@
             icon="STOCK_JUSTIFY_FILL"
             action="action_move_libro_honorarios"
             id="menu_action_move_libro_honorarios_form"
-            parent="account.menu_finance_entries"
+            parent="account.menu_finance_reports"
             groups="account.group_account_manager"
             sequence="4"/>
-      <!--
-        <record id="wkf_libro_h" model="workflow">
-            <field name="name">account.move.libro_honorarios.basic</field>
-            <field name="osv">account.move.book.honorarios</field>
-            <field name="on_create">True</field>
-        </record>
-        <record id="act_draft_libro_h" model="workflow.activity">
-            <field name="wkf_id" ref="wkf_libro_h"/>
-            <field name="flow_start">True</field>
-            <field name="name">draft</field>
-        </record>
-        <record id="act_open_libro_h" model="workflow.activity">
-            <field name="wkf_id" ref="wkf_libro_h"/>
-            <field name="name">done</field>
-            <field name="action">
-validar_libro()</field>
-            <field name="kind">function</field>
-        </record>
-        <record id="t4_libro_h" model="workflow.transition">
-                <field name="act_from" ref="act_draft_libro_h"/>
-                <field name="act_to" ref="act_open_libro_h"/>
-                <field name="signal">validar_libro</field>
-        </record>
-      -->
 </odoo>

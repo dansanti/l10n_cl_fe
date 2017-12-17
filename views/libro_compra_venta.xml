@@ -141,32 +141,8 @@
             icon="STOCK_JUSTIFY_FILL"
             action="action_move_books"
             id="menu_action_move_books_form"
-            parent="account.menu_finance_entries"
+            parent="account.menu_finance_reports"
             groups="account.group_account_manager"
             sequence="3"/>
-      <!--
-        <record id="wkf" model="workflow">
-            <field name="name">account.move.libro.basic</field>
-            <field name="osv">account.move.book</field>
-            <field name="on_create">True</field>
-        </record>
-        <record id="act_draft" model="workflow.activity">
-            <field name="wkf_id" ref="wkf"/>
-            <field name="flow_start">True</field>
-            <field name="name">draft</field>
-        </record>
-        <record id="act_open" model="workflow.activity">
-            <field name="wkf_id" ref="wkf"/>
-            <field name="name">NoEnviado</field>
-            <field name="action">
-validar_libro()</field>
-            <field name="kind">function</field>
-        </record>
-        <record id="t4" model="workflow.transition">
-                <field name="act_from" ref="act_draft"/>
-                <field name="act_to" ref="act_open"/>
-                <field name="signal">validar_libro</field>
-        </record>
-      -->
     </data>
 </odoo>
