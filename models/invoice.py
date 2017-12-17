@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.exceptions import UserError
 from datetime import datetime, timedelta, date
 from lxml import etree
 from lxml.etree import Element, SubElement
 from odoo import SUPERUSER_ID
+from odoo.tools.translate import _
 
 import logging
 _logger = logging.getLogger(__name__)

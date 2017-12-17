@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from odoo import api, models, fields, _
+from odoo import api, models, fields
+from odoo.tools.translate import _
 from odoo.exceptions import Warning
 import logging
 _logger = logging.getLogger(__name__)

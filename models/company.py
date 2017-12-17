@@ -1,4 +1,5 @@
-from odoo import fields, models, api, _
+from odoo import fields, models, api
+from odoo.tools.translate import _
 
 
 class dteEmail(models.Model):

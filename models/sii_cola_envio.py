@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, models, api, _
+from odoo import fields, models, api
+from odoo.tools.translate import _
 import ast
 from datetime import datetime
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF

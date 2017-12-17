@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 from odoo import fields, models, api
+from odoo.tools.translate import _
 
 class res_state_city(models.Model):
     _name = 'res.country.state.city'
