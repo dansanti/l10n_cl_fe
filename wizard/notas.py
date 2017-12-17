@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api, _
-from odoo.tools.safe_eval import safe_eval as eval
+from odoo.tools.safe_eval import safe_eval
 from odoo.exceptions import UserError
 
 
@@ -10,18 +10,29 @@ class AccountInvoiceRefund(models.TransientModel):
 
     _inherit = "account.invoice.refund"
 
-    tipo_nota = fields.Many2one('sii.document_class', string="Tipo De nota", required=True, domain=[('document_type','in',['debit_note','credit_note']), ('dte','=',True)])
-    filter_refund = fields.Selection([
+    tipo_nota = fields.Many2one(
+            'sii.document_class',
+            string="Tipo De nota",
+            required=True,
+            domain=[
+                    ('document_type','in',['debit_note','credit_note']),
+                    ('dte','=',True),
+                ]
+        )
+    filter_refund = fields.Selection(
+            [
                 ('1','Anula Documento de Referencia'),
                 ('2','Corrige texto Documento Referencia'),
-                ('3','Corrige montos')
-                ],
-                default='1',
-                string='Refund Method',
-                required=True, help='Refund base on this type. You can not Modify and Cancel if the invoice is already reconciled')
+                ('3','Corrige montos'),
+            ],
+            default='1',
+            string='Refund Method',
+            required=True,
+            help='Refund base on this type. You can not Modify and Cancel if the invoice is already reconciled',
+        )
 
     @api.multi
-    def compute_refund(self, mode='refund'):
+    def compute_refund(self, mode='1'):
         inv_obj = self.env['account.invoice']
         inv_tax_obj = self.env['account.invoice.tax']
         inv_line_obj = self.env['account.invoice.line']
@@ -39,74 +50,93 @@ class AccountInvoiceRefund(models.TransientModel):
                 if inv.reconciled and inv.amount_total > 0:
                     raise UserError(_('Cannot refund invoice which is already reconciled, invoice should be unreconciled first. You can only refund this invoice.'))
 
-                date = form.date or False
+                date = form.date_invoice or False
                 description = form.description or inv.name
+                type = inv.type
                 if mode in ['2']:
-                    invoice = inv.read(
-                                ['name', 'type', 'number', 'reference',
-                                    'comment', 'date_due', 'partner_id',
-                                    'partner_insite', 'partner_contact',
-                                    'partner_ref', 'payment_term_id', 'account_id',
-                                    'currency_id', 'invoice_line_ids',
-                                    'journal_id', 'date'])
+                    invoice = inv.read(inv_obj._get_refund_modify_read_fields())
                     invoice = invoice[0]
                     del invoice['id']
-                    prod = self.env['product.product'].search([('product_tmpl_id','=',self.env.ref('l10n_cl_invoice.no_product').id)])
+                    prod = self.env['product.product'].search(
+                            [
+                                    ('product_tmpl_id','=',self.env.ref('l10n_cl_fe.no_product').id),
+                            ]
+                        )
+                    document_type = self.env['account.journal.sii_document_class'].search(
+                            [
+                                ('sii_document_class_id.sii_code','=', self.tipo_nota.sii_code),
+                                ('journal_id','=', inv.journal_id.id),
+                            ],
+                            limit=1,
+                        )
+                    if type == 'out_invoice':
+                        refund_type = 'out_refund'
+                    elif type == 'out_refund':
+                        refund_type = 'out_invoice'
+                    elif type == 'in_invoice':
+                        refund.type = 'in_refund'
+                    elif type == 'in_refund':
+                        refund_type = 'in_invoice'
                     account = inv.invoice_line_ids.get_invoice_line_account(inv.type, prod, inv.fiscal_position_id, inv.company_id)
+                    invoice_lines = [
+                                    [
+                                        0,
+                                        0,
+                                        {
+                                            'product_id' : prod.id,
+                                            'account_id': account.id,
+                                            'name' : prod.name,
+                                            'quantity' : 0,
+                                            'price_unit' : 0
+                                        }
+                                    ]
+                                ]
+                    referencias = [[0,0, {
+                            'origen': int(inv.sii_document_number or inv.reference),
+                            'sii_referencia_TpoDocRef': inv.sii_document_class_id.id,
+                            'sii_referencia_CodRef': mode,
+                            'motivo': description,
+                            'fecha_documento': inv.date_invoice
+                        }]]
                     invoice.update({
-                        'date_invoice': date,
-                        'state': 'draft',
-                        'number': False,
-                        'invoice_line_ids': [[5,],[0,0, {
-                                                    'product_id' : prod.id,
-                                                    'account_id': account.id,
-                                                    'name' : prod.name,
-                                                    'quantity' : 0,
-                                                    'price_unit' : 0
-                                                    }]],
-                        'date': date,
-                        'name': description,
-                        'origin': inv.origin,
-                    })
-                    for field in ('partner_id', 'account_id', 'currency_id',
-                                         'payment_term_id', 'journal_id'):
+                                'date_invoice': date,
+                                'state': 'draft',
+                                'number': False,
+                                'date': date,
+                                'name': description,
+                                'origin': inv.number,
+                                'fiscal_position_id': inv.fiscal_position_id.id,
+                                'type': refund_type,
+                                'journal_document_class_id': document_type.id,
+                                'turn_issuer': inv.turn_issuer.id,
+                                'referencias': referencias,
+                                'invoice_line_ids': invoice_lines,
+                                'tax_line_ids': False,
+                                'refund_invoice_id': inv.id,
+                            })
+
+                    for field in inv_obj._get_refund_common_fields():
+                        if inv_obj._fields[field].type == 'many2one':
                             invoice[field] = invoice[field] and invoice[field][0]
+                        else:
+                            invoice[field] = invoice[field] or False
                     refund = inv_obj.create(invoice)
                     if refund.payment_term_id.id:
                         refund._onchange_payment_term_date_invoice()
                 if mode in ['1','3']:
-                    refund = inv.refund(form.date_invoice, date, description, inv.journal_id.id)
-                    refund.compute_taxes()
-                type = inv.type
-                if inv.type in [ 'out_invoice','out_refund']:
-                    refund.type = 'out_refund'
-                elif inv.type in ['in_invoice','in_refund']:
-                    refund.type = 'in_refund'
+                    refund = inv.refund(form.date_invoice, date, description, inv.journal_id.id, tipo_nota=self.tipo_nota.sii_code, mode=mode)
                 created_inv.append(refund.id)
-                document_type = self.env['account.journal.sii_document_class'].search([
-                    ('sii_document_class_id.sii_code','=', self.tipo_nota.sii_code),
-                    ('journal_id','=', inv.journal_id.id)
-                    ],limit=1)
-                refund.update({
-                    'journal_document_class_id': document_type.id,
-                    'turn_issuer': inv.turn_issuer.id,
-                    'referencias':[[5,],[0,0, {
-                                'origen': int(inv.sii_document_number or inv.reference),
-                                'sii_referencia_TpoDocRef': inv.sii_document_class_id.id,
-                                'sii_referencia_CodRef': mode,
-                                'motivo': description,
-                                'fecha_documento': inv.date_invoice
-                            }]],
-                    })
-                xml_id = (inv.type in ['out_refund', 'out_invoice']) and 'action_invoice_tree1' or \
-                         (inv.type in ['in_refund', 'in_invoice']) and 'action_invoice_tree2'
+                xml_id = type == 'out_invoice' and 'action_invoice_out_refund' or \
+                         type == 'out_refund' and 'action_invoice_tree1' or \
+                         type == 'in_invoice' and 'action_invoice_in_refund' or \
+                         type == 'in_refund' and 'action_invoice_tree2'
                 # Put the reason in the chatter
-                subject = _("Invoice refund")
+                subject = self.tipo_nota.name
                 body = description
                 refund.message_post(body=body, subject=subject)
         if xml_id:
             result = self.env.ref('account.%s' % (xml_id)).read()[0]
-            invoice_domain = eval(result['domain'])
+            invoice_domain = safe_eval(result['domain'])
             invoice_domain.append(('id', 'in', created_inv))
             result['domain'] = invoice_domain
             return result

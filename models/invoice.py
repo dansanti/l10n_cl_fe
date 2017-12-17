@@ -744,6 +744,57 @@ class AccountInvoice(models.Model):
                 tax_grouped[id] = t
         return tax_grouped
 
+    @api.model
+    def _prepare_refund(self, invoice, date_invoice=None, date=None, description=None, journal_id=None, tipo_nota=61, mode='1'):
+        values = super(AccountInvoice, self)._prepare_refund(invoice, date_invoice, date, description, journal_id)
+        document_type = self.env['account.journal.sii_document_class'].search(
+                [
+                    ('sii_document_class_id.sii_code','=', tipo_nota),
+                    ('journal_id','=', invoice.journal_id.id),
+                ],
+                limit=1,
+            )
+        if invoice.type == 'out_invoice':
+            type = 'out_refund'
+        elif invoice.type == 'out_refund':
+            type = 'out_invoice'
+        elif invoice.type == 'in_invoice':
+            type = 'in_refund'
+        elif invoice.type == 'in_refund':
+            type = 'in_invoice'
+        values.update({
+                'type': type,
+                'journal_document_class_id': document_type.id,
+                'turn_issuer': invoice.turn_issuer.id,
+                'referencias':[[0,0, {
+                        'origen': int(invoice.sii_document_number or invoice.reference),
+                        'sii_referencia_TpoDocRef': invoice.sii_document_class_id.id,
+                        'sii_referencia_CodRef': mode,
+                        'motivo': description,
+                        'fecha_documento': invoice.date_invoice
+                    }]],
+            })
+        return values
+
+    @api.multi
+    @api.returns('self')
+    def refund(self, date_invoice=None, date=None, description=None, journal_id=None, tipo_nota=61, mode='1'):
+        new_invoices = self.browse()
+        for invoice in self:
+            # create the new invoice
+            values = self._prepare_refund(invoice, date_invoice=date_invoice, date=date,
+                                    description=description, journal_id=journal_id,
+                                    tipo_nota=tipo_nota, mode=mode)
+            refund_invoice = self.create(values)
+            invoice_type = {'out_invoice': ('customer invoices credit note'),
+                            'out_refund': ('customer invoices debit note'),
+                            'in_invoice': ('vendor bill credit note'),
+                            'in_refund': ('vendor bill debit note')}
+            message = _("This %s has been created from: <a href=# data-oe-model=account.invoice data-oe-id=%d>%s</a>") % (invoice_type[invoice.type], invoice.id, invoice.number)
+            refund_invoice.message_post(body=message)
+            new_invoices += refund_invoice
+        return new_invoices
+
     def get_document_class_default(self, document_classes):
         document_class_id = None
         #if self.turn_issuer.vat_affected not in ['SI', 'ND']:
