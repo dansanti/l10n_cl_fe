@@ -333,5 +333,39 @@
                 </notebook>
             </field>
         </record>
+
+        <record id="action_invoice_tree1" model="ir.actions.act_window">
+            <field name="name">Todos los documentos de ventas (Para Certificación)</field>
+            <field name="res_model">account.invoice</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,kanban,form,calendar,pivot,graph</field>
+            <field eval="False" name="view_id"/>
+            <field name="domain">[('type','in',('out_invoice','out_refund'))]</field>
+            <field name="context">{'type':'out_invoice', 'journal_type': 'sale'}</field>
+            <field name="search_view_id" ref="account.view_account_invoice_filter_inherit_invoices"/>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to create a customer invoice.
+              </p><p>
+                Odoo's electronic invoicing allows to ease and fasten the
+                collection of customer payments. Your customer receives the
+                invoice by email and he can pay online and/or import it
+                in his own system.
+              </p><p>
+                The discussions with your customer are automatically displayed at
+                the bottom of each invoice.
+              </p>
+            </field>
+        </record>
+
+
+        <record id="action_invoice_tree1_view1" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="invoice_tree"/>
+            <field name="act_window_id" ref="action_invoice_tree1"/>
+        </record>
+
+        <menuitem action="action_invoice_tree1" id="menu_action_invoice_tree1" parent="menu_sii_config" sequence="1"/>
     </data>
 </odoo>
