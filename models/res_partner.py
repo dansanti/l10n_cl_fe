@@ -1,7 +1,8 @@
 # -*- encoding: utf-8 -*-
 from odoo import models, fields, api
-import re
 from odoo.exceptions import UserError
+from odoo.tools.translate import _
+import re
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -86,23 +87,24 @@ class ResPartner(models.Model):
             document_number = (
                 re.sub('[^1234567890Kk]', '', str(
                     self.document_number))).zfill(9).upper()
+            if not self.check_vat_cl(document_number):
+                raise UserError(_('Rut Erróneo'))
             vat = 'CL%s' % document_number
             exist = self.env['res.partner'].search(
                 [
                     ('vat','=', vat),
                     ('vat', '!=',  'CL555555555'),
+                    ('commercial_partner_id', '!=', self.commercial_partner_id.id ),
                 ],
                 limit=1,
             )
             if exist:
                 self.vat = ''
                 self.document_number = ''
-                return {
-                    'warning': {
-                        'title': "El Rut ya está siendo usado",
-                        'message': _("El usuario %s está utilizando este documento" ) % exist.name,
-                        }
-                    }
+                raise UserError(
+                        title=_("El Rut ya está siendo usado"),
+                        message=_("El usuario %s está utilizando este documento" ) % exist.name,
+                    )
             self.vat = vat
             self.document_number = '%s.%s.%s-%s' % (
                                         document_number[0:2], document_number[2:5],
@@ -145,7 +147,7 @@ class ResPartner(models.Model):
         else:
             body, vdig = vat[:-1], vat[-1].upper()
         try:
-            vali = range(2,8) + [2,3]
+            vali = list(range(2,8)) + [2,3]
             operar = '0123456789K0'[11 - (
                 sum([int(digit)*factor for digit, factor in zip(
                     body[::-1],vali)]) % 11)]
