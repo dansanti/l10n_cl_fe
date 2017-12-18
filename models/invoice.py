@@ -2007,10 +2007,9 @@ version="1.0">
                 ref_lines.extend([{'Referencia':ref_line}])
                 lin_ref += 1
         dte['item'] = invoice_lines['invoice_lines']
-
-        dte['reflines'] = ref_lines
         if self.global_discount > 0:
             dte['drlines'] = self._gd()
+        dte['reflines'] = ref_lines        
         dte['TEDd'] = self.get_barcode(invoice_lines['no_product'])
         return dte
 
