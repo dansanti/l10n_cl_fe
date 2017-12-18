@@ -155,16 +155,12 @@ class sequence_caf(models.Model):
     def _check_dte(self):
         for r in self:
             obj = r.env['account.journal.sii_document_class'].search([('sequence_id', '=', r.id)], limit=1)
-            if not obj: # si s guía de despacho
-                obj = self.env['stock.location'].search([('sequence_id','=', r.id)], limit=1)
             if obj:
                 r.is_dte = obj.sii_document_class_id.dte and obj.sii_document_class_id.document_type in ['invoice', 'debit_note', 'credit_note','stock_picking']
 
     def _get_sii_document_class(self):
         for r in self:
             obj = self.env['account.journal.sii_document_class'].search([('sequence_id', '=', r.id)], limit=1)
-            if not obj: # si s guía de despacho
-                obj = self.env['stock.location'].search([('sequence_id','=', r.id)], limit=1)
             r.sii_document_class = obj.sii_document_class_id.sii_code
 
     def get_qty_available(self, folio=None):
