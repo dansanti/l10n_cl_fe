@@ -1,59 +1,45 @@
 from odoo import models, http, api
+from odoo import http, tools, _
 from odoo.http import request
 from odoo.addons.web.controllers.main import serialize_exception, content_disposition
 
 class Binary(http.Controller):
 
-    @http.route('/web/binary/download_document', type='http', auth="public")
-    @serialize_exception
-    def download_document(self, model, field, id, filename=None, **kw):
-        """
-        :param str filename: field holding the file's name, if any
-        :returns: :class:`werkzeug.wrappers.Response`
-        """
-        Model = request.registry[model]
-        cr, uid, context = request.cr, request.uid, request.context
-        fields = [field]
-        res = Model.read(cr, uid, [int(id)], fields, context)[0]
-        # filecontent = base64.b64decode(res.get(field) or '')
-        filecontent = res.get(field)
-        print(filecontent)
+    def document(self, filename, filecontent):
         if not filecontent:
             return request.not_found()
-        else:
-            if not filename:
-                filename = '%s_%s' % (model.replace('.', '_'), id)
-            headers = [
-                ('Content-Type', 'application/xml'),
-                ('Content-Disposition', content_disposition(filename)),
-                ('charset', 'utf-8'),
-            ]
-            return request.make_response(
-                    filecontent, headers=headers, cookies=None)
+        headers = [
+            ('Content-Type', 'application/xml'),
+            ('Content-Disposition', content_disposition(filename)),
+            ('charset', 'utf-8'),
+        ]
+        return request.make_response(
+                filecontent, headers=headers, cookies=None)
 
-    @http.route('/web/binary/download_document_exchange', type='http', auth="public")
+    @http.route(["/download/xml/invoice/<model('account.invoice'):document_id>"], type='http', auth='user')
     @serialize_exception
-    def download_document_exchange(self, model, field, id, filename=None, **kw):
-        """
-        :param str filename: field holding the file's name, if any
-        :returns: :class:`werkzeug.wrappers.Response`
-        """
-        Model = request.registry[model]
-        cr, uid, context = request.cr, request.uid, request.context
-        fields = [field]
-        res = Model.read(cr, uid, [int(id)], fields, context)[0]
-        # filecontent = base64.b64decode(res.get(field) or '')
-        filecontent = res.get(field)
-        print(filecontent)
-        if not filecontent:
-            return request.not_found()
-        else:
-            if not filename:
-                filename = '%s_%s' % (model.replace('.', '_'), id)
-            headers = [
-                ('Content-Type', 'application/xml'),
-                ('Content-Disposition', content_disposition(filename)),
-                ('charset', 'utf-8'),
-            ]
-            return request.make_response(
-                    filecontent, headers=headers, cookies=None)
+    def download_document(self, document_id, **post):
+        filename = ('%s.xml' % document_id.document_number).replace(' ','_')
+        filecontent = document_id.sii_xml_request
+        return self.document(filename, filecontent)
+
+    @http.route(["/download/xml/invoice_exchange/<model('account.invoice'):rec_id>"], type='http', auth='user')
+    @serialize_exception
+    def download_document_exchange(self, rec_id, **post):
+        filename = ('%s.xml' % rec_id.document_number).replace(' ','_')
+        filecontent = rec_id.sii_xml_request
+        return self.document(filename, filecontent)
+
+    @http.route(["/download/xml/cf/<model('account.move.consumo_folios'):rec_id>"], type='http', auth='user')
+    @serialize_exception
+    def download_cf(self, rec_id, **post):
+        filename = ('%s.xml' % rec_id.document_number).replace(' ','_')
+        filecontent = rec_id.sii_xml_request
+        return self.document(filename, filecontent)
+
+    @http.route(["/download/xml/libro/<model('account.move.book'):rec_id>"], type='http', auth='user')
+    @serialize_exception
+    def download_book(self, rec_id, **post):
+        filename = ('%s.xml' % rec_id.document_number).replace(' ','_')
+        filecontent = rec_id.sii_xml_request
+        return self.document(filename, filecontent)

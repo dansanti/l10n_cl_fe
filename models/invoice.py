@@ -1558,9 +1558,7 @@ version="1.0">
                     if envio:
                         self.sii_xml_dte = etree.tostring(envio.findall("{http://www.sii.cl/SiiDte}DTE")[0])
                 self.crear_intercambio()
-        filename = (self.document_number+'.xml').replace(' ','')
-        url_path = '/web/binary/download_document_exchange?model=account.invoice\
-    &field=sii_xml_exchange&id=%s&filename=%s' % (self.id, filename)
+        url_path = '/download/xml/invoice/%s' % (self.id)
         att = self.env['ir.attachment'].search([('name','=', filename), ('res_id','=', self.id), ('res_model','=','account.invoice')], limit=1)
         if att:
             return att
@@ -1614,9 +1612,7 @@ version="1.0">
 
     @api.multi
     def get_xml_file(self):
-        filename = (self.document_number+'.xml').replace(' ','')
-        url_path = '/web/binary/download_document?model=account.invoice\
-&field=sii_xml_request&id=%s&filename=%s' % (self.id, filename)
+        url_path = '/download/xml/invoice/%s' % (self.id)
         return {
             'type' : 'ir.actions.act_url',
             'url': url_path,
@@ -1625,9 +1621,7 @@ version="1.0">
 
     @api.multi
     def get_xml_exchange_file(self):
-        filename = (self.document_number+'.xml').replace(' ','')
-        url_path = '/web/binary/download_document?model=account.invoice\
-&field=sii_xml_exchange&id=%s&filename=%s' % (self.id, filename)
+        url_path = '/download/xml/invoice_exchange/%s' % (self.id)
         return {
             'type' : 'ir.actions.act_url',
             'url': url_path,
@@ -2009,7 +2003,7 @@ version="1.0">
         dte['item'] = invoice_lines['invoice_lines']
         if self.global_discount > 0:
             dte['drlines'] = self._gd()
-        dte['reflines'] = ref_lines        
+        dte['reflines'] = ref_lines
         dte['TEDd'] = self.get_barcode(invoice_lines['no_product'])
         return dte
 

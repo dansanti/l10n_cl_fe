@@ -632,11 +632,9 @@ version="1.0">
 
     @api.multi
     def get_xml_file(self):
-        file_name = self.name.replace(' ','_')
         return {
             'type' : 'ir.actions.act_url',
-            'url': '/web/binary/download_document?model=account.move.consumo_folios\
-&field=sii_xml_request&id=%s&filename=%s.xml' % (self.id, file_name),
+            'url': '/download/xml/cf/%s' % (self.id),
             'target': 'self',
         }
 
