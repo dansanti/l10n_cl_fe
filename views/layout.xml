@@ -1,21 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
   <template t-name="l10n_cl_fe.dte_external_layout">
+    <t t-set="o" t-value="o.with_context({'lang':o.partner_id.lang})" />
     <style>
       .table{
       margin-bottom:0px !important;
       }
     </style>
           <!-- Multicompany -->
-            <t t-if="not o and doc">
+              <t t-if="not o and doc">
                   <t t-set="o" t-value="doc"/>
               </t>
+
               <t t-if="o and 'company_id' in o">
-                  <t t-set="company" t-value="o.company_id"/>
+                  <t t-set="company" t-value="o.company_id.sudo()"/>
               </t>
               <t t-if="not o or not 'company_id' in o">
                   <t t-set="company" t-value="res_company"/>
-            </t>
+              </t>
               <t t-if="'journal_document_class_id' in o and o.journal_document_class_id">
                 <t t-set="document_class_id" t-value="o.journal_document_class_id.sii_document_class_id"/>
               </t>
@@ -40,7 +42,7 @@
                             <!-- domicilios -->
                             <span t-field="o.company_id.partner_id.street"/>, <span t-field="o.company_id.partner_id.city_id.name"/>, <span t-field="o.company_id.partner_id.city"/><br/>
                             <!-- domicilios -->
-                            <span> Teléfono: <span t-field="o.company_id.partner_id.phone"/> Fax: <span t-field="o.company_id.partner_id.fax"/></span><br/>
+                            <span> Teléfono: <span t-field="o.company_id.partner_id.phone"/></span><br/>
                             <span>E-Mail: <span t-field="o.company_id.partner_id.email"/></span><br/>
                             <span t-field="o.company_id.partner_id.website"/>
                         </p>
@@ -69,6 +71,7 @@
                   <div name="company_address"/>
                 </div>
             </div>
+            <div class="article">
               <div class="page" style="padding-top:55px;">
                   <div class="row" style="border: 2px solid black;">
                       <table class="table cl_invoice" style="margin-bottom:0px !important;">
@@ -176,7 +179,7 @@
                                </td>
                                <td class="text-left" style="max-height:8px;line-height:10px !important;">
                                     <span t-field="l.price_subtotal"
-                                         t-field-options='{"widget": "monetary", "display_currency": "o.currency_id"}'/>
+                                         t-field-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
                                </td>
                            </tr>
                        </tbody>
@@ -199,7 +202,7 @@
                             </p>
                         </div>
                       </div>
-                      <div class="col-xs-4 pull-right">
+                      <div id="total" class="col-xs-4 pull-right">
                           <table class="table table-condensed">
                                <tr style="max-height:11px; font-size:12px !important;" name="subtotal">
                                   <td><strong>Subtotal</strong></td>
@@ -210,20 +213,22 @@
                                <tr t-if="o.global_discount > 0" class="border-black" style="max-height:11px; font-size:12px !important;">
                                 <td><strong>Descuento Global</strong></td>
                                 <td class="text-right">
-                                    <span t-esc="o.global_discount if o.global_discount_type=='amount' else o.amount_untaxed_global_discount" t-esc-options='{"widget": "monetary", "display_currency": "o.currency_id"}'/>
+                                    <span t-esc="o.global_discount if o.global_discount_type=='amount' else o.amount_untaxed_global_discount" t-esc-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
                                 </td>
                               </tr>
                                <tr name="discount" t-if="display_discount" class="border-black" style="max-height:11px; font-size:12px !important;">
                                  <td><strong>Descuento</strong></td>
                                  <td class="text-right">
-                                     <span t-esc="o.getTotalDiscount()" t-esc-options='{"widget": "monetary", "display_currency": "o.currency_id"}'/>
+                                     <span t-esc="o.getTotalDiscount()" t-esc-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
                                  </td>
                                 </tr>
-                               <tr t-foreach="o.tax_line_ids" t-as="t" style="max-height:11px; font-size:12px !important;">
-                                  <td><span t-field="t.tax_id.description"/></td>
-                                  <td class="text-right">
-                                      <span t-esc="t.amount if t.amount > 0 else t.base" t-esc-options='{"widget": "monetary", "display_currency": "o.currency_id"}'/>
-                                  </td>
+                               <tr t-foreach="o._get_tax_amount_by_group()" t-as="amount_by_group" style="max-height:11px; font-size:12px !important;">
+                                  <t t-if="len(o.tax_line_ids) == 1 and o.amount_untaxed == amount_by_group[2]">
+                                    <td><span t-esc="amount_by_group[0]"/></td>
+                                    <td class="text-right">
+                                        <span t-esc="amount_by_group[3]"/>
+                                    </td>
+                                  </t>
                                </tr>
                                <tr class="border-black" style="max-height:12px; font-size:12px !important;">
                                   <td><strong>Total</strong></td>
@@ -267,18 +272,55 @@
                      <h6 class="pull-right" t-if="cedible"> CEDIBLE</h6>
                    </div>
                 </div>
+              </div>
           </template>
+
+          <template id="report_invoice_document_with_payments" inherit_id="l10n_cl_fe.dte_external_layout" primary="True">
+            <xpath expr="//div[@id='total']/table" position="inside">
+                <t t-set="payments_vals" t-value="o._get_payments_vals()"/>
+                <t t-foreach="payments_vals" t-as="payment_vals">
+                    <tr>
+                        <td>
+                            <i class="oe_form_field text-right oe_payment_label">Paid on <t t-esc="payment_vals['date']"/></i>
+                        </td>
+                        <td class="text-right">
+                            <span t-esc="payment_vals['amount']" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                        </td>
+                    </tr>
+                </t>
+                <t t-if="len(payments_vals) > 0">
+                    <tr class="border-black">
+                        <td><strong>Amount Due</strong></td>
+                        <td class="text-right">
+                             <span t-field="o.residual" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                        </td>
+                    </tr>
+                </t>
+            </xpath>
+        </template>
 
           <template id="dte_invoice" inherit_id="account.report_invoice">
               <t t-call="web.html_container" position="replace">
+                <t t-call="web.html_container">
+                    <t t-foreach="docs" t-as="o">
+                        <t t-call="l10n_cl_fe.dte_external_layout" t-lang="o.partner_id.lang"/>
+                    </t>
+                </t>
+              </t>
+          </template>
+
+          <template id="dte_invoice_con_pagos" inherit_id="account.report_invoice_with_payments">
+              <t t-call="web.html_container" position="replace">
+                <t t-call="web.html_container">
                   <t t-foreach="docs" t-as="o">
-                      <t t-call="l10n_cl_fe.dte_external_layout" t-lang="o.partner_id.lang"/>
+                      <t t-call="l10n_cl_fe.report_invoice_document_with_payments" t-lang="o.partner_id.lang"/>
                   </t>
+                </t>
               </t>
           </template>
 
           <template id="invoice_cedible">
-            <t t-call="l10n_cl_fe.dte_invoice" >
+            <t t-call="l10n_cl_fe.dte_invoice_con_pagos" >
               <t t-set="cedible" t-value="True" />
             </t>
           </template>

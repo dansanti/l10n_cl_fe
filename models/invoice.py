@@ -1559,6 +1559,7 @@ version="1.0">
                         self.sii_xml_dte = etree.tostring(envio.findall("{http://www.sii.cl/SiiDte}DTE")[0])
                 self.crear_intercambio()
         url_path = '/download/xml/invoice/%s' % (self.id)
+        filename = ('%s.xml' % self.document_number).replace(' ','_')
         att = self.env['ir.attachment'].search([('name','=', filename), ('res_id','=', self.id), ('res_model','=','account.invoice')], limit=1)
         if att:
             return att
@@ -2357,19 +2358,18 @@ version="1.0">
         self.ensure_one()
         self.sent = True
         if self.ticket:
-            return self.env['report'].get_action(self, 'l10n_cl_fe.report_ticket')
-        return self.env['report'].get_action(self, 'account.report_invoice')
+            return self.env.ref('l10n_cl_fe.action_print_ticket').report_action(self)
+        return self.env.ref('account.account_invoices').report_action(self)
 
     @api.multi
     def print_cedible(self):
         """ Print Cedible
         """
-        return self.env['report'].get_action(self, 'l10n_cl_fe.invoice_cedible')
+        return self.env.ref('l10n_cl_fe.action_print_cedible').report_action(self)
 
     @api.multi
     def getTotalDiscount(self):
         total_discount = 0
         for l in self.invoice_line_ids:
             total_discount +=  (((l.discount or 0.00) /100) * l.price_unit * l.quantity)
-        _logger.info(total_discount)
         return self.currency_id.round(total_discount)
