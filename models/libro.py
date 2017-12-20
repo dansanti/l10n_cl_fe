@@ -14,6 +14,7 @@ from odoo import SUPERUSER_ID
 
 import xml.dom.minidom
 import pytz
+import struct
 
 
 import socket
@@ -83,7 +84,8 @@ BC = '''-----BEGIN CERTIFICATE-----\n'''
 EC = '''\n-----END CERTIFICATE-----\n'''
 
 # hardcodeamos este valor por ahora
-import os
+import os, sys
+USING_PYTHON2 = True if sys.version_info < (3, 0) else False
 xsdpath = os.path.dirname(os.path.realpath(__file__)).replace('/models','/static/xsd/')
 
 connection_status = {
@@ -453,12 +455,6 @@ class Libro(models.Model):
         tz = pytz.timezone('America/Santiago')
         return datetime.now(tz).strftime(formato)
 
-    def convert_encoding(self, data, new_coding = 'UTF-8'):
-        encoding = cchardet.detect(data)['encoding']
-        if new_coding.upper() != encoding.upper():
-            data = data.decode(encoding, data).encode(new_coding)
-        return data
-
     def xml_validator(self, some_xml_string, validacion='doc'):
         validacion_type = {
             'doc': 'DTE_v10.xsd',
@@ -472,7 +468,7 @@ class Libro(models.Model):
         try:
             xmlschema_doc = etree.parse(xsd_file)
             xmlschema = etree.XMLSchema(xmlschema_doc)
-            xml_doc = etree.fromstring(some_xml_string)
+            xml_doc = etree.XML(some_xml_string)
             result = xmlschema.validate(xml_doc)
             if not result:
                 xmlschema.assert_(xml_doc)
@@ -482,28 +478,7 @@ class Libro(models.Model):
             raise UserError(_('XML Malformed Error:  %s') % e.args)
 
     def get_seed(self, company_id):
-        #En caso de que haya un problema con la validación de certificado del sii ( por una mala implementación de ellos)
-        #esto omite la validacion
-        try:
-            import ssl
-            ssl._create_default_https_context = ssl._create_unverified_context
-        except:
-            pass
-        url = server_url[company_id.dte_service_provider] + 'CrSeed.jws?WSDL'
-        ns = 'urn:'+server_url[company_id.dte_service_provider] + 'CrSeed.jws'
-        _server = Client(url, ns)
-        root = etree.fromstring(_server.getSeed())
-        semilla = root[0][0].text
-        return semilla
-
-    def create_template_seed(self, seed):
-        xml = u'''<getToken>
-<item>
-<Semilla>{}</Semilla>
-</item>
-</getToken>
-'''.format(seed)
-        return xml
+        return self.env['account.invoice'].get_seed(company_id)
 
     def create_template_env(self, doc,simplificado=False):
         simp = 'http://www.sii.cl/SiiDte LibroCV_v10.xsd'
@@ -526,25 +501,13 @@ version="1.0">
         return xml
 
     def sign_seed(self, message, privkey, cert):
-        doc = etree.fromstring(message)
-        signed_node = xmldsig(
-            doc, digest_algorithm=u'sha1').sign(
-            method=methods.enveloped, algorithm=u'rsa-sha1',
-            key=privkey.encode('ascii'),
-            cert=cert)
-        msg = etree.tostring(
-            signed_node, pretty_print=True).replace('ds:', '')
-        return msg
+        return self.env['account.invoice'].sign_seed(message, privkey, cert)
 
-    def get_token(self, seed_file,company_id):
-        url = server_url[company_id.dte_service_provider] + 'GetTokenFromSeed.jws?WSDL'
-        ns = 'urn:'+ server_url[company_id.dte_service_provider] +'GetTokenFromSeed.jws'
-        _server = Client(url, ns)
-        tree = etree.fromstring(seed_file)
-        ss = etree.tostring(tree, pretty_print=True, encoding='iso-8859-1')
-        respuesta = etree.fromstring(_server.getToken(ss))
-        token = respuesta[0][0].text
-        return token
+    def get_token(self, seed_file, company_id):
+        return self.env['account.invoice'].get_token(seed_file, company_id)
+
+    def create_template_seed(self, seed):
+        return self.env['account.invoice'].create_template_seed(seed)
 
     def ensure_str(self,x, encoding="utf-8", none_ok=False):
         if none_ok is True and x is None:
@@ -552,10 +515,11 @@ version="1.0">
         if not isinstance(x, str):
             x = x.decode(encoding)
         return x
+
     def long_to_bytes(self, n, blocksize=0):
         s = b''
-        n = long(n)  # noqa
-        import struct
+        if USING_PYTHON2:
+            n = long(n)  # noqa
         pack = struct.pack
         while n > 0:
             s = pack(b'>I', n & 0xffffffff) + s
@@ -593,41 +557,38 @@ version="1.0">
         signed_info_c14n = etree.tostring(signed_info,method="c14n",exclusive=False,with_comments=False,inclusive_ns_prefixes=None)
         att = 'xmlns="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
         #@TODO Find better way to add xmlns:xsi attrib
-        signed_info_c14n = signed_info_c14n.replace("<SignedInfo>","<SignedInfo " + att + ">")
+        signed_info_c14n = signed_info_c14n.decode().replace("<SignedInfo>", "<SignedInfo %s>" % att )
         xmlns = 'http://www.w3.org/2000/09/xmldsig#'
         sig_root = Element("Signature",attrib={'xmlns':xmlns})
         sig_root.append(etree.fromstring(signed_info_c14n))
         signature_value = SubElement(sig_root, "SignatureValue")
-        key=OpenSSL.crypto.load_privatekey(type_,privkey.encode('ascii'))
-        signature= OpenSSL.crypto.sign(key,signed_info_c14n,'sha1')
-        signature_value.text =textwrap.fill(base64.b64encode(signature),64)
+        key = crypto.load_privatekey(type_,privkey.encode('ascii'))
+        signature = crypto.sign(key,signed_info_c14n,'sha1')
+        signature_value.text =textwrap.fill(base64.b64encode(signature).decode(),64)
         key_info = SubElement(sig_root, "KeyInfo")
         key_value = SubElement(key_info, "KeyValue")
         rsa_key_value = SubElement(key_value, "RSAKeyValue")
         modulus = SubElement(rsa_key_value, "Modulus")
         key = load_pem_private_key(privkey.encode('ascii'),password=None, backend=default_backend())
-        modulus.text =  textwrap.fill(base64.b64encode(self.long_to_bytes(key.public_key().public_numbers().n)),64)
+        modulus.text =  textwrap.fill(base64.b64encode(self.long_to_bytes(key.public_key().public_numbers().n)).decode(),64)
         exponent = SubElement(rsa_key_value, "Exponent")
         exponent.text = self.ensure_str(base64.b64encode(self.long_to_bytes(key.public_key().public_numbers().e)))
         x509_data = SubElement(key_info, "X509Data")
         x509_certificate = SubElement(x509_data, "X509Certificate")
         x509_certificate.text = '\n'+textwrap.fill(cert,64)
-        msg = etree.tostring(sig_root)
+        msg = etree.tostring(sig_root).decode('iso-8859-1')
         if type != 'libro_boleta':
             msg = msg if self.xml_validator(msg, 'sig') else ''
         if type == 'libro':
-            fulldoc = message.replace('</LibroCompraVenta>',msg+'\n</LibroCompraVenta>')
+            fulldoc = message.replace('</LibroCompraVenta>','%s\n</LibroCompraVenta>' % msg)
         elif type == 'libro_boleta':
-            resp = fulldoc = message.replace('</LibroBoleta>',msg+'\n</LibroBoleta>')
+            resp = fulldoc = message.replace('</LibroBoleta>','%s\n</LibroBoleta>' % msg)
             xmlns = 'xmlns="http://www.w3.org/2000/09/xmldsig#"'
             xmlns_sii = 'xmlns="http://www.sii.cl/SiiDte"'
             msg = msg.replace(xmlns, xmlns_sii)
-            fulldoc = message.replace('</LibroBoleta>',msg+'\n</LibroBoleta>')
-        fulldoc = '<?xml version="1.0" encoding="ISO-8859-1"?>\n'+fulldoc
+            fulldoc = message.replace('</LibroBoleta>', '%s\n</LibroBoleta>' % msg)
         fulldoc = fulldoc if self.xml_validator(fulldoc, type) else ''
-        if type == 'libro_boleta':# es feo, pero repara el problema de validacion mla creada del sii
-            return '<?xml version="1.0" encoding="ISO-8859-1"?>\n'+resp
-        return fulldoc
+        return '<?xml version="1.0" encoding="ISO-8859-1"?>\n%s' % fulldoc
 
     def get_digital_signature_pem(self, comp_id):
         obj = user = False
@@ -680,12 +641,12 @@ version="1.0">
         if not company_id.dte_service_provider:
             raise UserError(_("Not Service provider selected!"))
         try:
-            signature_d = self.get_digital_signature_pem(
-                company_id)
+            signature_d = self.get_digital_signature_pem( company_id )
             seed = self.get_seed(company_id)
             template_string = self.create_template_seed(seed)
             seed_firmado = self.sign_seed(
-                template_string, signature_d['priv_key'],
+                template_string,
+                signature_d['priv_key'],
                 signature_d['cert'])
             token = self.get_token(seed_firmado,company_id)
         except:
@@ -859,10 +820,10 @@ version="1.0">
         refs = []
         for ref in inv.referencias:
             if ref.sii_referencia_CodRef and ref.sii_referencia_TpoDocRef.sii_code in allowed_docs:
-                refs.append({
-                    'TpoDocRef': ref.sii_referencia_TpoDocRef.sii_code,
-                    'FolioDocRef': ref.origen
-                    })
+                ref_line = collections.OrderedDict()
+                ref_line['TpoDocRef'] = ref.sii_referencia_TpoDocRef.sii_code
+                ref_line['FolioDocRef'] = ref.origen
+                refs.append(ref_line)
         if refs:
             det['item_refs'] = refs
         if MntExe > 0 :
@@ -1007,7 +968,7 @@ version="1.0">
                     for t in line.tax_ids:
                         impuestos.setdefault(t.id, [t, 0])
                         impuestos[t.id][1] += line.price_subtotal_incl
-            for key, t in impuestos.iteritems():
+            for key, t in impuestos.items():
                 Neto, TaxMnt, MntExe, ivas, imp = self._process_imps(t[0], t[1], rec.pricelist_id.currency_id, Neto, TaxMnt, MntExe, ivas, imp)
         else:  # si la boleta fue hecha por contabilidad
             for l in rec.line_ids:
@@ -1044,7 +1005,7 @@ version="1.0">
         det['RUTCliente'] = self.format_vat(rec.partner_id.vat)
         if TaxMnt > 0:
             det['MntIVA'] = int(round(TaxMnt))
-            for key, t in ivas.iteritems():
+            for key, t in ivas.items():
                 det['TasaIVA'] = t[0].amount
         #det['CodIntCLi']
         if MntExe > 0 :
@@ -1250,9 +1211,8 @@ version="1.0">
         cant_doc_batch = 0
         company_id = self.company_id
         dte_service = company_id.dte_service_provider
-        try:
-            signature_d = self.get_digital_signature(company_id)
-        except:
+        signature_d = self.get_digital_signature(company_id)
+        if not signature_d:
             raise UserError(_('''There is no Signer Person with an \
         authorized signature for you in the system. Please make sure that \
         'user_signature_key' module has been installed and enable a digital \
@@ -1310,7 +1270,7 @@ version="1.0">
                   'TotIVARetParcial', 'TotMntTotal', 'TotIVANoRetenido',
                  'TotTabPuros', 'TotTabCigarrillos', 'TotTabElaborado', 'TotImpVehiculo',]
         ResumenPeriodo=[]
-        for r, value in resumenesPeriodo.iteritems():
+        for r, value in resumenesPeriodo.items():
             total = collections.OrderedDict()
             for v in lista:
                 if v in value:
@@ -1325,7 +1285,7 @@ version="1.0">
         RUTEmisor = self.format_vat(company_id.vat)
         RUTRecep = "60803000-K" # RUT SII
         xml = dicttoxml.dicttoxml(
-            dte, root=False, attr_type=False)
+            dte, root=False, attr_type=False).decode()
         doc_id =  self.tipo_operacion+'_'+self.periodo_tributario
         libro = self.create_template_envio( RUTEmisor, self.periodo_tributario,
             resol_data['dte_resolution_date'],
@@ -1337,16 +1297,15 @@ version="1.0">
                 xml  = self.create_template_env_boleta(libro)
                 env = 'libro_boleta'
         root = etree.XML( xml )
-        xml_pret = etree.tostring(root, pretty_print=True)\
+        xml_pret = etree.tostring(root, pretty_print=True).decode('iso-8859-1')\
                 .replace('<item/>','\n')\
                 .replace('<item>','\n').replace('</item>','')\
                 .replace('<itemNoRec>','').replace('</itemNoRec>','\n')\
                 .replace('<itemOtrosImp>','').replace('</itemOtrosImp>','\n')\
                 .replace('<item_refs>','').replace('</item_refs>','\n')\
                 .replace('_no_rec','')
-        envio_dte = self.convert_encoding(xml_pret, 'ISO-8859-1')
         envio_dte = self.sign_full_xml(
-            envio_dte,
+            xml_pret,
             signature_d['priv_key'],
             certp,
             doc_id,
@@ -1370,9 +1329,8 @@ version="1.0">
 
     def _get_send_status(self, track_id, signature_d,token):
         url = server_url[self.company_id.dte_service_provider] + 'QueryEstUp.jws?WSDL'
-        ns = 'urn:'+ server_url[self.company_id.dte_service_provider] + 'QueryEstUp.jws'
-        _server = Client(url, ns)
-        respuesta = _server.getEstUp(self.company_id.vat[2:-1],self.company_id.vat[-1],track_id,token)
+        _server = Client(url)
+        respuesta = _server.service.getEstUp(self.company_id.vat[2:-1],self.company_id.vat[-1],track_id,token)
         self.sii_receipt = respuesta
         resp = xmltodict.parse(respuesta)
         status = False
