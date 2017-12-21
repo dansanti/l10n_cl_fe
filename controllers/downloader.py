@@ -1,5 +1,4 @@
-from odoo import models, http, api
-from odoo import http, tools, _
+from odoo import models, http
 from odoo.http import request
 from odoo.addons.web.controllers.main import serialize_exception, content_disposition
 

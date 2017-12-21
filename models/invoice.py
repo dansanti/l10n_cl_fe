@@ -237,9 +237,7 @@ class AccountInvoice(models.Model):
         return default
 
     def _domain_journal_document_class_id(self):
-        domain = []
-        for rec in self:
-            domain = rec._get_available_journal_document_class()
+        domain = self._get_available_journal_document_class()
         return [('id', 'in', domain)]
 
     turn_issuer = fields.Many2one(
@@ -268,9 +266,9 @@ class AccountInvoice(models.Model):
         copy=False)
     journal_document_class_id = fields.Many2one(
         'account.journal.sii_document_class',
-        'Documents Type',
-        default=_default_journal_document_class_id,
-        domain=_domain_journal_document_class_id,
+        string='Documents Type',
+        default=lambda self: self._default_journal_document_class_id(),
+        domain=lambda self: self._domain_journal_document_class_id(),
         readonly=True,
         store=True,
         states={'draft': [('readonly', False)]})
@@ -305,7 +303,8 @@ class AccountInvoice(models.Model):
                     ('9','Otros.')
             ],
             string="Código No recuperable",
-            readonly=True, states={'draft': [('readonly', False)]},
+            readonly=True,
+            states={'draft': [('readonly', False)]},
         )# @TODO select 1 automático si es emisor 2Categoría
 
     document_number = fields.Char(
@@ -921,7 +920,8 @@ class AccountInvoice(models.Model):
             line.invoice_line_tax_ids = tax_ids
 
     def _get_available_journal_document_class(self):
-        invoice_type = self.type
+        context = dict(self._context or {})
+        invoice_type = self.type or context.get('default_type', False)
         document_class_ids = []
         document_class_id = False
         nd = False
@@ -933,21 +933,25 @@ class AccountInvoice(models.Model):
         if invoice_type in [
                 'out_invoice', 'in_invoice', 'out_refund', 'in_refund']:
             operation_type = self.get_operation_type(invoice_type)
-
-            if self.use_documents:
+            journal_id = self.journal_id.id or context.get('default_journal_id', False)
+            if journal_id:
                 domain = [
-                    ('journal_id', '=', self.journal_id.id),
-                     ]
-                if invoice_type  in [ 'in_refund', 'out_refund']:
-                    domain += [('sii_document_class_id.document_type','in',['credit_note'] )]
-                else:
-                    options = ['invoice', 'invoice_in']
-                    if nd:
-                        options.append('debit_note')
-                    domain += [('sii_document_class_id.document_type','in', options )]
-                document_classes = self.env[
-                    'account.journal.sii_document_class'].search(domain)
-                document_class_ids = document_classes.ids
+                    ('journal_id.type', '=', journal_id),
+                 ]
+            else:
+                domain = [
+                    ('journal_id.type', '=', operation_type),
+                 ]
+            if invoice_type  in [ 'in_refund', 'out_refund']:
+                domain += [('sii_document_class_id.document_type','in',['credit_note'] )]
+            else:
+                options = ['invoice', 'invoice_in']
+                if nd:
+                    options.append('debit_note')
+                domain += [('sii_document_class_id.document_type','in', options )]
+            document_classes = self.env[
+                'account.journal.sii_document_class'].search(domain)
+            document_class_ids = document_classes.ids
                     # If not specific document type found, we choose another one
         return document_class_ids
 
@@ -1407,7 +1411,7 @@ version="1.0">
         sig_root.append(etree.fromstring(signed_info_c14n))
         signature_value = SubElement(sig_root, "SignatureValue")
         key = crypto.load_privatekey(type_,privkey.encode('ascii'))
-        signature= crypto.sign(key,signed_info_c14n,'sha1')
+        signature = crypto.sign(key,signed_info_c14n,'sha1')
         signature_value.text =textwrap.fill(base64.b64encode(signature).decode(),64)
         key_info = SubElement(sig_root, "KeyInfo")
         key_value = SubElement(key_info, "KeyValue")
@@ -1489,18 +1493,18 @@ version="1.0">
     def send_xml_file(self, envio_dte=None, file_name="envio", company_id=False, sii_result='NoEnviado', doc_ids='', post='/cgi_dte/UPL/DTEUpload'):
         if not company_id.dte_service_provider:
             raise UserError(_("Not Service provider selected!"))
-        #try:
-        signature_d = self.get_digital_signature_pem(
-            company_id)
-        seed = self.get_seed(company_id)
-        template_string = self.create_template_seed(seed)
-        seed_firmado = self.sign_seed(
-            template_string, signature_d['priv_key'],
-            signature_d['cert'])
-        token = self.get_token(seed_firmado,company_id)
-        #except:
-        #    _logger.info('error')
-        #    return
+        try:
+            signature_d = self.get_digital_signature_pem(
+                company_id)
+            seed = self.get_seed(company_id)
+            template_string = self.create_template_seed(seed)
+            seed_firmado = self.sign_seed(
+                template_string, signature_d['priv_key'],
+                signature_d['cert'])
+            token = self.get_token(seed_firmado,company_id)
+        except:
+            _logger.warning('error')
+            return
 
         url = 'https://palena.sii.cl'
         if company_id.dte_service_provider == 'SIICERT':
