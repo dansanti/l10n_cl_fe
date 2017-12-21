@@ -77,7 +77,7 @@ class UploadXMLWizard(models.TransientModel):
                 }
                 dte_id = self.env['mail.message.dte'].create(dte)
             self.dte_id = dte_id
-        if self.pre_process:
+        if self.pre_process or self.action == 'upload':
             created = self.do_create_pre()
             xml_id = 'l10n_cl_fe.action_dte_process'
         elif self.option == 'reject':
@@ -137,7 +137,7 @@ class UploadXMLWizard(models.TransientModel):
         envio = xml.find("{http://www.sii.cl/SiiDte}SetDTE")#"{http://www.w3.org/2000/09/xmldsig#}Signature/{http://www.w3.org/2000/09/xmldsig#}SignedInfo/{http://www.w3.org/2000/09/xmldsig#}Reference/{http://www.w3.org/2000/09/xmldsig#}DigestValue").text
         for e in envio.findall("{http://www.sii.cl/SiiDte}DTE") :
             string = etree.tostring(e.find("{http://www.sii.cl/SiiDte}Documento"))#doc
-            mess = etree.tostring(etree.fromstring(string), method="c14n").replace(' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"','')# el replace es necesario debido a que python lo agrega solo
+            mess = etree.tostring(etree.fromstring(string), method="c14n").decode('iso-8859-1').replace(' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"','').encode('iso-8859-1')# el replace es necesario debido a que python lo agrega solo
             our = base64.b64encode(self.env['account.invoice'].digest(mess))
             their = e.find("{http://www.w3.org/2000/09/xmldsig#}Signature/{http://www.w3.org/2000/09/xmldsig#}SignedInfo/{http://www.w3.org/2000/09/xmldsig#}Reference/{http://www.w3.org/2000/09/xmldsig#}DigestValue").text
             if our != their:
@@ -272,10 +272,9 @@ class UploadXMLWizard(models.TransientModel):
         return resp
 
     def _create_attachment(self, xml, name, id=False, model='account.invoice'):
-        data = base64.b64encode(xml)
+        data = base64.b64encode(xml.encode('ISO-8859-1'))
         filename = (name + '.xml').replace(' ','')
-        url_path = '/web/binary/download_document?model='+ model +'\
-    &field=sii_xml_request&id=%s&filename=%s' % (id, filename)
+        url_path = '/download/xml/resp/%s' % (id)
         att = self.env['ir.attachment'].search(
             [
                 ('name','=', filename),
@@ -321,7 +320,7 @@ class UploadXMLWizard(models.TransientModel):
         recep = self._receipt(IdRespuesta)
         NroDetalles = len(envio['SetDTE']['DTE'])
         dicttoxml.set_debug(False)
-        resp_dtes = dicttoxml.dicttoxml(recep, root=False, attr_type=False).replace('<item>','\n').replace('</item>','\n')
+        resp_dtes = dicttoxml.dicttoxml(recep, root=False, attr_type=False).decode().replace('<item>','\n').replace('</item>','\n')
         RecepcionEnvio = '''
 <RecepcionEnvio>
     {0}
@@ -340,10 +339,10 @@ class UploadXMLWizard(models.TransientModel):
             caratula_recepcion_envio,
             root=False,
             attr_type=False,
-        ).replace('<item>','\n').replace('</item>','\n')
+        ).decode().replace('<item>','\n').replace('</item>','\n')
         resp = self._RecepcionEnvio(caratula, RecepcionEnvio )
-        respuesta = self.env['account.invoice'].sign_full_xml(
-            resp,
+        respuesta = '<?xml version="1.0" encoding="ISO-8859-1"?>\n'+self.env['account.invoice'].sign_full_xml(
+            resp.replace('<?xml version="1.0" encoding="ISO-8859-1"?>\n', ''),
             signature_d['priv_key'],
             certp,
             'Odoo_resp',
@@ -621,7 +620,7 @@ class UploadXMLWizard(models.TransientModel):
             name = self.filename.encode('UTF-8')
         xml =base64.b64decode(self.xml_file).decode('ISO-8859-1')
         data.update( {
-            'origin' : 'XML Envío: ' + name,
+            'origin' : 'XML Envío: ' + name.decode(),
             'date_invoice' :dte['Encabezado']['IdDoc']['FchEmis'],
             'partner_id' : partner_id,
             'company_id' : company_id.id,
@@ -659,6 +658,7 @@ class UploadXMLWizard(models.TransientModel):
 
     def _get_data(self, dte, company_id):
         journal_document_class_id = self._get_journal(dte['Encabezado']['IdDoc']['TipoDTE'], company_id)
+        _logger.warning("%s" %company_id)
         if not journal_document_class_id:
             sii_document_class = self.env['sii.document_class'].search([('sii_code', '=', dte['Encabezado']['IdDoc']['TipoDTE'])])
             raise UserError('No existe Diario para el tipo de documento %s, por favor añada uno primero, o ignore el documento' % sii_document_class.name.encode('UTF-8'))
@@ -801,11 +801,11 @@ class UploadXMLWizard(models.TransientModel):
         for dte in dtes:
             try:
                 company_id = self.env['res.company'].search(
-                    [
-                        ('vat','=', self.format_rut(dte['Documento']['Encabezado']['Receptor']['RUTRecep'])),
-                    ],
-                    limit=1,
-                )
+                        [
+                            ('vat','=', self.format_rut(dte['Documento']['Encabezado']['Receptor']['RUTRecep'])),
+                        ],
+                        limit=1,
+                    )
                 pre = self._create_pre(
                     dte['Documento'],
                     company_id,

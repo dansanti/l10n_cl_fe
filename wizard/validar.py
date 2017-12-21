@@ -62,7 +62,7 @@ class ValidarDTEWizard(models.TransientModel):
         sii_document_class = self.document_id.sii_document_class_id or self.inv.sii_document_class_id.sii_code
 
     def _create_attachment(self, xml, name, id=False, model='account.invoice'):
-        data = base64.b64encode(xml)
+        data = base64.b64encode(xml.encode('ISO-8859-1'))
         filename = (name + '.xml').replace(' ','')
         url_path = '/web/binary/download_document?model='+ model +'\
     &field=sii_xml_request&id=%s&filename=%s' % (id, filename)
@@ -163,7 +163,7 @@ class ValidarDTEWizard(models.TransientModel):
                 dte,
                 root=False,
                 attr_type=False,
-            ).replace('<item>','\n').replace('</item>','\n')
+            ).decode().replace('<item>','\n').replace('</item>','\n')
             RutRecibe = xml['Encabezado']['Emisor']['RUTEmisor']
             caratula_validacion_comercial = self._caratula_respuesta(
                 xml['Encabezado']['Receptor']['RUTRecep'],
@@ -178,8 +178,8 @@ class ValidarDTEWizard(models.TransientModel):
                 caratula,
                 ResultadoDTE,
             )
-            respuesta = inv_obj.sign_full_xml(
-                resp,
+            respuesta = '<?xml version="1.0" encoding="ISO-8859-1"?>\n' + inv_obj.sign_full_xml(
+                resp.replace('<?xml version="1.0" encoding="ISO-8859-1"?>\n', ''),
                 signature_d['priv_key'],
                 certp,
                 'Odoo_resp',
@@ -253,7 +253,7 @@ class ValidarDTEWizard(models.TransientModel):
                 dte,
                 root=False,
                 attr_type=False,
-            ).replace('<item>','\n').replace('</item>','\n')
+            ).decode().replace('<item>','\n').replace('</item>','\n')
             RutRecibe = inv.format_vat(inv.partner_id.vat)
             caratula_validacion_comercial = self._caratula_respuesta(
                 inv.format_vat(inv.company_id.vat),
@@ -265,13 +265,13 @@ class ValidarDTEWizard(models.TransientModel):
                 caratula_validacion_comercial,
                 root=False,
                 attr_type=False,
-            ).replace('<item>','\n').replace('</item>','\n')
+            ).decode().replace('<item>','\n').replace('</item>','\n')
             resp = self._ResultadoDTE(
                 caratula,
                 ResultadoDTE,
             )
-            respuesta = inv.sign_full_xml(
-                resp,
+            respuesta = '<?xml version="1.0" encoding="ISO-8859-1"?>\n' + inv.sign_full_xml(
+                resp.replace('<?xml version="1.0" encoding="ISO-8859-1"?>\n', ''),
                 signature_d['priv_key'],
                 certp,
                 'Odoo_resp',
@@ -366,11 +366,11 @@ class ValidarDTEWizard(models.TransientModel):
                     dict_recept,
                     root=False,
                     attr_type=False,
-                ),
+                ).decode(),
             )
             message += '\n ' + str(dict_recept['Folio']) + ' ' + dict_recept['Declaracion']
-            receipt = inv.sign_full_xml(
-                doc,
+            receipt ='<?xml version="1.0" encoding="ISO-8859-1"?>\n' + inv.sign_full_xml(
+                doc.replace('<?xml version="1.0" encoding="ISO-8859-1"?>\n', ''),
                 signature_d['priv_key'],
                 certp,
                 'Recibo',
@@ -384,13 +384,13 @@ class ValidarDTEWizard(models.TransientModel):
                 dict_caratula,
                 root=False,
                 attr_type=False,
-            )
+            ).decode()
             envio_dte = self._envio_recep(
                 caratula,
                 receipt,
             )
-            envio_dte = inv.sign_full_xml(
-                envio_dte,
+            envio_dte = '<?xml version="1.0" encoding="ISO-8859-1"?>\n' + inv.sign_full_xml(
+                envio_dte.replace('<?xml version="1.0" encoding="ISO-8859-1"?>\n', ''),
                 signature_d['priv_key'],
                 certp,
                 'SetDteRecibidos',
