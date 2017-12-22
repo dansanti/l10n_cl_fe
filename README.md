@@ -11,13 +11,16 @@ Se crea este repositorio, para dar un enfoque de firma electrónica directa con 
  - - Nota de Débito Electrónica: Ok envío, Ok muestra impresa, Ok Certificación
  - - Recepción XML Intercambio: Ok recepción, Ok respuesta mercaderías, Ok respuesta Validación Comercial, Ok Envío Recepción al SII, Ok Certificación
  - - Libro de Compra Venta: Ok envío al SII, Ok Certificación
- - - Consumo de Folios: No portado aún
- - - Boleta Electrónica por BO ( 39 ): No portado aún
- - - Guía de Despacho Electrónica: Ok envío, Ok muestra impresa, Ok Certificación, via https://github.com/dansanti/l10n_cl_stock_picking
- - - Libro Guía Despacho: Ok envío, Ok Muestas impresas, Ok Certificación, via https://github.com/dansanti/l10n_cl_stock_picking
- - - Factoring (Cesión de Créditos): No portado aún
+ - - Consumo de Folios: Portado, No probado aún
+ - - Boleta Electrónica por BO ( 39, 41 ): Portado, No probado aún
+ - - Libro Boletas Electrónica: Portado, No probado aún
+ - - Boleta Electrónica por POS ( 39, 41): Portado, No probado aún, vía https://github.com/dansanti/l10n_cl_dte_point_of_sale
+ - - Nota de Crédito Electrónica para Boletas ( Solo por BO POS): Portado, No probado aún, vía https://github.com/dansanti/l10n_cl_dte_point_of_sale
+ - - Guía de Despacho Electrónica: Ok envío, Ok muestra impresa, Ok Certificación, vía https://github.com/dansanti/l10n_cl_stock_picking
+ - - Libro Guía Despacho: Ok envío, Ok Muestras impresas, Ok Certificación, vía https://github.com/dansanti/l10n_cl_stock_picking
+ - - Factoring (Cesión de Créditos): No portado aún, vía https://github.com/dansanti/l10n_cl_dte_factoring
  - - Factura de Exportación Electrónica ( con sus NC y ND): No desarrollada
- - - Liquidación de Facturas: No desarrollada
+ - - Liquidación de Facturas: No desarrollada, vía https://github.com/dansanti/l10n_cl_dte_factoring
  - - Factura de Compra Electrónica ( 46 ): No desarrollada
 
 
