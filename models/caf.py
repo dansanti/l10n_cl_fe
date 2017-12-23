@@ -65,13 +65,12 @@ class caf(models.Model):
                 ('draft', 'Draft'),
                 ('in_use', 'In Use'),
                 ('spent', 'Spent'),
-                ('cancelled', 'Cancelled')
             ],
             string='Status',
             default='draft',
             help='''Draft: means it has not been used yet. You must put in in used
 in order to make it available for use. Spent: means that the number interval
-has been exhausted. Cancelled means it has been deprecated by hand.''',
+has been exhausted.''',
         )
     rut_n = fields.Char(
             string='RUT',
@@ -91,7 +90,7 @@ has been exhausted. Cancelled means it has been deprecated by hand.''',
         )
     use_level = fields.Float(
             string="Use Level",
-            compute='_use_level',
+            compute='_used_level',
         )
     _sql_constraints = [
                 ('filename_unique','unique(filename)','Error! Filename Already Exist!'),
@@ -116,11 +115,11 @@ has been exhausted. Cancelled means it has been deprecated by hand.''',
         if flags:
             return True
         self.status = 'in_use'
-        self._use_level()
+        self._used_level()
 
-    def _use_level(self):
+    def _used_level(self):
         for r in self:
-            if r.status not in ['draft','cancelled']:
+            if r.status not in [ 'draft' ]:
                 folio = r.sequence_id.number_next_actual
                 try:
                     r.use_level = 100.0 * ((int(folio) - r.start_nm) / float(r.final_nm - r.start_nm + 1))
@@ -128,16 +127,6 @@ has been exhausted. Cancelled means it has been deprecated by hand.''',
                     r.use_level = 0
             else:
                 r.use_level = 0
-
-    @api.multi
-    def action_enable(self):
-        #if self._check_caf():
-        if self.load_caf(flags=True):
-            self.status = 'in_use'
-
-    @api.multi
-    def action_cancel(self):
-        self.status = 'cancelled'
 
     def _get_filename(self):
         for r in self:

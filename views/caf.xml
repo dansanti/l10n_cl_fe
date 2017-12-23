@@ -52,14 +52,6 @@
             <field name="arch" type="xml">
                 <form string="SII CAF Files for DTE">
                     <header>
-                        <button string="Enable" type="object" name="action_enable"
-                                status="draft" class="oe_highlight"
-                                attrs="{'invisible':[('status','!=','draft')]}" />
-
-                        <button string="Cancel" type="object" name="action_cancel"
-                                status="in_use"
-                                attrs="{'invisible': [('status', '!=', 'in_use')]}" />
-
                         <field name="status" widget="statusbar"/>
                     </header>
                     <sheet>
