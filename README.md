@@ -19,7 +19,7 @@ Se crea este repositorio, para dar un enfoque de firma electrónica directa con 
  - - Guía de Despacho Electrónica: Ok envío, Ok muestra impresa, Ok Certificación, vía https://github.com/dansanti/l10n_cl_stock_picking
  - - Libro Guía Despacho: Ok envío, Ok Muestras impresas, Ok Certificación, vía https://github.com/dansanti/l10n_cl_stock_picking
  - - Factoring (Cesión de Créditos): No portado aún, vía https://github.com/dansanti/l10n_cl_dte_factoring
- - - Factura de Exportación Electrónica ( con sus NC y ND): No desarrollada
+ - - Factura de Exportación Electrónica ( 110 con sus NC 111 y ND 112): No Probado vía https://github.com/dansanti/l10n_cl_dte_exportacion
  - - Liquidación de Facturas: No desarrollada, vía https://github.com/dansanti/l10n_cl_dte_factoring
  - - Factura de Compra Electrónica ( 46 ): No desarrollada
 
