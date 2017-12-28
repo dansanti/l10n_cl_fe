@@ -29,6 +29,7 @@ dc_b_e_dte,True,dl_b,41,True,BXE,invoice,BXE ,Boleta Exenta Electrónica,BXE
 dc_m_f_dtn,True,dl_m,70,False,BHO ,invoice,BHO ,Boleta de Honorarios,BHO
 dc_m_d_dtn,True,dl_m,71,True,BHE ,invoice,BHE ,Boleta de Honorarios Electrónica,BHE
 dc_oc,True,,801,False,OC,,OC ,Orden de Compra,OC
+dc_hes,True,,801,False,HES,,HES ,Hoja Entrada Servicio,HES
 dc_li,True,,103,False,LIQ,,LIQ ,Liquidación,LIQ
 dc_gd,True,,50,False,GD,stock_picking,GD ,Guía de Despacho,GD
 dc_gd_dte,True,,52,True,GDE,stock_picking,GDE ,Guía de Despacho Electrónica,GDE
