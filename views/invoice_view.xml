@@ -71,6 +71,7 @@
             <field name="inherit_id" ref="account.invoice_form" />
             <field name="arch" type="xml">
               <form>
+                  <field name="sii_document_class_id" invisible="1"/>
                   <field name="available_journal_document_class_ids" invisible="1"/>
                   <field name="use_documents" invisible="1"/>
                   <field name="sii_document_number" invisible="1"/>
@@ -118,14 +119,22 @@
                   <field name="vat_discriminated"/>
               </field>
 
-              <field name="payment_term_id" position="after">
-                <field name="global_discount" />
-                <field name="global_discount_type" attrs="{'required':[('global_discount','>',0)], 'invisible':[('global_discount','==',0)]}" />
-                <field name="global_discount_detail" attrs="{'required':[('global_discount','>',0)], 'invisible':[('global_discount','==',0)]}" />
-              </field>
-
               <field name="amount_untaxed" position="after">
                 <field name="amount_untaxed_global_discount" widget="monetary" attrs="{'invisible':[('amount_untaxed_global_discount','=',0)]}"/>
+                <field name="amount_untaxed_global_recargo" widget="monetary" attrs="{'invisible':[('amount_untaxed_global_recargo','=',0)]}"/>
+              </field>
+
+              <field name="comment" position="after">
+                <field name="global_descuentos_recargos" widget="one2many_list" mode="tree" context="{'default_invoice_id': id}">
+                  <tree string="Descuetos / Recargos Globales" editable="bottom">
+                    <field name="type"/>
+                    <field name="gdr_type"/>
+                    <field name="valor"/>
+                    <field name="gdr_dtail"/>
+                    <field name="amount_untaxed_global_dr" invisible="1"/>
+                    <field name="invoice_id" invisible="1"/>
+                  </tree>
+                </field>
               </field>
 
               <xpath expr="//page/field[@name='tax_line_ids']/tree/field[@name='account_id']" position="after">
@@ -237,17 +246,28 @@
                 <button name="%(account.action_account_invoice_refund)d" type='action' string='Ask Refund' groups="account.group_account_invoice" attrs="{'invisible': ['|',('type', '=', 'in_invoice'),('state','not in',('open','paid'))]}"/>
               </field>
 
-              <field name="payment_term_id" position="after">
-                <field name="global_discount" />
-                <field name="global_discount_type" attrs="{'required':[('global_discount','>',0)], 'invisible':[('global_discount','==',0)]}" />
-                <field name="global_discount_detail" attrs="{'required':[('global_discount','>',0)], 'invisible':[('global_discount','==',0)]}" />
-              </field>
               <field name="amount_untaxed" position="after">
                 <field name="amount_untaxed_global_discount" widget="monetary" attrs="{'invisible':[('amount_untaxed_global_discount','=',0)]}"/>
+                <field name="amount_untaxed_global_recargo" widget="monetary" attrs="{'invisible':[('amount_untaxed_global_recargo','=',0)]}"/>
               </field>
+
+              <field name="comment" position="after">
+                  <field name="global_descuentos_recargos" widget="one2many_list" mode="tree" context="{'default_invoice_id': id}">
+                    <tree string="Descuetos / Recargos Globales" editable="bottom">
+                      <field name="type"/>
+                      <field name="gdr_type"/>
+                      <field name="valor"/>
+                      <field name="gdr_dtail"/>
+                      <field name="amount_untaxed_global_dr" invisible="1"/>
+                      <field name="invoice_id" invisible="1"/>
+                    </tree>
+                  </field>
+              </field>
+
               <field name="number" position="attributes">
                   <attribute name="invisible">1</attribute>
               </field>
+
               <field name="number" position="after">
                   <field name="document_number" class="oe_inline"/>
               </field>

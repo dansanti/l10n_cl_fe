@@ -594,6 +594,18 @@ class UploadXMLWizard(models.TransientModel):
             'fecha_documento' : fecha,
         }]
 
+    def process_dr(self, dr):
+        data = {
+                    'type': dr['TpoMov'],
+                }
+        disc_type = "percent"
+        if dr['TpoValor'] == '$':
+            disc_type = "amount"
+        data['gdr_type'] = disc_type
+        data['global_discount'] = dr['ValorDR']
+        data['gdr_dtail'] = dr['GlosaDR']
+        return data
+
     def _prepare_invoice(self, dte, company_id, journal_document_class_id):
         data = {}
         partner_id = self.env['res.partner'].search(
@@ -629,6 +641,19 @@ class UploadXMLWizard(models.TransientModel):
             'sii_xml_request': xml ,
             'sii_send_file_name': name,
         })
+
+        if 'DscRcgGlobal' in dte:
+            disc_type = "%"
+            DscRcgGlobal = dte['DscRcgGlobal']
+            drs = [(5,)]
+            if 'TpoMov' in DscRcgGlobal:
+                drs.append((0,0,self.process_dr(dte['DscRcgGlobal'])))
+            else:
+                for dr in DscRcgGlobal:
+                    drs.append((0,0,self.process_dr(dr)))
+            data.update({
+                    'global_descuentos_recargos': drs,
+                })
 
         if partner_id and not self.pre_process:
             data.update({
