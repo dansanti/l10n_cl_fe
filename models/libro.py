@@ -708,7 +708,7 @@ version="1.0">
         sha1 = hashlib.new('sha1', data)
         return sha1.digest()
 
-    @api.onchange('periodo_tributario','tipo_operacion')
+    @api.onchange('periodo_tributario', 'tipo_operacion')
     def _setName(self):
         self.name = self.tipo_operacion
         if self.periodo_tributario:

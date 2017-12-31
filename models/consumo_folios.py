@@ -546,14 +546,6 @@ version="1.0">
         sha1 = hashlib.new('sha1', data)
         return sha1.digest()
 
-    @api.onchange('periodo_tributario','tipo_operacion')
-    def _setName(self):
-        if self.name:
-            return
-        self.name = self.tipo_operacion
-        if self.periodo_tributario:
-            self.name += " " + self.periodo_tributario
-
     @api.multi
     def validar_consumo_folios(self):
         self._validar()
@@ -997,12 +989,16 @@ class DetalleImpuestos(models.Model):
 class Anulaciones(models.Model):
     _name = 'account.move.consumo_folios.anulaciones'
 
-    cf_id = fields.Many2one('account.move.consumo_folios',
-                            string="Consumo de Folios")
-    tpo_doc = fields.Many2one('sii.document_class',
-        string="Tipo de documento",
-        required=True,
-        domain=[('sii_code','in',[ 39 , 41, 61])])
+    cf_id = fields.Many2one(
+            'account.move.consumo_folios',
+            string="Consumo de Folios",
+        )
+    tpo_doc = fields.Many2one(
+            'sii.document_class',
+            string="Tipo de documento",
+            required=True,
+            domain=[('sii_code','in',[ 39 , 41, 61])],
+        )
     rango_inicio = fields.Integer(
         required=True,
         string="Rango Inicio")
