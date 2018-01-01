@@ -242,29 +242,26 @@ class AccountInvoice(models.Model):
         states={'draft': [('readonly', False)]},
         )
     vat_discriminated = fields.Boolean(
-        'Discriminate VAT?',
-        compute="get_vat_discriminated",
-        store=True,
-        readonly=False,
-        help="Discriminate VAT on Quotations and Sale Orders?")
-    available_journals = fields.Many2one(
-        'account.journal',
-    #    compute='_get_available_journal_document_class',
-        string='Available Journals')
+            'Discriminate VAT?',
+            compute="get_vat_discriminated",
+            store=True,
+            readonly=False,
+            help="Discriminate VAT on Quotations and Sale Orders?",
+        )
     available_journal_document_class_ids = fields.Many2many(
-        'account.journal.sii_document_class',
-    #    compute='_get_available_journal_document_class',
-        string='Available Journal Document Classes')
-    supplier_invoice_number = fields.Char(
-        copy=False)
+            'account.journal.sii_document_class',
+            #    compute='_get_available_journal_document_class',
+            string='Available Journal Document Classes',
+        )
     journal_document_class_id = fields.Many2one(
-        'account.journal.sii_document_class',
-        string='Documents Type',
-        default=lambda self: self._default_journal_document_class_id(),
-        domain=lambda self: self._domain_journal_document_class_id(),
-        readonly=True,
-        store=True,
-        states={'draft': [('readonly', False)]})
+            'account.journal.sii_document_class',
+            string='Documents Type',
+            default=lambda self: self._default_journal_document_class_id(),
+            domain=_domain_journal_document_class_id,
+            readonly=True,
+            store=True,
+            states={'draft': [('readonly', False)]},
+        )
     sii_document_class_id = fields.Many2one(
         'sii.document_class',
         related='journal_document_class_id.sii_document_class_id',
@@ -894,24 +891,22 @@ class AccountInvoice(models.Model):
 
     def _get_available_journal_document_class(self):
         context = dict(self._context or {})
+        journal_id = self.journal_id or context.get('default_journal_id', self.env['account.journal'].search([('type','=','sale')],limit=1))
         invoice_type = self.type or context.get('default_type', False)
+        if not invoice_type:
+            invoice_type = 'in_invoice' if journal_id.type == 'purchase' else 'out_invoice'
         document_class_ids = []
-        document_class_id = False
         nd = False
         for ref in self.referencias:
             if not nd:
                 nd = ref.sii_referencia_CodRef
-        #self.available_journal_document_class_ids = self.env[
-        #    'account.journal.sii_document_class']
-        if invoice_type in [
-                'out_invoice', 'in_invoice', 'out_refund', 'in_refund']:
-            operation_type = self.get_operation_type(invoice_type)
-            journal_id = self.journal_id.id or context.get('default_journal_id', False)
+        if invoice_type in ['out_invoice', 'in_invoice', 'out_refund', 'in_refund']:
             if journal_id:
                 domain = [
-                    ('journal_id.type', '=', journal_id),
+                    ('journal_id', '=', journal_id.id),
                  ]
             else:
+                operation_type = self.get_operation_type(invoice_type)
                 domain = [
                     ('journal_id.type', '=', operation_type),
                  ]
@@ -925,10 +920,9 @@ class AccountInvoice(models.Model):
             document_classes = self.env[
                 'account.journal.sii_document_class'].search(domain)
             document_class_ids = document_classes.ids
-                    # If not specific document type found, we choose another one
         return document_class_ids
 
-    @api.onchange('journal_id')
+    @api.onchange('journal_id', 'partner_id')
     def update_domain_journal(self):
         document_classes = self._get_available_journal_document_class()
         result = {'domain':{
@@ -961,8 +955,8 @@ class AccountInvoice(models.Model):
     def _check_vat(self):
         boleta_ids = [
             self.env.ref('l10n_cl_fe.dc_bzf_f_dtn').id,
-            self.env.ref('l10n_cl_fe.dc_b_f_dtm').id]
-        if self.sii_document_class_id not in boleta_ids and self.partner_id.document_number == '' or self.partner_id.document_number == '0':
+            self.env.ref('l10n_cl_fe.dc_b_f_dtn').id]
+        if self.sii_document_class_id.id not in boleta_ids and self.partner_id.document_number == '' or self.partner_id.document_number == '0':
             raise UserError(_("""The customer/supplier does not have a VAT \
 defined. The type of invoicing document you selected requires you tu settle \
 a VAT."""))
