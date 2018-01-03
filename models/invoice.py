@@ -687,11 +687,11 @@ class AccountInvoice(models.Model):
         tax_grouped = {}
         totales = {}
         for line in self.invoice_line_ids:
-            if line.invoice_line_tax_ids[0].price_include:# se asume todos losproductos vienen con precio incluido o no ( no hay mixes)
+            if line.invoice_line_tax_ids and line.invoice_line_tax_ids[0].price_include:# se asume todos losproductos vienen con precio incluido o no ( no hay mixes)
                 for t in line.invoice_line_tax_ids:
                     if not t in totales:
                         totales[t] = 0
-                    total[t] += (round(line.price_unit *line.quantity) * line.discount)
+                    totales[t] += (round(line.price_unit *line.quantity) * line.discount)
                 continue
             taxes = line.invoice_line_tax_ids.compute_all(line.price_unit, self.currency_id, line.quantity, line.product_id, self.partner_id, discount=line.discount)['taxes']
             tax_grouped = self._get_grouped_taxes(line, taxes, tax_grouped)
