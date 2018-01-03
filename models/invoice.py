@@ -1720,10 +1720,10 @@ version="1.0">
         Emisor= collections.OrderedDict()
         Emisor['RUTEmisor'] = self.format_vat(self.company_id.vat)
         if self._es_boleta():
-            Emisor['RznSocEmisor'] = self.company_id.partner_id.name
+            Emisor['RznSocEmisor'] = self._acortar_str(self.company_id.partner_id.name, 100)
             Emisor['GiroEmisor'] = self._acortar_str(self.company_id.activity_description.name, 80)
         else:
-            Emisor['RznSoc'] = self.company_id.partner_id.name
+            Emisor['RznSoc'] = self._acortar_str(self.company_id.partner_id.name, 100)
             Emisor['GiroEmis'] = self._acortar_str(self.company_id.activity_description.name, 80)
             if self.company_id.phone:
                 Emisor['Telefono'] = self._acortar_str(self.company_id.phone, 20)
