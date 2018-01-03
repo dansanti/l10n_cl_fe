@@ -1753,7 +1753,7 @@ version="1.0">
             Receptor['Contacto'] = self._acortar_str(self.partner_id.phone or self.commercial_partner_id.phone or self.partner_id.email, 80)
         if (self.commercial_partner_id.email or self.commercial_partner_id.dte_email or self.partner_id.email or self.partner_id.dte_email) and not self._es_boleta():
             Receptor['CorreoRecep'] = self.commercial_partner_id.dte_email or self.partner_id.dte_email or self.commercial_partner_id.email or self.partner_id.email
-        Receptor['DirRecep'] = self._acortar_str((self.partner_id.street or self.commercial_partner_id.street) + ' ' + (self.partner_id.street2 or self.commercial_partner_id.street2 or ''),70)
+        Receptor['DirRecep'] = self._acortar_str((self.partner_id.street or self.commercial_partner_id.street or '') + ' ' + (self.partner_id.street2 or self.commercial_partner_id.street2 or ''),70)
         Receptor['CmnaRecep'] = self.partner_id.city_id.name or self.commercial_partner_id.city_id.name
         Receptor['CiudadRecep'] = self.partner_id.city or self.commercial_partner_id.city
         return Receptor
