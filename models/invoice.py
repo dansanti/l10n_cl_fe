@@ -85,7 +85,7 @@ except ImportError:
     _logger.warning('Cannot import cchardet library')
 
 try:
-    from signxml import xmldsig, methods
+    from signxml import XMLSigner, methods
 except ImportError:
     _logger.warning('Cannot import signxml')
 
@@ -1289,11 +1289,8 @@ version="1.0">
 
     def sign_seed(self, message, privkey, cert):
         doc = etree.fromstring(message)
-        signed_node = xmldsig(
-            doc, digest_algorithm=u'sha1').sign(
-            method=methods.enveloped, algorithm=u'rsa-sha1',
-            key=privkey.encode('ascii'),
-            cert=cert)
+        signed_node = XMLSigner(method=methods.enveloped, digest_algorithm='sha1').sign(
+            doc, key=privkey.encode('ascii'), cert=cert)
         msg = etree.tostring(
             signed_node, pretty_print=True).decode().replace('ds:', '')
         return msg
