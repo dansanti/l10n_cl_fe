@@ -891,7 +891,11 @@ class AccountInvoice(models.Model):
 
     def _get_available_journal_document_class(self):
         context = dict(self._context or {})
-        journal_id = self.journal_id or context.get('default_journal_id', self.env['account.journal'].search([('type','=','sale')],limit=1))
+        journal_id = self.journal_id
+        if not journal_id and 'default_journal_id' in context:
+            journal_id = self.env['account.journal'].browse(context['default_journal_id'])
+        if not journal_id:
+            journal_id = self.env['account.journal'].search([('type','=','sale')],limit=1)
         invoice_type = self.type or context.get('default_type', False)
         if not invoice_type:
             invoice_type = 'in_invoice' if journal_id.type == 'purchase' else 'out_invoice'
