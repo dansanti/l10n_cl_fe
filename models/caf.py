@@ -81,7 +81,7 @@ has been exhausted.''',
             'res.company',
             string='Company',
             required=False,
-            default=lambda self: self.env.uid.company_id,
+            default=lambda self: self.env.user.company_id,
         )
     sequence_id = fields.Many2one(
             'ir.sequence',
