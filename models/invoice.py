@@ -85,7 +85,7 @@ except ImportError:
     _logger.warning('Cannot import cchardet library')
 
 try:
-    from signxml import xmldsig, methods
+    from signxml import XMLSigner, methods
 except ImportError:
     _logger.warning('Cannot import signxml')
 
@@ -1289,11 +1289,8 @@ version="1.0">
 
     def sign_seed(self, message, privkey, cert):
         doc = etree.fromstring(message)
-        signed_node = xmldsig(
-            doc, digest_algorithm=u'sha1').sign(
-            method=methods.enveloped, algorithm=u'rsa-sha1',
-            key=privkey.encode('ascii'),
-            cert=cert)
+        signed_node = XMLSigner(method=methods.enveloped, digest_algorithm='sha1').sign(
+            doc, key=privkey.encode('ascii'), cert=cert)
         msg = etree.tostring(
             signed_node, pretty_print=True).decode().replace('ds:', '')
         return msg
@@ -1720,10 +1717,10 @@ version="1.0">
         Emisor= collections.OrderedDict()
         Emisor['RUTEmisor'] = self.format_vat(self.company_id.vat)
         if self._es_boleta():
-            Emisor['RznSocEmisor'] = self.company_id.partner_id.name
+            Emisor['RznSocEmisor'] = self._acortar_str(self.company_id.partner_id.name, 100)
             Emisor['GiroEmisor'] = self._acortar_str(self.company_id.activity_description.name, 80)
         else:
-            Emisor['RznSoc'] = self.company_id.partner_id.name
+            Emisor['RznSoc'] = self._acortar_str(self.company_id.partner_id.name, 100)
             Emisor['GiroEmis'] = self._acortar_str(self.company_id.activity_description.name, 80)
             if self.company_id.phone:
                 Emisor['Telefono'] = self._acortar_str(self.company_id.phone, 20)
@@ -1753,7 +1750,7 @@ version="1.0">
             Receptor['Contacto'] = self._acortar_str(self.partner_id.phone or self.commercial_partner_id.phone or self.partner_id.email, 80)
         if (self.commercial_partner_id.email or self.commercial_partner_id.dte_email or self.partner_id.email or self.partner_id.dte_email) and not self._es_boleta():
             Receptor['CorreoRecep'] = self.commercial_partner_id.dte_email or self.partner_id.dte_email or self.commercial_partner_id.email or self.partner_id.email
-        Receptor['DirRecep'] = self._acortar_str((self.partner_id.street or self.commercial_partner_id.street) + ' ' + (self.partner_id.street2 or self.commercial_partner_id.street2 or ''),70)
+        Receptor['DirRecep'] = self._acortar_str((self.partner_id.street or self.commercial_partner_id.street or '') + ' ' + (self.partner_id.street2 or self.commercial_partner_id.street2 or ''),70)
         Receptor['CmnaRecep'] = self.partner_id.city_id.name or self.commercial_partner_id.city_id.name
         Receptor['CiudadRecep'] = self.partner_id.city or self.commercial_partner_id.city
         return Receptor
