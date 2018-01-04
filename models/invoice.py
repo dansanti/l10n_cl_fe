@@ -1750,8 +1750,14 @@ version="1.0">
             Receptor['Contacto'] = self._acortar_str(self.partner_id.phone or self.commercial_partner_id.phone or self.partner_id.email, 80)
         if (self.commercial_partner_id.email or self.commercial_partner_id.dte_email or self.partner_id.email or self.partner_id.dte_email) and not self._es_boleta():
             Receptor['CorreoRecep'] = self.commercial_partner_id.dte_email or self.partner_id.dte_email or self.commercial_partner_id.email or self.partner_id.email
-        Receptor['DirRecep'] = self._acortar_str((self.partner_id.street or self.commercial_partner_id.street or '') + ' ' + (self.partner_id.street2 or self.commercial_partner_id.street2 or ''),70)
+        street_recep = (self.partner_id.street or self.commercial_partner_id.street or False)
+        if not street_recep:
+            raise UserError('Debe Ingresar dirección del cliente')
+        street2_recep = (self.partner_id.street2 or self.commercial_partner_id.street2 or False)
+        Receptor['DirRecep'] = self._acortar_str(street_recep + (' ' + street2_recep if street2_recep else ''), 70)
         Receptor['CmnaRecep'] = self.partner_id.city_id.name or self.commercial_partner_id.city_id.name
+        if not Receptor['CmnaRecep']:
+            raise UserError('Debe Ingresar Comuna del cliente')
         Receptor['CiudadRecep'] = self.partner_id.city or self.commercial_partner_id.city
         return Receptor
 
