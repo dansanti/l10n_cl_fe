@@ -1936,7 +1936,7 @@ version="1.0">
             if dr.gdr_type == "amount":
                 disc_type = "$"
             dr_line['TpoValor'] = disc_type
-            dr_line['ValorDR'] = round(dr.global_discount,2)
+            dr_line['ValorDR'] = round(dr.value, 2)
             if self.sii_document_class_id.sii_code in [34] and (self.referencias and self.referencias[0].sii_referencia_TpoDocRef.sii_code == '34'):#solamente si es exento
                 dr_line['IndExeDR'] = 1
             dr_lines= [{'DscRcgGlobal':dr_line}]
