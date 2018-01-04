@@ -31,7 +31,7 @@
                 </div>
                 <div class="row">
                     <div class="col-xs-5" style="width:420px !important; text-align:center;">
-                        <img t-if="company.logo" t-att-src="'data:image/png;base64,%s' % company.logo" style="max-height: 45px;"/>
+                        <img t-if="company.logo" t-att-src="'data:image/png;base64,%s' % to_text(company.logo)" style="max-height: 45px;"/>
                         <h4 style="text-align:lef;text-transform:uppercase;font-weight:900;font-size:18px;color:black;">
                             <span t-field="o.company_id.partner_id.name"/>
                         </h4>
