@@ -785,15 +785,17 @@ version="1.0">
                 resumenes[TpoDoc] = self._setResumen(resumen, resumenes[TpoDoc], continuado)
                 ant[TpoDoc] = [order.sii_document_number, order.canceled]
         for an in self.anulaciones:
-            TpoDoc = str(an.tpo_doc.sii_code)
+            TpoDoc = an.tpo_doc.sii_code
             if not TpoDoc in TpoDocs:
                 TpoDocs.append(TpoDoc)
+            if not TpoDoc in resumenes:
+                resumenes[TpoDoc] = collections.OrderedDict()
             i = an.rango_inicio
             while i <= an.rango_final:
                 continuado  = False
                 seted = False
                 for r, value in resumenes.items():
-                    Rangos = value[ str(r)+'_folios' ]
+                    Rangos = value.get(str(r)+'_folios', collections.OrderedDict())
                     if 'itemAnulados' in Rangos:
                         _logger.info(Rangos['itemAnulados'])
                         for rango in Rangos['itemAnulados']:
