@@ -7,14 +7,13 @@ _logger = logging.getLogger(__name__)
 
 try:
     from OpenSSL import crypto
+    type_ = crypto.FILETYPE_PEM
 except ImportError:
     _logger.warning('OpenSSL library not found, please install the library from https://pypi.python.org/pypi/pyOpenSSL')
 
 from odoo import models, fields, api, tools
 from odoo.tools.translate import _
 from odoo.exceptions import UserError
-
-type_ = crypto.FILETYPE_PEM
 
 zero_values = {
     "filename": "",
