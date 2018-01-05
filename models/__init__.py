@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+
+from . import signature_key
+from . import res_users
+from . import res_company
 from . import account
 from . import caf
-from . import company_signature_key
 from . import company
 from . import consumo_folios
 from . import country
@@ -22,5 +25,4 @@ from . import sii_activity_description
 from . import sii_cola_envio
 from . import sii_regional_offices
 from . import sii
-from . import user_signature_key
 from . import global_descuento_recargo
