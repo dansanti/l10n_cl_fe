@@ -11,11 +11,6 @@ import dicttoxml
 
 _logger = logging.getLogger(__name__)
 
-try:
-    from signxml import xmldsig, methods
-except ImportError:
-    _logger.warning('Cannot import signxml')
-
 BC = '''-----BEGIN CERTIFICATE-----\n'''
 EC = '''\n-----END CERTIFICATE-----\n'''
 
