@@ -318,7 +318,7 @@ class ConsumoFolios(models.Model):
                     for rango in Rangos['itemAnulados']:
                         pushItem('RangoAnulados', rango, r)
         self.detalles = detalles
-        docs = {}
+        docs = collections.OrderedDict()
         for r, value in resumenes.items():
             docs[r] = {
                        'tpo_doc': self.env['sii.document_class'].search([('sii_code','=', r)]).id,
@@ -654,6 +654,10 @@ version="1.0">
 
     def _orden(self, folio, rangos, contrarios, continuado=True):
         last = self._last(folio, rangos)
+        #si el ultimo generado+1 es igual al siguiente, los numeros son consecutivos
+        #cuando haya un salto de numeros, crear otro rango
+        if (last and last['Final']+1) != folio:
+            continuado = False
         if not continuado or not last or  self._nuevo_rango(folio, last['Final'], contrarios):
             r = collections.OrderedDict()
             r['Inicial'] = folio
@@ -739,7 +743,7 @@ version="1.0">
         return resumenP
 
     def _get_resumenes(self, marc=False):
-        resumenes = {}
+        resumenes = collections.OrderedDict()
         TpoDocs = []
         orders = []
         recs = sorted(self.with_context(lang='es_CL').move_ids, key=lambda t: t.sii_document_number)
