@@ -955,9 +955,9 @@ class AccountInvoice(models.Model):
                 ).id
             self.journal_document_class_id = self._default_journal_document_class_id(default)
 
-    @api.onchange('sii_document_class_id')
+    @api.onchange('sii_document_class_id', 'partner_id')
     def _check_vat(self):
-        if not self._es_boleta() and not self.partner_id.commercial_partner_id.document_number:
+        if self.partner_id and not self._es_boleta() and not self.partner_id.commercial_partner_id.document_number:
             raise UserError(_("""The customer/supplier does not have a VAT \
 defined. The type of invoicing document you selected requires you tu settle \
 a VAT."""))
@@ -986,28 +986,22 @@ a VAT."""))
                 document_number = inv.number
             inv.document_number = document_number
 
-    @api.constrains('supplier_invoice_number', 'partner_id', 'company_id')
-    def _check_reference(self):
-        for inv in self:
-            if inv.type in ['out_invoice', 'out_refund'] and inv.reference and inv.state == 'open':
-                domain = [
-                            ('type', 'in', ('out_invoice', 'out_refund')),
-                              # ('reference', '=', self.reference),
-                              ('document_number', '=', inv.document_number),
-                              ('journal_document_class_id.sii_document_class_id', '=', inv.journal_document_class_id.sii_document_class_id.id),
-                              ('company_id', '=', inv.company_id.id),
-                              ('id', '!=', inv.id),
-                        ]
-                invoice_ids = inv.search(domain)
-                if invoice_ids:
-                    raise UserError(
-                        _('Supplier Invoice Number must be unique per Supplier and Company!'))
-
-    _sql_constraints = [
-        ('number_supplier_invoice_number',
-            'unique(supplier_invoice_number, partner_id, company_id)',
-         'Supplier Invoice Number must be unique per Supplier and Company!'),
-    ]
+    @api.one
+    @api.constrains('reference', 'partner_id', 'company_id', 'type','journal_document_class_id')
+    def _check_reference_in_invoice(self):
+        if self.type in ['in_invoice', 'in_refund'] and self.reference:
+            domain = [('type', '=', self.type),
+                      ('reference', '=', self.reference),
+                      ('partner_id', '=', self.partner_id.id),
+                      ('journal_document_class_id.sii_document_class_id', '=',
+                       self.journal_document_class_id.sii_document_class_id.id),
+                      ('company_id', '=', self.company_id.id),
+                      ('id', '!=', self.id)]
+            invoice_ids = self.search(domain)
+            if invoice_ids:
+                raise UserError(u'El numero de factura debe ser unico por Proveedor.\n'\
+                                u'Ya existe otro documento con el numero: %s para el proveedor: %s' % 
+                                (self.reference, self.partner_id.display_name))
 
     @api.multi
     def action_move_create(self):
@@ -1016,14 +1010,14 @@ a VAT."""))
             if obj_inv.journal_document_class_id and not obj_inv.sii_document_number:
                 if invtype in ('out_invoice', 'out_refund'):
                     if not obj_inv.journal_document_class_id.sequence_id:
-                        raise osv.except_osv(_('Error!'), _(
+                        raise UserError(_(
                             'Please define sequence on the journal related documents to this invoice.'))
                     sii_document_number = obj_inv.journal_document_class_id.sequence_id.next_by_id()
                     prefix = obj_inv.journal_document_class_id.sii_document_class_id.doc_code_prefix or ''
                     move_name = (prefix + str(sii_document_number)).replace(' ','')
                     obj_inv.write({'move_name': move_name})
                 elif invtype in ('in_invoice', 'in_refund'):
-                    sii_document_number = obj_inv.supplier_invoice_number
+                    sii_document_number = obj_inv.reference
         super(AccountInvoice, self).action_move_create()
         for obj_inv in self:
             invtype = obj_inv.type
@@ -2097,7 +2091,7 @@ version="1.0">
             NroDte = 0
             for documento in classes:
                 if documento['sii_batch_number'] in dtes.keys():
-                    raise UserErro("No se puede repetir el mismo número de orden")
+                    raise UserError("No se puede repetir el mismo número de orden")
                 dtes.update({str(documento['sii_batch_number']): documento['envio']})
                 NroDte += 1
                 file_name += 'F' + str(int(documento['sii_document_number'])) + 'T' + str(id_class_doc)

@@ -454,27 +454,27 @@ version="1.0">
         signed_info_c14n = etree.tostring(signed_info,method="c14n",exclusive=False,with_comments=False,inclusive_ns_prefixes=None)
         att = 'xmlns="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
         #@TODO Find better way to add xmlns:xsi attrib
-        signed_info_c14n = signed_info_c14n.replace("<SignedInfo>","<SignedInfo %s>" % att)
+        signed_info_c14n = signed_info_c14n.decode().replace("<SignedInfo>","<SignedInfo %s>" % att)
         sig_root = Element("Signature",attrib={'xmlns':'http://www.w3.org/2000/09/xmldsig#'})
         sig_root.append(etree.fromstring(signed_info_c14n))
         signature_value = SubElement(sig_root, "SignatureValue")
         key = crypto.load_privatekey(type_,privkey.encode('ascii'))
         signature = crypto.sign(key,signed_info_c14n,'sha1')
-        signature_value.text =textwrap.fill(base64.b64encode(signature),64)
+        signature_value.text =textwrap.fill(base64.b64encode(signature).decode(),64)
         key_info = SubElement(sig_root, "KeyInfo")
         key_value = SubElement(key_info, "KeyValue")
         rsa_key_value = SubElement(key_value, "RSAKeyValue")
         modulus = SubElement(rsa_key_value, "Modulus")
         key = load_pem_private_key(privkey.encode('ascii'),password=None, backend=default_backend())
         longs = self.env['account.move.book'].long_to_bytes(key.public_key().public_numbers().n)
-        modulus.text =  textwrap.fill(base64.b64encode(longs),64)
+        modulus.text =  textwrap.fill(base64.b64encode(longs).decode(),64)
         exponent = SubElement(rsa_key_value, "Exponent")
         longs = self.env['account.move.book'].long_to_bytes(key.public_key().public_numbers().e)
-        exponent.text = self.ensure_str(base64.b64encode(longs))
+        exponent.text = self.ensure_str(base64.b64encode(longs).decode())
         x509_data = SubElement(key_info, "X509Data")
         x509_certificate = SubElement(x509_data, "X509Certificate")
         x509_certificate.text = '\n'+textwrap.fill(cert,64)
-        msg = etree.tostring(sig_root)
+        msg = etree.tostring(sig_root).decode()
         msg = msg if self.xml_validator(msg, 'sig') else ''
         fulldoc = message.replace('</ConsumoFolios>',msg+'\n</ConsumoFolios>')
         fulldoc = fulldoc
@@ -785,15 +785,17 @@ version="1.0">
                 resumenes[TpoDoc] = self._setResumen(resumen, resumenes[TpoDoc], continuado)
                 ant[TpoDoc] = [order.sii_document_number, order.canceled]
         for an in self.anulaciones:
-            TpoDoc = str(an.tpo_doc.sii_code)
+            TpoDoc = an.tpo_doc.sii_code
             if not TpoDoc in TpoDocs:
                 TpoDocs.append(TpoDoc)
+            if not TpoDoc in resumenes:
+                resumenes[TpoDoc] = collections.OrderedDict()
             i = an.rango_inicio
             while i <= an.rango_final:
                 continuado  = False
                 seted = False
                 for r, value in resumenes.items():
-                    Rangos = value[ str(r)+'_folios' ]
+                    Rangos = value.get(str(r)+'_folios', collections.OrderedDict())
                     if 'itemAnulados' in Rangos:
                         _logger.info(Rangos['itemAnulados'])
                         for rango in Rangos['itemAnulados']:
@@ -854,7 +856,7 @@ version="1.0">
             xml = dicttoxml.dicttoxml(
                 dte,
                 root=False,
-                attr_type=False)
+                attr_type=False).decode()
         resol_data = self.get_resolution_data(company_id)
         RUTEmisor = self.format_vat(company_id.vat)
         RUTRecep = "60803000-K" # RUT SII
