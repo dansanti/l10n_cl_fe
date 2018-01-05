@@ -1532,7 +1532,7 @@ version="1.0">
         att = self.env['ir.attachment'].search([('name','=', filename), ('res_id','=', self.id), ('res_model','=','account.invoice')], limit=1)
         if att:
             return att
-        data = base64.b64encode(self.sii_xml_exchange)
+        data = base64.b64encode(self.sii_xml_exchange.encode('ISO-8859-1'))
         values = dict(
                         name=filename,
                         datas_fname=filename,
