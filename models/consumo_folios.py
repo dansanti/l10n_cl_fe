@@ -145,13 +145,13 @@ class ConsumoFolios(models.Model):
             string="Fecha Inicio",
         	readonly=True,
             states={'draft': [('readonly', False)]},
-            default=lambda *a: datetime.now().strftime('%Y-%m-%d'),
+            default=lambda self: fields.Date.context_today(self),
         )
     fecha_final = fields.Date(
             string="Fecha Final",
         	readonly=True,
             states={'draft': [('readonly', False)]},
-            default=lambda *a: datetime.now().strftime('%Y-%m-%d'),
+            default=lambda self: fields.Date.context_today(self),
         )
     correlativo = fields.Integer(
             string="Correlativo",
