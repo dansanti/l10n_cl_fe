@@ -24,3 +24,4 @@ from . import sii_regional_offices
 from . import sii
 from . import user_signature_key
 from . import global_descuento_recargo
+from . import res_config_settings

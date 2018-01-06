@@ -263,12 +263,13 @@ class AccountInvoice(models.Model):
             states={'draft': [('readonly', False)]},
         )
     sii_document_class_id = fields.Many2one(
-        'sii.document_class',
-        related='journal_document_class_id.sii_document_class_id',
-        string='Document Type',
-        copy=False,
-        readonly=True,
-        store=True)
+            'sii.document_class',
+            related='journal_document_class_id.sii_document_class_id',
+            string='Document Type',
+            copy=False,
+            readonly=True,
+            store=True,
+        )
     sii_document_number = fields.Char(
         string='Document Number',
         copy=False,
@@ -1000,7 +1001,7 @@ a VAT."""))
             invoice_ids = self.search(domain)
             if invoice_ids:
                 raise UserError(u'El numero de factura debe ser unico por Proveedor.\n'\
-                                u'Ya existe otro documento con el numero: %s para el proveedor: %s' % 
+                                u'Ya existe otro documento con el numero: %s para el proveedor: %s' %
                                 (self.reference, self.partner_id.display_name))
 
     @api.multi
@@ -1115,7 +1116,8 @@ a VAT."""))
                                                 'model':'account.invoice',
                                                 'user_id':self.env.user.id,
                                                 'tipo_trabajo': 'pasivo',
-                                                'date_time': (datetime.now() + timedelta(hours=12)),
+                                                'date_time': (datetime.now() + timedelta(hours=self.env['ir.config_parameter'].sudo().get_param('account.auto_send_dte', default=12))),
+                                                'send_email': False if inv.company_id.dte_service_provider=='SIICERT' or self.env['ir.config_parameter'].sudo().get_param('account.auto_send_email', default=True) else True
                                                 })
             if inv.purchase_to_done:
                 for ptd in inv.purchase_to_done:
