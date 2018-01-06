@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, models, api
+from odoo import fields, models, api, tools
 from odoo.tools.translate import _
 from odoo.exceptions import UserError
 from datetime import datetime, timedelta
@@ -644,9 +644,9 @@ version="1.0">
                 signature_d['priv_key'],
                 signature_d['cert'])
             token = self.get_token(seed_firmado,company_id)
-        except:
+        except Exception as e:
             _logger.info(connection_status)
-            raise UserError(connection_status)
+            raise UserError(tools.ustr(e))
 
         url = 'https://palena.sii.cl'
         if company_id.dte_service_provider == 'SIICERT':
@@ -678,7 +678,8 @@ version="1.0">
         respuesta_dict = xmltodict.parse(response.data)
         if respuesta_dict['RECEPCIONDTE']['STATUS'] != '0':
             _logger.info('l736-status no es 0')
-            _logger.info(connection_status)
+            _logger.info(respuesta_dict)
+            _logger.info(connection_status[respuesta_dict['RECEPCIONDTE']['STATUS']])
         else:
             retorno.update({'sii_result': 'Enviado','sii_send_ident':respuesta_dict['RECEPCIONDTE']['TRACKID']})
         return retorno
