@@ -598,7 +598,7 @@ class UploadXMLWizard(models.TransientModel):
             disc_type = "amount"
         data['gdr_type'] = disc_type
         data['global_discount'] = dr['ValorDR']
-        data['gdr_dtail'] = dr['GlosaDR']
+        data['gdr_dtail'] = dr.get('GlosaDR', 'Descuento globla')
         return data
 
     def _prepare_invoice(self, dte, company_id, journal_document_class_id):
@@ -910,10 +910,13 @@ class UploadXMLWizard(models.TransientModel):
                 product_id = self._create_prod(line)
             lines.append([0,0,{
                 'name': line['DescItem'] if 'DescItem' in line else line['NmbItem'],
-                'product_id': product_id,
+                'product_id': product_id.id,
+                'product_uom': product_id.uom_id.id,
+                'price_unit': line['PrcItem'],
                 'product_qty': line['QtyItem'],
+                'date_planned': dte['Encabezado']['IdDoc']['FchEmis'],
             }])
-        data['order_lines'] = lines
+        data['order_line'] = lines
         po = self.env['purchase.order'].create(data)
         po.button_confirm()
         inv = self.env['account.invoice'].search([('purchase_id', '=', po.id)])
@@ -922,9 +925,9 @@ class UploadXMLWizard(models.TransientModel):
 
     def do_create_po(self):
         #self.validate()
-        envio = self._read_xml('parse')
-        for dte in envio['SetDTE']['DTE']:
-            if dte['TipoDTE'] in ['34', '33']:
+        dtes = self._get_dtes()
+        for dte in dtes:
+            if dte['Documento']['Encabezado']['IdDoc']['TipoDTE'] in ['34', '33']:
                 self._create_po(dte['Documento'])
-            elif dte['56','61']: # es una nota
+            elif dte['Documento']['Encabezado']['IdDoc']['TipoDTE'] in ['56','61']: # es una nota
                 self._create_inv(dte['Documento'])
