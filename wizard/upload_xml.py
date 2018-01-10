@@ -436,6 +436,7 @@ class UploadXMLWizard(models.TransientModel):
     def _create_prod(self, data):
         product_id = self.env['product.product'].create({
             'sale_ok':False,
+            'type': 'product',
             'name': data['NmbItem'],
             'lst_price': float(data['PrcItem'] if 'PrcItem' in data else data['MontoItem']),
             'categ_id': self._default_category(),
@@ -912,6 +913,7 @@ class UploadXMLWizard(models.TransientModel):
                 'name': line['DescItem'] if 'DescItem' in line else line['NmbItem'],
                 'product_id': product_id.id,
                 'product_uom': product_id.uom_id.id,
+                'taxes_id': [(6, 0, product_id.supplier_taxes_id.ids)],
                 'price_unit': line['PrcItem'],
                 'product_qty': line['QtyItem'],
                 'date_planned': dte['Encabezado']['IdDoc']['FchEmis'],
