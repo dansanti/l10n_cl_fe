@@ -432,20 +432,20 @@ class UploadXMLWizard(models.TransientModel):
                 'type_tax_use': 'purchase',
             } )
         return ((6,0, imp.ids))
-
-    def _create_prod(self, data):
-        product_id = self.env['product.product'].create({
+    
+    def get_product_values(self, data):
+        values = {
             'sale_ok':False,
             'name': data['NmbItem'],
             'lst_price': float(data['PrcItem'] if 'PrcItem' in data else data['MontoItem']),
             'categ_id': self._default_category(),
-        })
+        }
         if 'CdgItem' in data:
             if 'TpoCodigo' in data['CdgItem']:
                 if data['CdgItem']['TpoCodigo'] == 'ean13':
-                    product_id.barcode = data['CdgItem']['VlrCodigo']
+                    values['barcode'] = data['CdgItem']['VlrCodigo']
                 else:
-                    product_id.default_code = data['CdgItem']['VlrCodigo']
+                    values['default_code'] = data['CdgItem']['VlrCodigo']
             else:
                 try:
                     Codes = data['CdgItem']['item']
@@ -453,9 +453,13 @@ class UploadXMLWizard(models.TransientModel):
                     Codes = data['CdgItem']
                 for c in Codes:
                     if c['TpoCodigo'] == 'ean13':
-                        product_id.barcode = c['VlrCodigo']
+                        values['barcode'] = c['VlrCodigo']
                     else:
-                        product_id.default_code = c['VlrCodigo']
+                        values['default_code'] = c['VlrCodigo']
+        return values
+
+    def _create_prod(self, data):
+        product_id = self.env['product.product'].create(self.get_product_values(data))
         return product_id
 
     def _buscar_producto(self, document_id, line):
@@ -880,8 +884,7 @@ class UploadXMLWizard(models.TransientModel):
             )
             wiz_acept.confirm()
         return created
-
-
+    
     def _create_po(self, dte):
         partner_id = self.env['res.partner'].search([
             ('active','=', True),
