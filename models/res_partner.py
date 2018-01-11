@@ -102,8 +102,7 @@ class ResPartner(models.Model):
                 self.vat = ''
                 self.document_number = ''
                 raise UserError(
-                        title=_("El Rut ya está siendo usado"),
-                        message=_("El usuario %s está utilizando este documento" ) % exist.name,
+                            _("El usuario %s está utilizando este documento" ) % exist.name,
                     )
             self.vat = vat
             self.document_number = '%s.%s.%s-%s' % (
