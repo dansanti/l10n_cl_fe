@@ -901,6 +901,7 @@ class UploadXMLWizard(models.TransientModel):
         return values
     
     def _create_po(self, dte):
+        purchase_model = self.env['purchase.order']
         partner_id = self.env['res.partner'].search([
             ('active','=', True),
             ('parent_id', '=', False),
@@ -921,6 +922,16 @@ class UploadXMLWizard(models.TransientModel):
             'partner_id' : partner_id.id,
             'company_id' : company_id.id,
         }
+        #antes de crear la OC, verificar que no exista otro documento con los mismos datos
+        other_orders = purchase_model.search([
+            ('partner_id','=', data['partner_id']),
+            ('partner_ref','=', data['partner_ref']),
+            ('company_id','=', data['company_id']),
+            ])
+        if other_orders:
+            raise UserError("Ya existe un Pedido de compra con Referencia: %s para el Proveedor: %s.\n" \
+                            "No se puede crear nuevamente, por favor verifique." % 
+                            (data['partner_ref'], partner_id.name))
         lines =[(5,)]
         vals_line = {}
         detalles = dte['Detalle']
@@ -935,7 +946,7 @@ class UploadXMLWizard(models.TransientModel):
                 lines.append([0, 0, vals_line])
             
         data['order_line'] = lines
-        po = self.env['purchase.order'].create(data)
+        po = purchase_model.create(data)
         po.button_confirm()
         inv = self.env['account.invoice'].search([('purchase_id', '=', po.id)])
         #inv.sii_document_class_id = dte['Encabezado']['IdDoc']['TipoDTE']
