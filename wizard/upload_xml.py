@@ -894,7 +894,7 @@ class UploadXMLWizard(models.TransientModel):
             'product_id': product.id,
             'product_uom': product.uom_id.id,
             'taxes_id': [(6, 0, product.supplier_taxes_id.ids)],
-            'price_unit': line['PrcItem'],
+            'price_unit': float(line['PrcItem'] if 'PrcItem' in line else line['MontoItem']),
             'product_qty': line['QtyItem'],
             'date_planned': date_planned,
         }
