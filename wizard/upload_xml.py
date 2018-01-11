@@ -923,7 +923,13 @@ class UploadXMLWizard(models.TransientModel):
         }
         lines =[(5,)]
         vals_line = {}
-        for line in dte['Detalle']:
+        detalles = dte['Detalle']
+        #cuando es un solo producto, no viene una lista sino un diccionario
+        #asi que tratarlo como una lista de un solo elemento
+        #para evitar error en la esructura que siempre espera una lista
+        if isinstance(dte['Detalle'], dict):
+            detalles = [dte['Detalle']]
+        for line in detalles:
             vals_line = self.prepare_purchase_line(line, dte['Encabezado']['IdDoc']['FchEmis'])
             if vals_line:
                 lines.append([0, 0, vals_line])
