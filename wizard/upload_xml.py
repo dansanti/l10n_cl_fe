@@ -436,7 +436,6 @@ class UploadXMLWizard(models.TransientModel):
     def _create_prod(self, data):
         product_id = self.env['product.product'].create({
             'sale_ok':False,
-            'type': 'product',
             'name': data['NmbItem'],
             'lst_price': float(data['PrcItem'] if 'PrcItem' in data else data['MontoItem']),
             'categ_id': self._default_category(),
