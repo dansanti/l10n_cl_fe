@@ -885,6 +885,21 @@ class UploadXMLWizard(models.TransientModel):
             wiz_acept.confirm()
         return created
     
+    def prepare_purchase_line(self, line, date_planned):
+        product = self.env['product.product'].search([('name','=',line['NmbItem'])], limit=1)
+        if not product:
+            product = self._create_prod(line)
+        values = {
+            'name': line['DescItem'] if 'DescItem' in line else line['NmbItem'],
+            'product_id': product.id,
+            'product_uom': product.uom_id.id,
+            'taxes_id': [(6, 0, product.supplier_taxes_id.ids)],
+            'price_unit': line['PrcItem'],
+            'product_qty': line['QtyItem'],
+            'date_planned': date_planned,
+        }
+        return values
+    
     def _create_po(self, dte):
         partner_id = self.env['res.partner'].search([
             ('active','=', True),
@@ -907,19 +922,12 @@ class UploadXMLWizard(models.TransientModel):
             'company_id' : company_id.id,
         }
         lines =[(5,)]
+        vals_line = {}
         for line in dte['Detalle']:
-            product_id = self.env['product.product'].search([('name','=',line['NmbItem'])])
-            if not product_id:
-                product_id = self._create_prod(line)
-            lines.append([0,0,{
-                'name': line['DescItem'] if 'DescItem' in line else line['NmbItem'],
-                'product_id': product_id.id,
-                'product_uom': product_id.uom_id.id,
-                'taxes_id': [(6, 0, product_id.supplier_taxes_id.ids)],
-                'price_unit': line['PrcItem'],
-                'product_qty': line['QtyItem'],
-                'date_planned': dte['Encabezado']['IdDoc']['FchEmis'],
-            }])
+            vals_line = self.prepare_purchase_line(line, dte['Encabezado']['IdDoc']['FchEmis'])
+            if vals_line:
+                lines.append([0, 0, vals_line])
+            
         data['order_line'] = lines
         po = self.env['purchase.order'].create(data)
         po.button_confirm()
