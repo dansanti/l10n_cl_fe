@@ -6,6 +6,8 @@ from odoo.tools.translate import _
 from odoo.exceptions import Warning
 from odoo import SUPERUSER_ID
 import base64
+import logging
+_logger = logging.getLogger(__name__)
 try:
     from OpenSSL import crypto
     type_ = crypto.FILETYPE_PEM
