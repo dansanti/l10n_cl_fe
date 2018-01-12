@@ -588,7 +588,8 @@ class AccountInvoice(models.Model):
             amount_total_company_signed = inv.amount_total
             amount_untaxed_signed = inv.amount_untaxed
             if inv.currency_id and inv.currency_id != inv.company_id.currency_id:
-                amount_total_company_signed = inv.currency_id.compute(inv.amount_total, inv.company_id.currency_id)
+                currency_id = inv.currency_id.with_context(date=inv.date_invoice)
+                amount_total_company_signed = currency_id.compute(inv.amount_total, inv.company_id.currency_id)
                 amount_untaxed_signed = inv.currency_id.compute(inv.amount_untaxed, inv.company_id.currency_id)
             sign = inv.type in ['in_refund', 'out_refund'] and -1 or 1
             inv.amount_total_company_signed = amount_total_company_signed * sign
@@ -1111,13 +1112,14 @@ a VAT."""))
                     inv.sii_result = 'Proceso'
                 else:
                     inv._timbrar()
+                    tiempo_pasivo = (datetime.now() + timedelta(hours=int(self.env['ir.config_parameter'].sudo().get_param('account.auto_send_dte', default=12))))
                     self.env['sii.cola_envio'].create({
                                                 'doc_ids':[inv.id],
                                                 'model':'account.invoice',
                                                 'user_id':self.env.user.id,
                                                 'tipo_trabajo': 'pasivo',
-                                                'date_time': (datetime.now() + timedelta(hours=self.env['ir.config_parameter'].sudo().get_param('account.auto_send_dte', default=12))),
-                                                'send_email': False if inv.company_id.dte_service_provider=='SIICERT' or self.env['ir.config_parameter'].sudo().get_param('account.auto_send_email', default=True) else True
+                                                'date_time': tiempo_pasivo,
+                                                'send_email': False if inv.company_id.dte_service_provider=='SIICERT' or self.env['ir.config_parameter'].sudo().get_param('account.auto_send_email', default=True) else True,
                                                 })
             if inv.purchase_to_done:
                 for ptd in inv.purchase_to_done:
@@ -1670,7 +1672,8 @@ version="1.0">
                                     'model':'account.invoice',
                                     'user_id':self.env.user.id,
                                     'tipo_trabajo': 'envio',
-                                    'n_atencion': n_atencion
+                                    'n_atencion': n_atencion,
+                                    'send_email': False if self[0].company_id.dte_service_provider=='SIICERT' or self.env['ir.config_parameter'].sudo().get_param('account.auto_send_email', default=True) else True,
                                     })
     def _es_boleta(self):
         if self.sii_document_class_id.sii_code in [35, 38, 39, 41, 70, 71]:
