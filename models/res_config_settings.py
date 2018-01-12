@@ -19,7 +19,7 @@ class ResConfigSettings(models.TransientModel):
     def get_values(self):
         res = super(ResConfigSettings, self).get_values()
         ICPSudo = self.env['ir.config_parameter'].sudo()
-        account_auto_send_dte = ICPSudo.get_param('account.auto_send_dte', default=12)
+        account_auto_send_dte = int(ICPSudo.get_param('account.auto_send_dte', default=12))
         account_auto_send_email = ICPSudo.get_param('account.auto_send_email', default=True)
         res.update(
                 auto_send_email=account_auto_send_email,
