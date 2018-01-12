@@ -742,27 +742,22 @@ version="1.0">
         resumenes = {}
         TpoDocs = []
         orders = []
-        recs = sorted(self.with_context(lang='es_CL').move_ids, key=lambda t: t.sii_document_number)
-        for rec in recs:
+        recs = {}
+        for rec in self.with_context(lang='es_CL').move_ids:
             document_class_id = rec.document_class_id if 'document_class_id' in rec else rec.sii_document_class_id
             if not document_class_id or document_class_id.sii_code not in [39, 41, 61]:
                 _logger.info("Por este medio solamente e pueden declarar Boletas o Notas de crédito Electrónicas, por favor elimine el documento %s del listado" % rec.name)
                 continue
             if rec.sii_document_number:
-                resumen = self.getResumen(rec)
-                TpoDoc = resumen['TpoDoc']
-                TpoDocs.append(TpoDoc)
-                if not TpoDoc in resumenes:
-                    resumenes[TpoDoc] = collections.OrderedDict()
-                resumenes[TpoDoc] = self._setResumen(resumen, resumenes[TpoDoc])
+                recs.append(rec)
             #rec.sended = marc
-        if 'pos.order' in self.env:
+        if 'pos.order' in self.env: #@TODO mejor forma de verificar si está isntalado módulo POS
             current = self.fecha_inicio + ' 00:00:00'
             tz = pytz.timezone('America/Santiago')
             tz_current = tz.localize(datetime.strptime(current, DTF)).astimezone(pytz.utc)
             current = tz_current.strftime(DTF)
             next_day = (tz_current + relativedelta.relativedelta(days=1)).strftime(DTF)
-            orders_array = sorted(self.env['pos.order'].search(
+            orders_array = self.env['pos.order'].search(
                 [
                  ('invoice_id' , '=', False),
                  ('sii_document_number', 'not in', [False, '0']),
@@ -770,20 +765,25 @@ version="1.0">
                  ('date_order','>=', current),
                  ('date_order','<', next_day),
                 ]
-            ).with_context(lang='es_CL'), key=lambda t: t.sii_document_number)
-            ant = {}
+            ).with_context(lang='es_CL')
             for order in orders_array:
+                recs.append(order)
+        if recs:
+            recs = sorted(recs, key=lambda t: t.sii_document_number)
+            ant = {}
+            for rec in recs:
+                canceled = (hasattr(order,'canceled') and order.canceled)
                 resumen = self.getResumen(order)
                 TpoDoc = str(resumen['TpoDoc'])
                 if not TpoDoc in ant:
-                    ant[TpoDoc] = [0, order.canceled]
+                    ant[TpoDoc] = [0, canceled]
                 if not TpoDoc in TpoDocs:
                     TpoDocs.append(TpoDoc)
                 if not TpoDoc in resumenes:
                     resumenes[TpoDoc] = collections.OrderedDict()
-                continuado = ((ant[TpoDoc][0]+1) == order.sii_document_number and (ant[TpoDoc][1]) == order.canceled)
+                continuado = ((ant[TpoDoc][0]+1) == order.sii_document_number and (ant[TpoDoc][1]) == canceled)
                 resumenes[TpoDoc] = self._setResumen(resumen, resumenes[TpoDoc], continuado)
-                ant[TpoDoc] = [order.sii_document_number, order.canceled]
+                ant[TpoDoc] = [order.sii_document_number, canceled]
         for an in self.anulaciones:
             TpoDoc = an.tpo_doc.sii_code
             if not TpoDoc in TpoDocs:
