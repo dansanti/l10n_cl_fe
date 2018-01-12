@@ -151,7 +151,7 @@ class userSignature(models.Model):
     authorized_users_ids = fields.One2many('res.users','cert_owner_id',
                                            string='Authorized Users')
     cert_owner_id = fields.Many2one('res.users', string='Certificate Owner',
-                                    select=True, ondelete='cascade')
+                                    index=True, ondelete='cascade')
 
     @api.multi
     def action_clean1(self):
