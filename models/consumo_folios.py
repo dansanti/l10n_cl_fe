@@ -772,6 +772,8 @@ version="1.0">
             recs = sorted(recs, key=lambda t: t.sii_document_number)
             ant = {}
             for rec in recs:
+                if order.sii_document_number == ant[TpoDoc][0]:
+                    raise UserError("¡El Folio %s está duplicado!" % order.sii_document_number)
                 canceled = (hasattr(order,'canceled') and order.canceled)
                 resumen = self.getResumen(order)
                 TpoDoc = str(resumen['TpoDoc'])
