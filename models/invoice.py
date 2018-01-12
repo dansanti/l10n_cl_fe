@@ -1924,8 +1924,8 @@ version="1.0">
                 'tax_include': taxInclude,
                 }
 
-    def _gd(self):
-        result = collections.OrderedDict()
+    def _gdr(self):
+        result = []
         lin_dr = 1
         dr_line = {}
         dr_line = collections.OrderedDict()
@@ -1938,7 +1938,7 @@ version="1.0">
             if dr.gdr_type == "amount":
                 disc_type = "$"
             dr_line['TpoValor'] = disc_type
-            dr_line['ValorDR'] = round(dr.value, 2)
+            dr_line['ValorDR'] = round(dr.valor, 2)
             if self.sii_document_class_id.sii_code in [34] and (self.referencias and self.referencias[0].sii_referencia_TpoDocRef.sii_code == '34'):#solamente si es exento
                 dr_line['IndExeDR'] = 1
             dr_lines= [{'DscRcgGlobal':dr_line}]
@@ -1982,7 +1982,7 @@ version="1.0">
                 lin_ref += 1
         dte['item'] = invoice_lines['invoice_lines']
         if self.global_descuentos_recargos:
-            dte['drlines'] = self._gd()
+            dte['drlines'] = self._gdr()
         dte['reflines'] = ref_lines
         dte['TEDd'] = self.get_barcode(invoice_lines['no_product'])
         return dte
@@ -1992,7 +1992,7 @@ version="1.0">
         dte[(tpo_dte + ' ID')]['TEDd'] = ''
         xml = dicttoxml.dicttoxml(
             dte, root=False, attr_type=False).decode() \
-            .replace('<item>','').replace('</item>','')\
+            .replace('<item >','').replace('<item>','').replace('</item>','')\
             .replace('<reflines>','').replace('</reflines>','')\
             .replace('<TEDd>','').replace('</TEDd>','')\
             .replace('</'+ tpo_dte + '_ID>','\n'+ted+'\n</'+ tpo_dte + '_ID>')\
