@@ -576,7 +576,7 @@ class UploadXMLWizard(models.TransientModel):
 
     def _prepare_ref(self, ref):
         try:
-            tpo = self.env['sii.document_class'].search([('sii_code', '=', ref['TpoDocRef'])])
+            tpo = self.env['sii.document_class'].search([('sii_code', '=', ref['TpoDocRef'])], limit=1)
         except:
             tpo = self.env['sii.document_class'].search([('sii_code', '=', 801)])
         if not tpo:
@@ -852,28 +852,30 @@ class UploadXMLWizard(models.TransientModel):
 
     def do_create_inv(self):
         created = []
-        dte = self._read_xml('parse')
-        try:
-            company_id = self.document_id.company_id
-            if not company_id:
-                company_id = self.env['res.company'].search(
-                    [
-                        ('vat','=', self.format_rut(dte['DTE']['Documento']['Encabezado']['Receptor']['RUTRecep'])),
-                    ],
-                    limit=1,
+        dtes = self._get_dtes()
+        for dte in dtes:
+            try:
+                company_id = self.document_id.company_id
+                if not company_id:
+                    company_id = self.env['res.company'].search(
+                        [
+                            ('vat','=', self.format_rut(dte['Documento']['Encabezado']['Receptor']['RUTRecep'])),
+                        ],
+                        limit=1,
+                    )
+                inv = self._create_inv(
+                    dte['Documento'],
+                    company_id,
                 )
-            inv = self._create_inv(
-                dte['DTE']['Documento'],
-                company_id,
-            )
-            if self.document_id :
-                self.document_id.invoice_id = inv.id
-            if inv:
-                created.append(inv.id)
-            if not inv:
-                raise UserError('El archivo XML no contiene documentos para alguna empresa registrada en Odoo, o ya ha sido procesado anteriormente ')
-        except Exception as e:
-            _logger.warning('Error en 1 factura con error:  %s' % str(e))
+                if self.document_id :
+                    self.document_id.invoice_id = inv.id
+                if inv:
+                    created.append(inv.id)
+                if not inv:
+                    raise UserError('El archivo XML no contiene documentos para alguna empresa registrada en Odoo, o ya ha sido procesado anteriormente ')
+            except Exception as e:
+                raise
+                _logger.warning('Error en 1 factura con error:  %s' % str(e))
         if created and self.option not in [False, 'upload']:
             wiz_acept = self.env['sii.dte.validar.wizard'].create(
                 {
