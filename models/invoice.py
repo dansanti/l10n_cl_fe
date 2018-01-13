@@ -559,7 +559,7 @@ class AccountInvoice(models.Model):
         return move_lines
 
     @api.depends('invoice_line_ids.price_subtotal', 'tax_line_ids.amount', 'tax_line_ids.amount_rounding',
-                 'currency_id', 'company_id', 'date_invoice', 'type','global_descuentos_recargos')
+                 'currency_id', 'company_id', 'date_invoice', 'type', 'global_descuentos_recargos')
     def _compute_amount(self):
         for inv in self:
             neto = 0
@@ -694,14 +694,13 @@ class AccountInvoice(models.Model):
                     if not t in totales:
                         totales[t] = 0
                     totales[t] += (round(line.price_unit *line.quantity) * line.discount)
-                continue
             taxes = line.invoice_line_tax_ids.compute_all(line.price_unit, self.currency_id, line.quantity, line.product_id, self.partner_id, discount=line.discount)['taxes']
             tax_grouped = self._get_grouped_taxes(line, taxes, tax_grouped)
         if totales:
             for line in self.invoice_line_ids:
                 for t in line.invoice_line_tax_ids:
                     taxes = t.compute_all(totales[t], self.currency_id, 1)['taxes']
-                    taxes_grouped = self._get_grouped_taxes(line, taxes, tax_grouped)
+                    tax_grouped = self._get_grouped_taxes(line, taxes, tax_grouped)
         if not self.global_descuentos_recargos:
             return tax_grouped
         gdr = self.porcentaje_dr()
@@ -714,6 +713,10 @@ class AccountInvoice(models.Model):
                 taxes[t]['amount'] *= gdr
                 taxes[t]['base'] *=  gdr
         return taxes
+
+    @api.onchange('global_descuentos_recargos' )
+    def _onchange_descuentos(self):
+        self._onchange_invoice_line_ids()
 
     @api.model
     def _prepare_refund(self, invoice, date_invoice=None, date=None, description=None, journal_id=None, tipo_nota=61, mode='1'):
