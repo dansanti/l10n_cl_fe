@@ -601,7 +601,7 @@ class UploadXMLWizard(models.TransientModel):
         if dr['TpoValor'] == '$':
             disc_type = "amount"
         data['gdr_type'] = disc_type
-        data['global_discount'] = dr['ValorDR']
+        data['valor'] = dr['ValorDR']
         data['gdr_dtail'] = dr.get('GlosaDR', 'Descuento globla')
         return data
 
