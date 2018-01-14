@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, models, api
+from odoo import fields, models, api, tools
 from odoo.tools.translate import _
 from odoo.exceptions import UserError
 from datetime import datetime, timedelta
@@ -145,13 +145,13 @@ class ConsumoFolios(models.Model):
             string="Fecha Inicio",
         	readonly=True,
             states={'draft': [('readonly', False)]},
-            default=lambda *a: datetime.now().strftime('%Y-%m-%d'),
+            default=lambda self: fields.Date.context_today(self),
         )
     fecha_final = fields.Date(
             string="Fecha Final",
         	readonly=True,
             states={'draft': [('readonly', False)]},
-            default=lambda *a: datetime.now().strftime('%Y-%m-%d'),
+            default=lambda self: fields.Date.context_today(self),
         )
     correlativo = fields.Integer(
             string="Correlativo",
@@ -318,7 +318,7 @@ class ConsumoFolios(models.Model):
                     for rango in Rangos['itemAnulados']:
                         pushItem('RangoAnulados', rango, r)
         self.detalles = detalles
-        docs = {}
+        docs = collections.OrderedDict()
         for r, value in resumenes.items():
             docs[r] = {
                        'tpo_doc': self.env['sii.document_class'].search([('sii_code','=', r)]).id,
@@ -478,7 +478,7 @@ version="1.0">
         msg = msg if self.xml_validator(msg, 'sig') else ''
         fulldoc = message.replace('</ConsumoFolios>',msg+'\n</ConsumoFolios>')
         fulldoc = fulldoc
-        fulldoc = fulldoc if self.xml_validator(fulldoc, type) else ''
+        fulldoc = '<?xml version="1.0" encoding="ISO-8859-1"?>\n'+fulldoc if self.xml_validator(fulldoc, type) else ''
         return fulldoc
 
     def get_digital_signature_pem(self, comp_id):
@@ -654,6 +654,10 @@ version="1.0">
 
     def _orden(self, folio, rangos, contrarios, continuado=True):
         last = self._last(folio, rangos)
+        #si el ultimo generado+1 es igual al siguiente, los numeros son consecutivos
+        #cuando haya un salto de numeros, crear otro rango
+        if (last and last['Final']+1) != folio:
+            continuado = False
         if not continuado or not last or  self._nuevo_rango(folio, last['Final'], contrarios):
             r = collections.OrderedDict()
             r['Inicial'] = folio
@@ -739,7 +743,7 @@ version="1.0">
         return resumenP
 
     def _get_resumenes(self, marc=False):
-        resumenes = {}
+        resumenes = collections.OrderedDict()
         TpoDocs = []
         orders = []
         recs = {}
@@ -822,7 +826,7 @@ version="1.0">
         try:
             signature_d = self.get_digital_signature(company_id)
         except:
-            raise Warning(_('''There is no Signer Person with an \
+            raise UserError(_('''There is no Signer Person with an \
         authorized signature for you in the system. Please make sure that \
         'user_signature_key' module has been installed and enable a digital \
         signature, for you or make the signer to authorize you to use his \
@@ -946,8 +950,8 @@ version="1.0">
                 template_string, signature_d['priv_key'],
                 signature_d['cert'])
             token = self.get_token(seed_firmado,self.company_id)
-        except:
-            raise Warning(connection_status[response.e])
+        except Exception as e:
+            raise UserError(tools.ustr(e))
         xml_response = xmltodict.parse(self.sii_xml_response)
         if self.state == 'Enviado':
             status = self._get_send_status(self.sii_send_ident, signature_d, token)

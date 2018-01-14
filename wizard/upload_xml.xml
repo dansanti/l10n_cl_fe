@@ -12,6 +12,7 @@
                         <field name="filename" invisible="True"/>
                         <field name="action" widget="radio"/>
                         <field name="option" widget="radio"/>
+                        <field name="pre_process"/>
                     </group>
                     <footer>
                         <button string="Confirm" name="confirm" type="object" class="oe_highlight" />
