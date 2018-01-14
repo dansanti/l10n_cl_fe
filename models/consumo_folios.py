@@ -654,10 +654,6 @@ version="1.0">
 
     def _orden(self, folio, rangos, contrarios, continuado=True):
         last = self._last(folio, rangos)
-        #si el ultimo generado+1 es igual al siguiente, los numeros son consecutivos
-        #cuando haya un salto de numeros, crear otro rango
-        if (last and last['Final']+1) != folio:
-            continuado = False
         if not continuado or not last or  self._nuevo_rango(folio, last['Final'], contrarios):
             r = collections.OrderedDict()
             r['Inicial'] = folio
