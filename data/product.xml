@@ -6,11 +6,14 @@
       <field name="taxes_id" eval="False" />
       <field name="sale_ok" eval="False" />
     </record>
-    
+
     <record id="no_product" model="product.template">
       <field name="name">Modifica Documento</field>
       <field name="default_code">NO_PRODUCT</field>
       <field name="lst_price">0</field>
       <field name="taxes_id" eval="False" />
+      <field name="supplier_taxes_id" eval="False" />
+      <field name="sale_ok" eval="False" />
+      <field name="purchase_ok" eval="False" />
     </record>
 </odoo>
