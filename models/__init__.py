@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from . import account_tax
 from . import account
 from . import caf
 from . import company_signature_key
