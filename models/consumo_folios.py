@@ -787,7 +787,7 @@ version="1.0">
                 resumenes[TpoDoc] = self._setResumen(resumen, resumenes[TpoDoc], continuado)
                 ant[TpoDoc] = [int(order.sii_document_number), canceled]
         for an in self.anulaciones:
-            TpoDoc = an.tpo_doc.sii_code
+            TpoDoc = str(an.tpo_doc.sii_code)
             if not TpoDoc in TpoDocs:
                 TpoDocs.append(TpoDoc)
             if not TpoDoc in resumenes:
