@@ -469,6 +469,55 @@ class AccountInvoice(models.Model):
             readonly=True,
             states={'draft': [('readonly', False)]},
         )
+    
+    @api.model
+    def _clean_str(self, string_to_reeplace, list_characters=None):
+        """
+        Reemplaza caracteres por otros caracteres especificados en la lista
+        @param string_to_reeplace:  string a la cual reemplazar caracteres
+        @param list_characters:  Lista de tuplas con dos elementos(elemento uno el caracter a reemplazar, elemento dos caracter que reemplazara al elemento uno)
+        @return: string con los caracteres reemplazados
+        """
+        if not string_to_reeplace:
+            return string_to_reeplace
+        caracters = ['.',',','-','\a','\b','\f','\n','\r','\t','\v']
+        for c in caracters:
+            string_to_reeplace = string_to_reeplace.replace(c, '')
+        if not list_characters:
+            list_characters=[
+                (u'á','a'),(u'à','a'),(u'ä','a'),(u'â','a'),(u'Á','A'),(u'À','A'),(u'Ä','A'),(u'Â','A'),
+                (u'é','e'),(u'è','e'),(u'ë','e'),(u'ê','e'),(u'É','E'),(u'È','E'),(u'Ë','E'),(u'Ê','E'),
+                (u'í','i'),(u'ì','i'),(u'ï','i'),(u'î','i'),(u'Í','I'),(u'Ì','I'),(u'Ï','I'),(u'Î','I'),
+                (u'ó','o'),(u'ò','o'),(u'ö','o'),(u'ô','o'),(u'Ó','O'),(u'Ò','O'),(u'Ö','O'),(u'Ô','O'),
+                (u'ú','u'),(u'ù','u'),(u'ü','u'),(u'û','u'),(u'Ú','U'),(u'Ù','U'),(u'Ü','U'),(u'Û','U'),
+                (u'ñ','n'),(u'Ñ','N'),(u'/','-'), (u'&','Y'),(u'º',''), (u'´', '')]
+        for character in list_characters:
+            string_to_reeplace = string_to_reeplace.replace(character[0],character[1])
+        SPACE = ' '
+        codigo_ascii = False
+        #en range el ultimo numero no es inclusivo asi que agregarle uno mas
+        #espacio en blanco
+        range_ascii = [32]
+        #numeros
+        range_ascii += range(48, 57+1)
+        #letras mayusculas
+        range_ascii += range(65,90+1)
+        #letras minusculas
+        range_ascii += range(97,122+1)
+        for c in string_to_reeplace:
+            codigo_ascii = False
+            try:
+                codigo_ascii = ord(c)
+            except TypeError:
+                codigo_ascii = False
+            if codigo_ascii:
+                #si no esta dentro del rang ascii reemplazar por un espacio
+                if codigo_ascii not in range_ascii:
+                    string_to_reeplace = string_to_reeplace.replace(c,SPACE)
+            #si no tengo codigo ascii, posiblemente dio error en la conversion
+            else:
+                string_to_reeplace = string_to_reeplace.replace(c,SPACE)
+        return ''.join(string_to_reeplace.splitlines())
 
     def _repairDiff(self, move_lines, dif):#usualmente es de 1 $ cuando se aplica descuentoo es valor iva incluido
         total = self.amount_total
@@ -1719,7 +1768,7 @@ version="1.0">
         Emisor= collections.OrderedDict()
         Emisor['RUTEmisor'] = self.format_vat(self.company_id.vat)
         if self._es_boleta():
-            Emisor['RznSocEmisor'] = self._acortar_str(self.company_id.partner_id.name, 100)
+            Emisor['RznSocEmisor'] = self._acortar_str(self._clean_str(self.company_id.partner_id.name), 100)
             Emisor['GiroEmisor'] = self._acortar_str(self.company_id.activity_description.name, 80)
         else:
             Emisor['RznSoc'] = self._acortar_str(self.company_id.partner_id.name, 100)
@@ -1743,7 +1792,7 @@ version="1.0">
         #if self._es_boleta():
         #    Receptor['CdgIntRecep']
         Receptor['RUTRecep'] = self.format_vat(self.commercial_partner_id.vat)
-        Receptor['RznSocRecep'] = self._acortar_str(self.commercial_partner_id.name, 100)
+        Receptor['RznSocRecep'] = self._acortar_str(self._clean_str(self.commercial_partner_id.name), 100)
         if not self._es_boleta():
             if not self.commercial_partner_id.activity_description:
                 raise UserError(_('Seleccione giro del partner'))
@@ -1824,14 +1873,14 @@ version="1.0">
         if not self.commercial_partner_id.vat:
             raise UserError(_("Fill Partner VAT"))
         result['TED']['DD']['RR'] = self.format_vat(self.commercial_partner_id.vat)
-        result['TED']['DD']['RSR'] = self._acortar_str(self.commercial_partner_id.name,40)
+        result['TED']['DD']['RSR'] = self._acortar_str(self._clean_str(self.commercial_partner_id.name),40)
         result['TED']['DD']['MNT'] = int(round(self.amount_total))
         if no_product:
             result['TED']['DD']['MNT'] = 0
         for line in self.invoice_line_ids:
-            result['TED']['DD']['IT1'] = self._acortar_str(line.product_id.name,40)
+            result['TED']['DD']['IT1'] = self._acortar_str(self._clean_str(line.product_id.name),40)
             if line.product_id.default_code:
-                result['TED']['DD']['IT1'] = self._acortar_str(line.product_id.name.replace('['+line.product_id.default_code+'] ',''),40)
+                result['TED']['DD']['IT1'] = self._acortar_str(self._clean_str(line.product_id.name.replace('['+line.product_id.default_code+'] ','')),40)
             break
 
         resultcaf = self.journal_document_class_id.sequence_id.get_caf_file(self.get_folio() )
@@ -1881,7 +1930,7 @@ version="1.0">
             if line.product_id.default_code and not no_product:
                 lines['CdgItem'] = collections.OrderedDict()
                 lines['CdgItem']['TpoCodigo'] = 'INT1'
-                lines['CdgItem']['VlrCodigo'] = line.product_id.default_code
+                lines['CdgItem']['VlrCodigo'] = self._clean_str(line.product_id.default_code)
             taxInclude = False
             for t in line.invoice_line_tax_ids:
                 taxInclude = t.price_include
@@ -1892,10 +1941,10 @@ version="1.0">
             #   lines['ItemEspectaculo'] =
 #            if self._es_boleta():
 #                lines['RUTMandante']
-            lines['NmbItem'] = self._acortar_str(line.product_id.name,80) #
-            lines['DscItem'] = self._acortar_str(line.name, 1000) #descripción más extenza
+            lines['NmbItem'] = self._acortar_str(self._clean_str(line.product_id.name),80) #
+            lines['DscItem'] = self._acortar_str(self._clean_str(line.name), 1000) #descripción más extenza
             if line.product_id.default_code:
-                lines['NmbItem'] = self._acortar_str(line.product_id.name.replace('['+line.product_id.default_code+'] ',''),80)
+                lines['NmbItem'] = self._acortar_str(self._clean_str(line.product_id.name.replace('['+line.product_id.default_code+'] ','')),80)
             #lines['InfoTicket']
             qty = round(line.quantity, 4)
             if not no_product:
@@ -1905,7 +1954,7 @@ version="1.0">
             elif qty < 0:
                 raise UserError("NO puede ser menor que 0")
             if not no_product:
-                lines['UnmdItem'] = line.uom_id.name[:4]
+                lines['UnmdItem'] = self._clean_str(line.uom_id.name[:4])
                 lines['PrcItem'] = round(line.price_unit, 4)
             if line.discount > 0:
                 lines['DescuentoPct'] = line.discount
@@ -1980,7 +2029,7 @@ version="1.0">
                 ref_line['RazonRef'] = ref.motivo
                 if self._es_boleta():
                     ref_line['CodVndor'] = self.seler_id.id
-                    ref_lines['CodCaja'] = self.journal_id.point_of_sale_id.name
+                    ref_lines['CodCaja'] = self._clean_str(self.journal_id.point_of_sale_id.name)
                 ref_lines.extend([{'Referencia':ref_line}])
                 lin_ref += 1
         dte['item'] = invoice_lines['invoice_lines']
