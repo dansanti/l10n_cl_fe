@@ -742,7 +742,7 @@ version="1.0">
         resumenes = collections.OrderedDict()
         TpoDocs = []
         orders = []
-        recs = {}
+        recs = []
         for rec in self.with_context(lang='es_CL').move_ids:
             document_class_id = rec.document_class_id if 'document_class_id' in rec else rec.sii_document_class_id
             if not document_class_id or document_class_id.sii_code not in [39, 41, 61]:
@@ -771,23 +771,23 @@ version="1.0">
         if recs:
             recs = sorted(recs, key=lambda t: t.sii_document_number)
             ant = {}
-            for rec in recs:
-                if order.sii_document_number == ant[TpoDoc][0]:
-                    raise UserError("¡El Folio %s está duplicado!" % order.sii_document_number)
+            for order in recs:
                 canceled = (hasattr(order,'canceled') and order.canceled)
                 resumen = self.getResumen(order)
                 TpoDoc = str(resumen['TpoDoc'])
                 if not TpoDoc in ant:
                     ant[TpoDoc] = [0, canceled]
+                if int(order.sii_document_number) == ant[TpoDoc][0]:
+                    raise UserError("¡El Folio %s está duplicado!" % order.sii_document_number)
                 if not TpoDoc in TpoDocs:
                     TpoDocs.append(TpoDoc)
                 if not TpoDoc in resumenes:
                     resumenes[TpoDoc] = collections.OrderedDict()
-                continuado = ((ant[TpoDoc][0]+1) == order.sii_document_number and (ant[TpoDoc][1]) == canceled)
+                continuado = ((ant[TpoDoc][0]+1) == int(order.sii_document_number) and (ant[TpoDoc][1]) == canceled)
                 resumenes[TpoDoc] = self._setResumen(resumen, resumenes[TpoDoc], continuado)
-                ant[TpoDoc] = [order.sii_document_number, canceled]
+                ant[TpoDoc] = [int(order.sii_document_number), canceled]
         for an in self.anulaciones:
-            TpoDoc = an.tpo_doc.sii_code
+            TpoDoc = str(an.tpo_doc.sii_code)
             if not TpoDoc in TpoDocs:
                 TpoDocs.append(TpoDoc)
             if not TpoDoc in resumenes:

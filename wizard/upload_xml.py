@@ -570,6 +570,7 @@ class UploadXMLWizard(models.TransientModel):
             product_id = self.env['product.product'].browse(product_id)
             data.update({
                 'invoice_line_tax_ids': [(6, 0, product_id.supplier_taxes_id.ids)],
+                'uom_id': product_id.uom_id.id,
                 })
 
         return [0,0, data]
