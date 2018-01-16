@@ -203,8 +203,7 @@ class sequence_caf(models.Model):
         folio = folio or self._get_folio()
         caffiles = self.get_caf_files(folio)
         if not caffiles:
-            raise UserError(_('''There is no CAF file available or in use \
-for this Document. Please enable one.'''))
+            raise UserError(_('''No hay caf disponible para el documento %s folio %s. Por favor solicite suba un CAF o solicite uno en el SII.''' % (self.name, folio)))
         for caffile in caffiles:
             if int(folio) >= caffile.start_nm and int(folio) <= caffile.final_nm:
                 return caffile.decode_caf()
@@ -218,8 +217,7 @@ www.sii.cl'''.format(folio)
         '''
         folio = folio or self._get_folio()
         if not self.dte_caf_ids:
-            raise UserError(_('''There is no CAF file available or in use \
-for this Document. Please enable one.'''))
+            raise UserError(_('''No hay CAFs disponibles para la secuencia de %s. Por favor suba un CAF o solicite uno en el SII.''' % (self.name)))
         cafs = self.dte_caf_ids
         sorted(cafs, key=lambda e: e.start_nm)
         result = []
@@ -235,7 +233,7 @@ for this Document. Please enable one.'''))
         menor = False
         cafs = self.get_caf_files(folio)
         if not cafs:
-            raise UserError(_('No quedan CAFs disponibles'))
+            raise UserError(_('No quedan CAFs para %s disponibles') % self.name)
         for c in cafs:
             if not menor or c.start_nm < menor.start_nm:
                 menor = c
