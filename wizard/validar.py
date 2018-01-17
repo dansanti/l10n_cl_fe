@@ -291,9 +291,12 @@ class ValidarDTEWizard(models.TransientModel):
                 subtype='mt_comment',
             )
             inv.claim = 'ACD'
-            inv.set_dte_claim(
-                rut_emisor=inv.format_vat(inv.partner_id.vat),
-            )
+            try:
+                inv.set_dte_claim(
+                    rut_emisor=inv.format_vat(inv.partner_id.vat),
+                )
+            except:
+                _logger.warning("@TODO crear código que encole la respuesta")
 
     def _recep(self, inv, RutFirma):
         receipt = collections.OrderedDict()
@@ -409,6 +412,9 @@ class ValidarDTEWizard(models.TransientModel):
                 subtype='mt_comment',
             )
             inv.claim = 'ERM'
-            inv.set_dte_claim(
-                rut_emisor=inv.format_vat(inv.partner_id.vat),
-            )
+            try:
+                inv.set_dte_claim(
+                    rut_emisor=inv.format_vat(inv.partner_id.vat),
+                )
+            except:
+                _logger.warning("@TODO crear código que encole la respuesta")
