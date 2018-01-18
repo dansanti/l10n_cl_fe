@@ -432,7 +432,7 @@ class UploadXMLWizard(models.TransientModel):
                 'type_tax_use': 'purchase',
             } )
         return ((6,0, imp.ids))
-    
+
     def get_product_values(self, data):
         values = {
             'sale_ok':False,
@@ -811,7 +811,9 @@ class UploadXMLWizard(models.TransientModel):
     def _get_dtes(self):
         dtes = []
         envio = self._read_xml('parse')
-        if 'Documento' in envio['SetDTE']['DTE']:
+        if envio.get('DTE', False):
+            return [ envio['DTE'] ]
+        elif 'Documento' in envio['SetDTE']['DTE']:
             dte = envio['SetDTE']['DTE']
             dtes.append(dte)
         else:
@@ -887,7 +889,7 @@ class UploadXMLWizard(models.TransientModel):
             )
             wiz_acept.confirm()
         return created
-    
+
     def prepare_purchase_line(self, line, date_planned):
         product = self.env['product.product'].search([('name','=',line['NmbItem'])], limit=1)
         if not product:
@@ -902,7 +904,7 @@ class UploadXMLWizard(models.TransientModel):
             'date_planned': date_planned,
         }
         return values
-    
+
     def _create_po(self, dte):
         purchase_model = self.env['purchase.order']
         partner_id = self.env['res.partner'].search([
@@ -933,7 +935,7 @@ class UploadXMLWizard(models.TransientModel):
             ])
         if other_orders:
             raise UserError("Ya existe un Pedido de compra con Referencia: %s para el Proveedor: %s.\n" \
-                            "No se puede crear nuevamente, por favor verifique." % 
+                            "No se puede crear nuevamente, por favor verifique." %
                             (data['partner_ref'], partner_id.name))
         lines =[(5,)]
         vals_line = {}
@@ -947,7 +949,7 @@ class UploadXMLWizard(models.TransientModel):
             vals_line = self.prepare_purchase_line(line, dte['Encabezado']['IdDoc']['FchEmis'])
             if vals_line:
                 lines.append([0, 0, vals_line])
-            
+
         data['order_line'] = lines
         po = purchase_model.create(data)
         po.button_confirm()
