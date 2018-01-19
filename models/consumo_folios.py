@@ -554,7 +554,7 @@ version="1.0">
             c += 1
         return cadena
 
-    def _es_iva(tax):
+    def _es_iva(self, tax):
         if tax.sii_code in [14, 15, 17, 18, 19, 30,31, 32 ,33, 34, 36, 37, 38, 39, 41, 47, 48]:
             return True
         return False
