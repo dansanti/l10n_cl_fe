@@ -1268,10 +1268,11 @@ version="1.0">
         ResumenPeriodo=[]
         for r, value in resumenesPeriodo.items():
             total = collections.OrderedDict()
-            for v in lista:
-                if v in value:
-                    total[v] = value[v]
-            ResumenPeriodo.extend([{'TotalesPeriodo':total}])
+            if value:
+                for v in lista:
+                    if v in value:
+                        total[v] = value[v]
+                ResumenPeriodo.extend([{'TotalesPeriodo':total}])
         dte = collections.OrderedDict()
         if ResumenPeriodo:
             dte['ResumenPeriodo'] = ResumenPeriodo
