@@ -1115,6 +1115,9 @@ a VAT."""))
                     inv.sii_result = 'Proceso'
                 else:
                     inv._timbrar()
+                    if inv._es_boleta() and not inv._nc_boleta():
+                        inv.sii_result = 'Proceso'
+                        continue
                     tiempo_pasivo = (datetime.now() + timedelta(hours=int(self.env['ir.config_parameter'].sudo().get_param('account.auto_send_dte', default=12))))
                     self.env['sii.cola_envio'].create({
                                                 'doc_ids':[inv.id],
@@ -1662,7 +1665,7 @@ version="1.0">
     def do_dte_send_invoice(self, n_atencion=None):
         ids = []
         for inv in self.with_context(lang='es_CL'):
-            if inv.sii_result in ['','NoEnviado','Rechazado']:
+            if inv.sii_result in ['','NoEnviado','Rechazado'] and not inv._es_boleta() and not inv._nc_boleta():
                 if inv.sii_result in ['Rechazado']:
                     inv._timbrar()
                 inv.sii_result = 'EnCola'
@@ -1681,6 +1684,14 @@ version="1.0">
     def _es_boleta(self):
         if self.sii_document_class_id.sii_code in [35, 38, 39, 41, 70, 71]:
             return True
+        return False
+
+    def _nc_boleta(self):
+        if not self.referencias or self.type != "out_refund":
+            return False
+        for r in self.referencias:
+            if r.sii_referencia_TpoDocRef.sii_code in [35, 38, 39, 41, 70, 71]:
+                return True
         return False
 
     def _giros_emisor(self):
