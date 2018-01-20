@@ -593,7 +593,7 @@ version="1.0">
                 if line.tax_ids:
                     for t in line.tax_ids:
                         if not Tasa and self._es_iva(t):
-                            Tasa = t.aamount
+                            Tasa = t.amount
                         impuestos.setdefault(t.id, [t, 0])
                         impuestos[t.id][1] += line.price_subtotal_incl
             for key, t in impuestos.items():
