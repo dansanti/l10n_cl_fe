@@ -101,9 +101,9 @@ class ResPartner(models.Model):
             if exist:
                 self.vat = ''
                 self.document_number = ''
-                raise UserError(
-                            _("El usuario %s está utilizando este documento" ) % exist.name,
-                    )
+                return {'warning': {'title': 'Informacion para el Usuario',
+                                    'message': _("El usuario %s está utilizando este documento" ) % exist.name, 
+                                    }}
             self.vat = vat
             self.document_number = '%s.%s.%s-%s' % (
                                         document_number[0:2], document_number[2:5],
