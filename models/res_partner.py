@@ -124,7 +124,7 @@ class ResPartner(models.Model):
         if self.city_id:
             return {'value':{'city': self.city_id.name}}
 
-    @api.constrains('vat')
+    @api.constrains('vat', 'commercial_partner_id')
     def _rut_unique(self):
         for r in self:
             if not r.vat or r.parent_id:
@@ -136,7 +136,7 @@ class ResPartner(models.Model):
                     ('commercial_partner_id', '!=', r.commercial_partner_id.id),
                 ])
             if r.vat !="CL555555555" and partner:
-                raise UserError(_('El rut debe ser único'))
+                raise UserError(_('El rut: %s debe ser único') % r.vat)
                 return False
 
     def check_vat_cl(self, vat):
