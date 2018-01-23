@@ -133,7 +133,7 @@ class ResPartner(models.Model):
                 [
                     ('vat','=', r.vat),
                     ('id','!=', r.id),
-                    ('parent_id', '!=', r.id),
+                    ('commercial_partner_id', '!=', r.commercial_partner_id.id),
                 ])
             if r.vat !="CL555555555" and partner:
                 raise UserError(_('El rut debe ser único'))
