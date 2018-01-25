@@ -6,21 +6,21 @@
           <field name="model">res.partner</field>
           <field name="arch" type="xml">
             <field name="name" position="after">
-              <field name="activity_description" placeholder="Glosa Descriptiva (Giro)"/>
+              <field name="activity_description" placeholder="Glosa Descriptiva (Giro)" attrs="{'invisible': ('parent_id', '!=', False)}"/>
             </field>
             <field name="state_id" position="after">
                 <field name="city_id" placeholder="Comuna" style="width: 100%" options='{"no_open": True}'/>
             </field>
             <field name="vat" position="after">
-                <field name="document_type_id"/>
-                <field name="document_number" />
-                <field name="responsability_id" widget="selection"/>
+                <field name="document_type_id" attrs="{'invisible': [('parent_id', '!=', False)]}"/>
+                <field name="document_number" attrs="{'invisible': [('parent_id', '!=', False)]}"/>
+                <field name="responsability_id" widget="selection" attrs="{'invisible': [('parent_id', '!=', False)]}"/>
             </field>
             <field name="vat" position="attributes">
               <attribute name="invisible">1</attribute>
             </field>
             <field name="email" position="after">
-                <field name="dte_email" widget="email"/>
+                <field name="dte_email" widget="email" attrs="{'invisible': [('parent_id', '!=', False)]}"/>
             </field>
 
           </field>
