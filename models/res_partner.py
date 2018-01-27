@@ -88,7 +88,10 @@ class ResPartner(models.Model):
                 re.sub('[^1234567890Kk]', '', str(
                     self.document_number))).zfill(9).upper()
             if not self.check_vat_cl(document_number):
-                raise UserError(_('Rut Erróneo'))
+                return {'warning': {'title': _('Rut Erróneo'),
+                                    'message': _('Rut Erróneo'),
+                                    }
+                        }
             vat = 'CL%s' % document_number
             exist = self.env['res.partner'].search(
                 [
@@ -102,7 +105,7 @@ class ResPartner(models.Model):
                 self.vat = ''
                 self.document_number = ''
                 return {'warning': {'title': 'Informacion para el Usuario',
-                                    'message': _("El usuario %s está utilizando este documento" ) % exist.name, 
+                                    'message': _("El usuario %s está utilizando este documento" ) % exist.name,
                                     }}
             self.vat = vat
             self.document_number = '%s.%s.%s-%s' % (
