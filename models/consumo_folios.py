@@ -278,7 +278,7 @@ class ConsumoFolios(models.Model):
                 total_exento += d.monto_exento
                 total += d.monto_total
             for d in r.detalles:
-                if d.tpo_doc.sii_code in [39, 41]:
+                if d.tpo_doc.sii_code in [39, 41] and d.tipo_operacion == "utilizados":
                     total_boletas += d.cantidad
             r.total_neto = total - total_iva - total_exento
             r.total_iva = total_iva
@@ -320,7 +320,8 @@ class ConsumoFolios(models.Model):
         self.detalles = detalles
         docs = collections.OrderedDict()
         for r, value in resumenes.items():
-            docs[r] = {
+            if value.get('FoliosUtilizados', False):
+                docs[r] = {
                        'tpo_doc': self.env['sii.document_class'].search([('sii_code','=', r)]).id,
                        'cantidad': value['FoliosUtilizados'],
                        'monto_neto': value['MntNeto'],
@@ -802,6 +803,8 @@ version="1.0">
                         'NroDoc': i,
                         'Anulado': 'A',
                     }
+                    if not resumenes.get(TpoDoc):
+                        resumenes[TpoDoc] = collections.OrderedDict()
                     resumenes[TpoDoc] = self._setResumen(resumen, resumenes[TpoDoc], continuado)
                 i += 1
         return resumenes, TpoDocs
