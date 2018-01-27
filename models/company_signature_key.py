@@ -101,8 +101,8 @@ class userSignature(models.Model):
 
         self.priv_key = crypto.dump_privatekey(type_, private_key)
         self.cert = crypto.dump_certificate(type_, certificate)
-
-        pubkey = cert.get_pubkey()
+        
+        self.dec_pass = False
 
     filename = fields.Char(string='File Name')
     key_file = fields.Binary(
