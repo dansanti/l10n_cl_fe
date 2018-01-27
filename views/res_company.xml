@@ -30,8 +30,7 @@
                 <field name="company_activities_ids"
                       placeholder="Giros de La Compañia" widget="many2many_tags"
                       options="{'no_create': True}"
-                      domain="[('parent_id', '>=', 1),
-                      ('tax_category', '=', tp_sii_code)]" />
+                      domain="[('parent_id', '>=', 1)]" />
                 <field name="activity_description"
                               placeholder="Glosa descriptiva" required="True"/>
               </field>
