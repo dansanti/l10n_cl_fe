@@ -1696,7 +1696,7 @@ version="1.0">
 
     def _giros_emisor(self):
         giros_emisor = []
-        for turn in self.company_id.company_activities_ids:
+        for turn in self.journal_id.journal_activities_ids:
             giros_emisor.extend([{'Acteco': turn.code}])
         return giros_emisor
 

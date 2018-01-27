@@ -194,6 +194,12 @@ class account_journal(models.Model):
             default=False,
         )
 
+    @api.onchange('journal_activities_ids')
+    def max_actecos(self):
+        if len(self.journal_activities_ids) > 4:
+            raise UserError("Deben Ser máximo 4 actecos por Diario, seleccione los más significativos para este diario")
+
+
     @api.multi
     def _get_default_doc(self):
         self.ensure_one()
