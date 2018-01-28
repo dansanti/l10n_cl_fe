@@ -133,7 +133,7 @@ has been exhausted.''',
             r.name = r.filename
 
     def decode_caf(self):
-        post = base64.b64decode(self.caf_file).decode()
+        post = base64.b64decode(self.caf_file).decode('ISO-8859-1')
         post = xmltodict.parse(post.replace(
             '<?xml version="1.0"?>','',1))
         return post
