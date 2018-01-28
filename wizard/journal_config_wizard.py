@@ -16,6 +16,7 @@ class account_journal_document_config(models.TransientModel):
         journal = self.env['account.journal'].browse(journal_ids)
         if journal.type == "purchase":
             return True
+        return False
 
     dte_register = fields.Boolean(
             string='Register Electronic Documents?',
@@ -43,7 +44,7 @@ Include unusual taxes documents, as transfer invoice, and reissue
         )
     purchase = fields.Boolean(
             'Compra',
-            default='_es_compra',
+            default=lambda self: self._es_compra(),
         )
 
     @api.model
