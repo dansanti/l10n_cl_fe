@@ -708,10 +708,10 @@ version="1.0">
                 resumenP['MntExento'] += resumen['MntExe']
             elif not 'MntExento' in resumenP:
                 resumenP['MntExento'] = 0
-            if not 'MntTotal' in resumenP:
-                resumenP['MntTotal'] = resumen['MntTotal']
-            else:
-                resumenP['MntTotal'] += resumen['MntTotal']
+        if not 'MntTotal' in resumenP:
+            resumenP['MntTotal'] = resumen.get('MntTotal', 0)
+        else:
+            resumenP['MntTotal'] += resumen.get('MntTotal', 0)
         if 'FoliosEmitidos' in resumenP:
             resumenP['FoliosEmitidos'] +=1
         else:
@@ -725,6 +725,8 @@ version="1.0">
             resumenP['FoliosUtilizados'] += 1
         else:
             resumenP['FoliosUtilizados'] = 1
+        if not resumenP.get('FoliosUtilizados', False):
+            resumenP['FoliosUtilizados'] = 0
         if not str(resumen['TpoDoc'])+'_folios' in resumenP:
             resumenP[str(resumen['TpoDoc'])+'_folios'] = collections.OrderedDict()
         resumenP[str(resumen['TpoDoc'])+'_folios'] = self._rangosU(resumen, resumenP[str(resumen['TpoDoc'])+'_folios'], continuado)
