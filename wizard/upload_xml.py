@@ -8,6 +8,10 @@ import xmltodict
 from lxml import etree
 import collections
 import dicttoxml
+try:
+    from io import BytesIO
+except:
+    _logger.warning("no se ha cargado io")
 
 _logger = logging.getLogger(__name__)
 
@@ -631,15 +635,23 @@ class UploadXMLWizard(models.TransientModel):
         except:
             name = self.filename.encode('UTF-8')
         xml =base64.b64decode(self.xml_file).decode('ISO-8859-1')
+        image = False
+        barcodefile = BytesIO()
+        image = self.env['account.invoice'].pdf417bc(dte['TED'])
+        image.save(barcodefile,'PNG')
+        data = barcodefile.getvalue()
+        sii_barcode_img = base64.b64encode(data)
         data.update( {
             'origin' : 'XML Envío: ' + name.decode(),
-            'date_invoice' :dte['Encabezado']['IdDoc']['FchEmis'],
+            'date_invoice' : dte['Encabezado']['IdDoc']['FchEmis'],
             'partner_id' : partner_id,
             'company_id' : company_id.id,
             'journal_id': journal_document_class_id.journal_id.id,
             'turn_issuer': company_id.company_activities_ids[0].id,
             'sii_xml_request': xml ,
             'sii_send_file_name': name,
+            'sii_barcode': dte['TED'],
+            'sii_barcode_img': sii_barcode_img,
         })
 
         if 'DscRcgGlobal' in dte:
