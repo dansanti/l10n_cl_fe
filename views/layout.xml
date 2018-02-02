@@ -46,7 +46,7 @@
                         </h4>
                         <p style="text-align:center;font-size:14px;color:black; text-transform:uppercase;">
                           <t t-if="company.activity_description">
-                            <span t-field="company_id.activity_description.name" style="color:black; text-align:center;"/><br/>
+                            <span t-field="company.activity_description.name" style="color:black; text-align:center;"/><br/>
                           </t>
                             <!-- domicilios -->
                             <span t-field="company.street"/>, <span t-field="company.city_id.name"/>, <span t-field="company.city"/><br/>
