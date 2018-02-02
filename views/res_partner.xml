@@ -9,8 +9,15 @@
               <field name="activity_description" placeholder="Glosa Descriptiva (Giro)" attrs="{'invisible': ('parent_id', '!=', False)}"/>
             </field>
             <field name="state_id" position="after">
-                <field name="city_id" placeholder="Comuna" style="width: 100%" options='{"no_open": True}'/>
+                <field name="city_id" placeholder="Comuna" style="width: 100%" 
+	                attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}"
+	                options='{"no_open": True, "no_quick_create": True}' />
             </field>
+            <!-- agregar la comuna en vista de contactos -->
+            <xpath expr="//field[@name='child_ids']/form//field[@name='state_id']" position="after">
+            	<field name="city_id" placeholder="Comuna" style="width: 100%" 
+	                options='{"no_open": True, "no_quick_create": True}' />
+            </xpath>
             <field name="vat" position="after">
                 <field name="document_type_id" attrs="{'invisible': [('parent_id', '!=', False)]}"/>
                 <field name="document_number" attrs="{'invisible': [('parent_id', '!=', False)]}"/>
