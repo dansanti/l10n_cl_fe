@@ -38,6 +38,13 @@ class GlobalDescuentoRecargo(models.Model):
             default=0.00,
             compute='_untaxed_gdr',
         )
+    aplicacion = fields.Selection(
+            [
+                ('flete', 'Flete'),
+                ('seguro', 'Seguro'),
+            ],
+            string="Aplicación del Desc/Rec",
+        )
     invoice_id = fields.Many2one(
             'account.invoice',
             string="Factura",
@@ -63,7 +70,7 @@ class GlobalDescuentoRecargo(models.Model):
                     continue
                 #exento = 0 #@TODO Descuento Global para exentos
                 if afecto > 0:
-                    dr = round((afecto *  (dr / 100.0) ))
+                    dr = gdr.invoice_id.currency_id.round((afecto *  (dr / 100.0) ))
             if gdr.type == 'D':
                 des += dr
             else:
