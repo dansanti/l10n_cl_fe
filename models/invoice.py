@@ -470,93 +470,77 @@ class AccountInvoice(models.Model):
             states={'draft': [('readonly', False)]},
         )
 
-    def _repairDiff(self, move_lines, dif):#usualmente es de 1 $ cuando se aplica descuentoo es valor iva incluido
-        total = self.amount_total
-        new_lines = []
-        for line in move_lines:
-            if line[2]['tax_ids'] and not line[2]['tax_line_id']:#iva ya viene con descuento
-                if dif > 0:
-                    val = 1
-                    dif -= 1
-                elif dif < 0:
-                    val = -1
-                    dif += 1
-                else:
-                    val = 0
-                if line[2]['tax_ids']:
-                    for t in line[2]['tax_ids']:
-                        imp = self.env['account.tax'].browse(t[1])
-                        if imp.amount > 0  and line[2]['debit'] > 0:
-                            line[2]['debit'] += val
-                        elif imp.amount > 0:
-                            line[2]['credit'] += val
-            if line[2]['name'] == '/' or line[2]['name'] == self.name:
-                if line[2]['credit'] > 0:
-                    line[2]['credit'] = total
-                else:
-                    line[2]['debit'] = total
-            new_lines.append(line)
-        if dif != 0 :
-            new_lines = self._repairDiff(new_lines, dif)
-        return new_lines
-
-    def _gd_move_lines(self, move_lines):
-        new_lines = []
-        gdr = self.porcentaje_dr()
-        hold = False
-        total = 0
-        for line in move_lines:
-            if line[2]['tax_ids'] and not line[2]['tax_line_id']:#iva ya viene con descuento
-                if line[2]['tax_ids']:
-                    for t in line[2]['tax_ids']:
-                        imp = self.env['account.tax'].browse(t[1])
-                        if imp.amount > 0  and line[2]['debit'] > 0:
-                            line[2]['debit'] = int(round((line[2]['debit'] * gdr)))
-                            total += line[2]['debit']
-                        elif imp.amount > 0:
-                            line[2]['credit'] = int(round((line[2]['credit'] * gdr)))
-                            total += line[2]['credit']
-                        elif line[2]['debit'] > 0:
-                            total += line[2]['debit']
-                        else:
-                            total += line[2]['credit']
-            elif line[2]['tax_line_id']:
-                if line[2]['debit'] > 0:
-                    total += line[2]['debit']
-                else:
-                    total += line[2]['credit']
-            if line[2]['name'] != '/' and line[2]['name'] != self.name:
-                new_lines.extend([line])
-            else:
-                hold = line
-        if hold and hold[2]['debit'] > 0:
-            hold[2]['debit'] = total
-        else:
-            hold[2]['credit'] = total
-        new_lines.extend([hold])
-        return new_lines
-
     @api.multi
-    def finalize_invoice_move_lines(self, move_lines):
-        if self.global_descuentos_recargos:
-            move_lines = self._gd_move_lines(move_lines)
-        taxes = self.tax_line_move_line_get()
-        retencion = 0
-        for t in taxes:
-            if t['name'].find('RET - ', 0, 6) > -1:
-                retencion += t['price']
-        retencion = round(retencion)
-        dif = 0
-        total = self.amount_total
-        for line in move_lines:
-            if line[2]['name'] == '/' or line[2]['name'] == self.name:
-                if line[2]['credit'] > 0:
-                    dif = total - line[2]['credit']
-                else:
-                    dif = total - line[2]['debit']
-        if dif != 0:
-            move_lines = self._repairDiff( move_lines, dif)
-        return move_lines
+    def compute_invoice_totals(self, company_currency, invoice_move_lines):
+        '''
+            @TODO Agregar Descuento Global como Concepto a parte en el caso de que sea asociado a una aplicación
+        '''
+        total = 0
+        total_currency = 0
+        amount_diff = self.amount_total
+        amount_diff_currency = 0
+        gdr = self.porcentaje_dr()
+        if self.currency_id != company_currency:
+            currency = self.currency_id.with_context(date=self.date_invoice or fields.Date.context_today(self))
+            amount_diff = currency.compute(self.amount_total, company_currency)
+            amount_diff_currency = self.amount_total
+        for line in invoice_move_lines:
+            line['price'] *= gdr
+            if line.get('amount_currency', False):
+                line['amount_currency'] *= gdr
+            if self.currency_id != company_currency:
+                if not (line.get('currency_id') and line.get('amount_currency')):
+                    line['currency_id'] = currency.id
+                    line['amount_currency'] = currency.round(line['price'])
+                    line['price'] = currency.compute(line['price'], company_currency)
+            else:
+                line['currency_id'] = False
+                line['amount_currency'] = False
+                line['price'] = self.currency_id.round(line['price'])
+            ##para chequeo diferencia
+            amount_diff -= line['price']
+            if line.get('amount_currency', False):
+                amount_diff_currency -= line['amount_currency']
+            if self.type in ('out_invoice', 'in_refund'):
+                total += line['price']
+                total_currency += line['amount_currency'] or line['price']
+                line['price'] = - line['price']
+            else:
+                total -= line['price']
+                total_currency -= line['amount_currency'] or line['price']
+        if amount_diff != 0:
+            if self.type in ('out_invoice', 'in_refund'):
+                invoice_move_lines[0]['price'] -= amount_diff
+            else:
+                invoice_move_lines[0]['price'] += amount_diff
+            total += amount_diff
+        if amount_diff_currency !=0:
+            invoice_move_lines[0]['amount_currency'] += amount_diff_currency
+            total_currency += amount_diff_currency
+        return total, total_currency, invoice_move_lines
+
+    #Se retomará en la próxima actualización para poder dar soporte a factura de compras
+    #@api.multi
+    #def finalize_invoice_move_lines(self, move_lines):
+    #    if self.global_descuentos_recargos:
+    #        move_lines = self._gd_move_lines(move_lines)
+    #    taxes = self.tax_line_move_line_get()
+    #    retencion = 0
+    #    for t in taxes:
+    #        if t['name'].find('RET - ', 0, 6) > -1:
+    #            retencion += t['price']
+    #    retencion = round(retencion)
+    #    dif = 0
+    #    total = self.amount_total
+    #    for line in move_lines:
+    #        if line[2]['name'] == '/' or line[2]['name'] == self.name:
+    #            if line[2]['credit'] > 0:
+    #                dif = total - line[2]['credit']
+    #            else:
+    #                dif = total - line[2]['debit']
+    #    if dif != 0:
+    #        move_lines = self._repairDiff( move_lines, dif)
+    #    return move_lines
 
     @api.depends('invoice_line_ids.price_subtotal', 'tax_line_ids.amount', 'tax_line_ids.amount_rounding',
                  'currency_id', 'company_id', 'date_invoice', 'type', 'global_descuentos_recargos')
@@ -647,6 +631,8 @@ class AccountInvoice(models.Model):
         return res
 
     def porcentaje_dr(self):
+        if not self.global_descuentos_recargos:
+            return 1
         taxes = super(AccountInvoice,self).get_taxes_values()
         afecto = 0.00
         exento = 0.00
