@@ -156,16 +156,18 @@ class AccountInvoiceLine(models.Model):
         for line in self:
             currency = line.invoice_id and line.invoice_id.currency_id or None
             taxes = False
-            total = line.quantity * line.price_unit
+            total = 0
             if line.invoice_line_tax_ids:
                 taxes = line.invoice_line_tax_ids.compute_all(line.price_unit, currency, line.quantity, product=line.product_id, partner=line.invoice_id.partner_id, discount=line.discount)
             if taxes:
                 line.price_subtotal = price_subtotal_signed = taxes['total_excluded']
             else:
-                total_discount = total * ((line.discount or 0.0) / 100.0)
-                line.price_subtotal = price_subtotal_signed = total - total_discount
+                total = self.currency_id.round((self.quantity * self.price_unit))
+                total_discount = self.currency_id.round((total * ((self.discount or 0.0) / 100.0)))
+                total -= total_discount
+                line.price_subtotal = price_subtotal_signed = total
             if line.invoice_id.currency_id and line.invoice_id.currency_id != line.invoice_id.company_id.currency_id:
-                price_subtotal_signed = line.invoice_id.currency_id.compute(price_subtotal_signed, line.invoice_id.company_id.currency_id)
+                price_subtotal_signed = self.invoice_id.currency_id.with_context(date=self.invoice_id._get_currency_rate_date()).compute(price_subtotal_signed, self.invoice_id.company_id.currency_id)
             sign = line.invoice_id.type in ['in_refund', 'out_refund'] and -1 or 1
             line.price_subtotal_signed = price_subtotal_signed * sign
             line.price_tax_included = taxes['total_included'] if (taxes and taxes['total_included'] > total) else total
