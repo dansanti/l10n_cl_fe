@@ -45,7 +45,7 @@ class SiiTax(models.Model):
         prec = currency.decimal_places
         base = round(price_unit * quantity, prec+2)
         base = round(base, prec)
-        tot_discount = round(base * ((discount or 0.0) /100))
+        tot_discount = currency.round(base * ((discount or 0.0) /100))
         base -= tot_discount
         total_excluded = base
         total_included = base
