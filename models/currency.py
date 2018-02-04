@@ -1,12 +1,33 @@
 # -*- coding: utf-8 -*-
 from odoo import fields, models, api
+from odoo .tools import float_round
 
+def float_round_custom(value, precision_digits=None, precision_rounding=None, rounding_method='HALF-UP'):
+	result = float_round(value, precision_digits, precision_rounding, rounding_method)
+	if precision_rounding == 1:
+		return int(result)
+	return result
 
-class res_currency(models.Model):
+class ResCurrency(models.Model):
     _inherit = "res.currency"
-    _description = "Currency"
 
-    sii_code = fields.Char('SII Code', size=4, readonly=True)
-    sii_desc = fields.Char('SII Description', size=250, readonly=True)
-    sii_dt_from = fields.Date('SII Valid from', readonly=True)
-    
+    code = fields.Char(
+            string="Código",
+        )
+    abreviatura = fields.Char(
+            string="Abreviatura",
+        )
+
+    @api.multi
+    def round(self, amount):
+        """Return ``amount`` rounded  according to ``self``'s rounding rules.
+
+           :param float amount: the amount to round
+           :return: rounded float
+        """
+        # TODO: Need to check why it calls round() from sale.py, _amount_all() with *No* ID after below commits,
+        # https://github.com/odoo/odoo/commit/36ee1ad813204dcb91e9f5f20d746dff6f080ac2
+        # https://github.com/odoo/odoo/commit/0b6058c585d7d9a57bd7581b8211f20fca3ec3f7
+        # Removing self.ensure_one() will make few test cases to break of modules event_sale, sale_mrp and stock_dropshipping.
+        #self.ensure_one()
+        return float_round_custom(amount, precision_rounding=self.rounding)
