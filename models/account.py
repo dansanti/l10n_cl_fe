@@ -199,17 +199,8 @@ class account_journal(models.Model):
         if len(self.journal_activities_ids) > 4:
             raise UserError("Deben Ser máximo 4 actecos por Diario, seleccione los más significativos para este diario")
 
-
     @api.multi
     def _get_default_doc(self):
         self.ensure_one()
         if self.type == 'sale' or self.type == 'purchase':
             self.use_documents = True
-
-class res_currency(models.Model):
-    _inherit = "res.currency"
-
-    sii_code = fields.Char(
-            string='SII Code',
-            size=4,
-        )
