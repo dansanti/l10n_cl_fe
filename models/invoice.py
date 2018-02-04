@@ -175,7 +175,7 @@ class AccountInvoiceLine(models.Model):
 class AccountInvoiceTax(models.Model):
     _inherit = "account.invoice.tax"
 
-    def _getNeto(self):
+    def _getNeto(self, currency):
         neto = 0
         for tax in self:
             base = tax.base
@@ -185,9 +185,9 @@ class AccountInvoiceTax(models.Model):
                 if tax.tax_id in line.invoice_line_tax_ids and tax.tax_id.price_include:
                     price_tax_included += line.price_tax_included
             if price_tax_included > 0 and  tax.tax_id.sii_type in ["R"] and tax.tax_id.amount > 0:
-                base = round(price_tax_included)
+                base = currency.round(price_tax_included)
             elif price_tax_included > 0 and tax.tax_id.amount > 0:
-                base = round(price_tax_included / ( 1 + tax.tax_id.amount / 100.0))
+                base = currency.round(price_tax_included / ( 1 + tax.tax_id.amount / 100.0))
             neto += base
         return neto
 
@@ -578,7 +578,7 @@ class AccountInvoice(models.Model):
                 amount_retencion  += tax.amount_retencion
             inv.amount_retencion = amount_retencion
             if included:
-                neto += inv.tax_line_ids._getNeto()
+                neto += inv.tax_line_ids._getNeto(inv.currency_id)
                 amount_retencion  += amount_retencion
             else:
                 neto += sum(line.price_subtotal for line in inv.invoice_line_ids)
@@ -693,7 +693,7 @@ class AccountInvoice(models.Model):
                 for t in line.invoice_line_tax_ids:
                     if not t in totales:
                         totales[t] = 0
-                    totales[t] += (round(line.price_unit *line.quantity) * line.discount)
+                    totales[t] += (self.currency_id.round(line.price_unit *line.quantity) * line.discount)
             taxes = line.invoice_line_tax_ids.compute_all(line.price_unit, self.currency_id, line.quantity, line.product_id, self.partner_id, discount=line.discount)['taxes']
             tax_grouped = self._get_grouped_taxes(line, taxes, tax_grouped)
         if totales:
@@ -1836,7 +1836,7 @@ version="1.0">
             raise UserError(_("Fill Partner VAT"))
         result['TED']['DD']['RR'] = self.format_vat(self.commercial_partner_id.vat)
         result['TED']['DD']['RSR'] = self._acortar_str(self.commercial_partner_id.name,40)
-        result['TED']['DD']['MNT'] = int(round(self.amount_total))
+        result['TED']['DD']['MNT'] = self.currency_id.round(self.amount_total)
         if no_product:
             result['TED']['DD']['MNT'] = 0
         for line in self.invoice_line_ids:
@@ -1898,7 +1898,7 @@ version="1.0">
                 taxInclude = t.price_include
                 if t.amount == 0 or t.sii_code in [0]:#@TODO mejor manera de identificar exento de afecto
                     lines['IndExe'] = 1
-                    MntExe += int(round(line.price_tax_included, 0))
+                    MntExe += self.currency_id.round(line.price_tax_included, 0)
             #if line.product_id.type == 'events':
             #   lines['ItemEspectaculo'] =
 #            if self._es_boleta():
@@ -1917,14 +1917,15 @@ version="1.0">
                 raise UserError("NO puede ser menor que 0")
             if not no_product:
                 lines['UnmdItem'] = line.uom_id.name[:4]
-                lines['PrcItem'] = round(line.price_unit, 4)
+                lines['PrcItem'] = self.currency_id.round(line.price_unit)
             if line.discount > 0:
                 lines['DescuentoPct'] = line.discount
-                lines['DescuentoMonto'] = int(round((((line.discount / 100) * lines['PrcItem'])* qty)))
+                DescMonto = (((line.discount / 100) * lines['PrcItem'])* qty)
+                lines['DescuentoMonto'] = self.currency_id.round( DescMonto )
             if not no_product and not taxInclude:
-                lines['MontoItem'] = int(round(line.price_subtotal, 0))
+                lines['MontoItem'] = self.currency_id.round(line.price_subtotal)
             elif not no_product :
-                lines['MontoItem'] = int(round(line.price_tax_included,0))
+                lines['MontoItem'] = self.currency_id.round(line.price_tax_included)
             if no_product:
                 lines['MontoItem'] = 0
             line_number += 1
@@ -1952,7 +1953,7 @@ version="1.0">
             if dr.gdr_type == "amount":
                 disc_type = "$"
             dr_line['TpoValor'] = disc_type
-            dr_line['ValorDR'] = round(dr.valor, 2)
+            dr_line['ValorDR'] = self.currency_id.round(dr.valor)
             if self.sii_document_class_id.sii_code in [34] and (self.referencias and self.referencias[0].sii_referencia_TpoDocRef.sii_code == '34'):#solamente si es exento
                 dr_line['IndExeDR'] = 1
             dr_lines= [{'DscRcgGlobal':dr_line}]
