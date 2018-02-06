@@ -157,7 +157,7 @@ stamp to be legally valid.''',
         else:
             self.vat = ''
 
-    @api.multi
-    def _asign_city(self, source):
+    @api.onchange('city_id')
+    def _asign_city(self):
         if self.city_id:
-            return {'value':{'city': self.city_id.name}}
+            self.city = self.city_id.name
