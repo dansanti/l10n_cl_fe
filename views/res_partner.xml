@@ -33,7 +33,7 @@
               <attribute name="invisible">1</attribute>
             </field>
             <field name="email" position="after">
-                <field name="dte_email" widget="email" attrs="{'invisible': [('parent_id', '!=', False)]}"/>
+                <field name="dte_email" widget="email" attrs="{'invisible': [('parent_id', '!=', False)], 'required': [('company_type','=','company')]}"/>
             </field>
 
           </field>
