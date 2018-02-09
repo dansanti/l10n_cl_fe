@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, models, fields
 from odoo.tools.translate import _
-from odoo.exceptions import Warning
+from odoo.exceptions import UserError
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -168,7 +168,7 @@ class account_journal(models.Model):
             string="Sucursal",
         )
     sii_code = fields.Char(
-            related='sucursal_id.name',
+            related='sucursal_id.sii_code',
             string="Código SII Sucursal",
             readonly=True,
         )
@@ -204,3 +204,14 @@ class account_journal(models.Model):
         self.ensure_one()
         if self.type == 'sale' or self.type == 'purchase':
             self.use_documents = True
+
+    @api.multi
+    def name_get(self):
+        res = []
+        for journal in self:
+            currency = journal.currency_id or journal.company_id.currency_id
+            name = "%s (%s)" % (journal.name, currency.name)
+            if journal.sucursal_id and self.env.context.get('show_full_name', False):
+                name = "%s (%s)" % (name, journal.sucursal_id.name)
+            res.append((journal.id, name))
+        return res

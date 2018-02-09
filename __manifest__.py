@@ -76,6 +76,7 @@ Facturación Electrónica para Chile.
             'views/sii_document_type_view.xml',
             'views/sii_optional_type_view.xml',
             'views/sii_responsability_view.xml',
+            'views/sii_sucursal_view.xml',
             'views/global_descuento_recargo.xml',
             'views/res_config_settings.xml',
             'wizard/masive_send_dte.xml',
