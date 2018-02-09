@@ -122,7 +122,12 @@ has been exhausted.''',
             if r.status not in [ 'draft' ]:
                 folio = r.sequence_id.number_next_actual
                 try:
-                    r.use_level = 100.0 * ((int(folio) - r.start_nm) / float(r.final_nm - r.start_nm + 1))
+                    if folio > r.final_nm:
+                        r.use_level = 100
+                    elif folio < r.start_nm:
+                        r.use_level = 0
+                    else:
+                        r.use_level = 100.0 * ((int(folio) - r.start_nm) / float(r.final_nm - r.start_nm + 1))
                 except ZeroDivisionError:
                     r.use_level = 0
             else:
