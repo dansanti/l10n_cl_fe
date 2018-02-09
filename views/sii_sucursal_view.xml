@@ -14,7 +14,8 @@
 								<field name="sii_code" />
 							</group>
 							<group>
-								<field name="company_id" options="{'no_create': True, 'no_open': True}" />
+								<field name="company_id" groups="base.group_multi_company"
+									options="{'no_create': True, 'no_open': True}" />
 							</group>
 						</group>
 					</sheet>
@@ -29,7 +30,7 @@
 				<tree string="Sucursales">
 					<field name="name" />
 					<field name="sii_code" />
-					<field name="company_id" options="{'no_create': True, 'no_open': True}" />
+					<field name="company_id" groups="base.group_multi_company" />
 				</tree>
 			</field>
 		</record>
