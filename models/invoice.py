@@ -1727,9 +1727,9 @@ version="1.0">
                 Emisor['Telefono'] = self._acortar_str(self.company_id.phone, 20)
             Emisor['CorreoEmisor'] = self.company_id.dte_email
             Emisor['item'] = self._giros_emisor()
-        if self.journal_id.sii_code:
-            Emisor['Sucursal'] = self._acortar_str(self.journal_id.sucursal.name, 20)
-            Emisor['CdgSIISucur'] = self._acortar_str(self.journal_id.sii_code, 9)
+        if self.journal_id.sucursal_id:
+            Emisor['Sucursal'] = self._acortar_str(self.journal_id.sucursal_id.name, 20)
+            Emisor['CdgSIISucur'] = self._acortar_str(self.journal_id.sucursal_id.sii_code, 9)
         Emisor['DirOrigen'] = self._acortar_str(self.company_id.street + ' ' +(self.company_id.street2 or ''), 70)
         Emisor['CmnaOrigen'] = self.company_id.city_id.name or ''
         Emisor['CiudadOrigen'] = self.company_id.city or ''
