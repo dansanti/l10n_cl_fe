@@ -170,7 +170,7 @@ class sequence_caf(models.Model):
                 if folio >= c.start_nm and folio <= c.final_nm:
                     available += c.final_nm - folio
                 elif folio <= c.final_nm:
-                    available +=  c.final_nm - c.start_nm
+                    available +=  (c.final_nm - c.start_nm) + 1
                 if folio > c.start_nm:
                     available +=1
         return available
