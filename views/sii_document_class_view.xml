@@ -17,6 +17,7 @@
                         <field name='document_type'/>
                         <field name='active'/>
                         <field name='dte'/>
+                        <field name='use_prefix'/>
                     </group>
                 </form>
             </field>
@@ -35,6 +36,7 @@
                     <field name='report_name'/>
                     <field name='document_type'/>
                     <field name='dte'/>
+                    <field name='use_prefix'/>
                 </tree>
             </field>
         </record>

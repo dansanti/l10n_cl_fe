@@ -47,7 +47,10 @@ class sii_document_class(models.Model):
         'Active', default=True)
     dte = fields.Boolean(
         'DTE', required=True)
-
+    use_prefix = fields.Boolean(
+            string="Usar Prefix en las referencias DTE",
+            default=False,
+        )
 
 class sii_document_letter(models.Model):
     _name = 'sii.document_letter'

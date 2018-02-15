@@ -207,15 +207,35 @@ class AccountInvoiceTax(models.Model):
 class Referencias(models.Model):
     _name = 'account.invoice.referencias'
 
-    origen = fields.Char(string="Origin")
-    sii_referencia_TpoDocRef =  fields.Many2one('sii.document_class',
-        string="SII Reference Document Type")
+    origen = fields.Char(
+            string="Origin",
+            )
+    sii_referencia_TpoDocRef =  fields.Many2one(
+            'sii.document_class',
+            string="SII Reference Document Type",
+        )
     sii_referencia_CodRef = fields.Selection(
-        [('1','Anula Documento de Referencia'),('2','Corrige texto Documento Referencia'),('3','Corrige montos')],
-        string="SII Reference Code")
-    motivo = fields.Char(string="Motivo")
-    invoice_id = fields.Many2one('account.invoice', ondelete='cascade',index=True,copy=False,string="Documento")
-    fecha_documento = fields.Date(string="Fecha Documento", required=True)
+            [
+                ('1','Anula Documento de Referencia'),
+                ('2','Corrige texto Documento Referencia'),
+                ('3','Corrige montos')
+            ],
+            string="SII Reference Code",
+        )
+    motivo = fields.Char(
+            string="Motivo",
+        )
+    invoice_id = fields.Many2one(
+            'account.invoice',
+            ondelete='cascade',
+            index=True,
+            copy=False,
+            string="Documento",
+        )
+    fecha_documento = fields.Date(
+            string="Fecha Documento",
+            required=True,
+        )
 
 class AccountInvoice(models.Model):
     _inherit = "account.invoice"
@@ -2045,7 +2065,7 @@ version="1.0">
                 ref_line['NroLinRef'] = lin_ref
                 if not self._es_boleta():
                     if  ref.sii_referencia_TpoDocRef:
-                        ref_line['TpoDocRef'] = ref.sii_referencia_TpoDocRef.doc_code_prefix if ref.sii_referencia_TpoDocRef.document_type == 'other_document' else ref.sii_referencia_TpoDocRef.sii_code
+                        ref_line['TpoDocRef'] = self._acortar_str(ref.sii_referencia_TpoDocRef.doc_code_prefix, 3) if ref.sii_referencia_TpoDocRef.use_prefix else ref.sii_referencia_TpoDocRef.sii_code
                         ref_line['FolioRef'] = ref.origen
                     ref_line['FchRef'] = ref.fecha_documento or datetime.strftime(datetime.now(), '%Y-%m-%d')
                 if ref.sii_referencia_CodRef not in ['','none', False]:
