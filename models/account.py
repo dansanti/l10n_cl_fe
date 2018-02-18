@@ -135,8 +135,14 @@ class account_journal_sii_document_class(models.Model):
     _description = "Journal SII Documents"
     _order = 'sequence'
 
+    @api.depends('sii_document_class_id', 'sequence_id')
+    def get_secuence_name(self):
+        for r in self:
+            name = (r.sii_document_class_id.name or '') + (': ' + r.sequence_id.name or '')
+            r.name = name
+
     name = fields.Char(
-            related='sii_document_class_id.name',
+            compute="get_secuence_name",
         )
     sii_document_class_id = fields.Many2one(
             'sii.document_class',
@@ -168,7 +174,7 @@ class account_journal(models.Model):
             string="Sucursal",
         )
     sii_code = fields.Char(
-            related='sucursal_id.sii_code',
+            related='sucursal_id.name',
             string="Código SII Sucursal",
             readonly=True,
         )
