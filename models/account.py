@@ -130,7 +130,7 @@ class account_move_line(models.Model):
             readonly=True,
         )
 
-class account_journal_sii_document_class(models.Model):
+class AccountJournalSiiDocumentClass(models.Model):
     _name = "account.journal.sii_document_class"
     _description = "Journal SII Documents"
     _order = 'sequence'
@@ -152,7 +152,6 @@ class account_journal_sii_document_class(models.Model):
     sequence_id = fields.Many2one(
             'ir.sequence',
             string='Entry Sequence',
-            required=False,
             help="""This field contains the information related to the numbering \
             of the documents entries of this document type.""",
         )
@@ -165,6 +164,10 @@ class account_journal_sii_document_class(models.Model):
             string='Sequence',
         )
 
+    @api.onchange('sii_document_class_id')
+    def check_sii_document_class(self):
+        if self.sii_document_class_id and self.sequence_id and self.sii_document_class_id != self.sequence_id.sii_document_class_id:
+            raise UserError("El tipo de Documento de la secuencia es distinto")
 
 class account_journal(models.Model):
     _inherit = "account.journal"

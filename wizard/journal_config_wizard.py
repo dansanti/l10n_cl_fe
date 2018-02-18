@@ -96,11 +96,12 @@ Include unusual taxes documents, as transfer invoice, and reissue
                 for doc_type in ['invoice', 'debit_note', 'credit_note', 'invoice_in']:
                     self.create_journal_document(letter_ids, doc_type, journal)
 
-    def create_sequence(self, name, journal):
+    def create_sequence(self, name, journal, document_class):
         vals = {
             'name': journal.name + ' - ' + name,
             'padding': 6,
             'implementation': 'no_gap',
+            'sii_document_class_id': document_class.id,
         }
         return vals
 
@@ -125,7 +126,7 @@ Include unusual taxes documents, as transfer invoice, and reissue
         for document_class in document_class_ids:
             sequence_id = self.env['ir.sequence']
             if journal.type == "sale":
-                sequence_id =  self.env['ir.sequence'].create(self.create_sequence( document_class.name, journal))
+                sequence_id =  self.env['ir.sequence'].create(self.create_sequence( document_class.name, journal, document_class))
             vals = {
                 'sii_document_class_id': document_class.id,
                 'sequence_id': sequence_id.id,
