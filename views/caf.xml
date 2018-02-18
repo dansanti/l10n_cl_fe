@@ -9,7 +9,7 @@
             <field name="inherit_id" ref="base.sequence_view" />
             <field name="arch" type="xml">
                 <field name="number_next_actual" position="after">
-                    <field name="sii_document_class"/>
+                    <field name="sii_document_class_id" options="{'no_open': True, 'no_create': True}" required="True"/>
                     <field name="is_dte"/>
                     <field name="forced_by_caf"/>
                 </field>

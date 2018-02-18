@@ -109,9 +109,9 @@ has been exhausted.''',
         if self.rut_n != self.company_id.vat.replace('L0','L'):
             raise UserError(_(
                 'Company vat %s should be the same that assigned company\'s vat: %s!') % (self.rut_n, self.company_id.vat))
-        elif self.sii_document_class != self.sequence_id.sii_document_class:
+        elif self.sii_document_class != self.sequence_id.sii_document_class_id.sii_code:
             raise UserError(_(
-                '''SII Document Type for this CAF is %s and selected sequence associated document class is %s. This values should be equal for DTE Invoicing to work properly!''') % (self.sii_document_class, self.sequence_id.sii_document_class))
+                '''SII Document Type for this CAF is %s and selected sequence associated document class is %s. This values should be equal for DTE Invoicing to work properly!''') % (self.sii_document_class, self.sequence_id.sii_document_class_id.sii_code))
         if flags:
             return True
         self.status = 'in_use'
@@ -146,17 +146,6 @@ has been exhausted.''',
 class sequence_caf(models.Model):
     _inherit = "ir.sequence"
 
-    def _check_dte(self):
-        for r in self:
-            obj = r.env['account.journal.sii_document_class'].search([('sequence_id', '=', r.id)], limit=1)
-            if obj:
-                r.is_dte = obj.sii_document_class_id.dte and obj.sii_document_class_id.document_type in ['invoice', 'debit_note', 'credit_note','stock_picking']
-
-    def _get_sii_document_class(self):
-        for r in self:
-            obj = self.env['account.journal.sii_document_class'].search([('sequence_id', '=', r.id)], limit=1)
-            r.sii_document_class = obj.sii_document_class_id.sii_code
-
     def get_qty_available(self, folio=None):
         folio = folio or self._get_folio()
         try:
@@ -179,27 +168,27 @@ class sequence_caf(models.Model):
         for i in self:
             i.qty_available = i.get_qty_available()
 
-    sii_document_class = fields.Integer('SII Code',
-        readonly=True,
-        compute='_get_sii_document_class')
-
-    is_dte = fields.Boolean('IS DTE?',
-        readonly=True,
-        compute='_check_dte')
-
+    sii_document_class_id = fields.Many2one(
+            'sii.document_class',
+            string='Tipo de Documento',
+        )
+    is_dte = fields.Boolean(
+            string='IS DTE?',
+            related='sii_document_class_id.dte',
+        )
     dte_caf_ids = fields.One2many(
-        'dte.caf',
-        'sequence_id',
-        'DTE Caf')
-
+            'dte.caf',
+            'sequence_id',
+            string='DTE Caf',
+        )
     qty_available = fields.Integer(
-        string="Quantity Available",
-        compute="_qty_available"
-    )
+            string="Quantity Available",
+            compute="_qty_available"
+        )
     forced_by_caf = fields.Boolean(
-        string="Forced By CAF",
-        default=True,
-    )
+            string="Forced By CAF",
+            default=True,
+        )
 
     def _get_folio(self):
         return self.number_next_actual
