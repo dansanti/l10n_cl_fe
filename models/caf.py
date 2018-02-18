@@ -85,8 +85,7 @@ has been exhausted.''',
         )
     sequence_id = fields.Many2one(
             'ir.sequence',
-            'Sequence',
-            required=True,
+            string='Sequence',
         )
     use_level = fields.Float(
             string="Use Level",

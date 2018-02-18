@@ -16,7 +16,7 @@
                 <xpath expr='//notebook' position="inside">
                     <page string="CAF Files"
                         attrs="{'invisible': [('is_dte','=',False)]}">
-                        <field name="dte_caf_ids"  context="{'default_sequence_id':active_id, 'default_company_id':company_id}">
+                        <field name="dte_caf_ids"  context="{'default_sequence_id': active_id, 'default_company_id':company_id}">
                             <tree string="DTE CAF Files">
                                 <!--<field name="caf_file" filename="filename" attrs="{'invisible':[('status', '!=', 'draft')]}"/>-->
                                 <field name="name"/>
@@ -80,8 +80,7 @@
                             <field name="final_nm"/>
                             <field name="company_id"/>
                             <field name="rut_n"/>
-                            <field name="sequence_id"/>
-                                <!--context="{'default_dte_caf_id':  active_id}"-->
+                            <field name="sequence_id" invisible="True"/>
                             <field name="use_level" widget="progressbar" backgrounds="blue:status == 'in_use';red:status == 'spent'"/>
                         </group>
                     </sheet>
