@@ -1964,7 +1964,7 @@ version="1.0">
                 taxInclude = t.price_include
                 if t.amount == 0 or t.sii_code in [0]:#@TODO mejor manera de identificar exento de afecto
                     lines['IndExe'] = 1
-                    MntExe += self.currency_id.round(line.price_tax_included, 0)
+                    MntExe += self.currency_id.round(line.price_tax_included)
             #if line.product_id.type == 'events':
             #   lines['ItemEspectaculo'] =
 #            if self._es_boleta():
