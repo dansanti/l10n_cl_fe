@@ -708,7 +708,6 @@ class UploadXMLWizard(models.TransientModel):
 
     def _get_data(self, dte, company_id):
         journal_document_class_id = self._get_journal(dte['Encabezado']['IdDoc']['TipoDTE'], company_id)
-        _logger.warning("%s" %company_id)
         if not journal_document_class_id:
             sii_document_class = self.env['sii.document_class'].search([('sii_code', '=', dte['Encabezado']['IdDoc']['TipoDTE'])])
             raise UserError('No existe Diario para el tipo de documento %s, por favor añada uno primero, o ignore el documento' % sii_document_class.name.encode('UTF-8'))
@@ -737,17 +736,22 @@ class UploadXMLWizard(models.TransientModel):
         ).id
         if 'ImptoReten' in dte['Encabezado']['Totales']:
             Totales = dte['Encabezado']['Totales']
-            imp = self._buscar_impuesto(name="OtrosImps_" + str(Totales['ImptoReten']['TipoImp']), sii_code=Totales['ImptoReten']['TipoImp'])
-            lines.append([0,0,{
-                'invoice_line_tax_ids': [ imp ],
-                'product_id': product_id,
-                'name': 'MontoImpuesto %s' % str(Totales['ImptoReten']['TipoImp']),
-                'price_unit': Totales['ImptoReten']['MontoImp'],
-                'quantity': 1,
-                'price_subtotal': Totales['ImptoReten']['MontoImp'],
-                'account_id':  journal_document_class_id.journal_id.default_debit_account_id.id
-                }]
-            )
+            if 'TipoImp' in Totales['ImptoReten']:
+                Totales = [Totales['ImptoReten']['TipoImp']]
+            else:
+                Totales = Totales['ImptoReten']
+            for i in Totales:
+                imp = [self._buscar_impuesto(name="OtrosImps_" + str(i['TipoImp']), sii_code=i['TipoImp'])]
+                lines.append([0,0,{
+                    'invoice_line_tax_ids': [ imp ],
+                    'product_id': product_id,
+                    'name': 'MontoImpuesto %s' % str(i['TipoImp']),
+                    'price_unit': i['MontoImp'],
+                    'quantity': 1,
+                    'price_subtotal': i['MontoImp'],
+                    'account_id':  journal_document_class_id.journal_id.default_debit_account_id.id
+                    }]
+                )
         #if 'IVATerc' in dte['Encabezado']['Totales']:
         #    imp = self._buscar_impuesto(name="IVATerc" )
         #    lines.append([0,0,{
