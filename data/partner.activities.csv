@@ -1,4 +1,4 @@
-"id","parent_id:id","code","name","vat_affected","tax_category","internet_available","active"
+"id","parent_id/id","code","name","vat_affected","tax_category","internet_available","active"
 "eco_acti_01",,"01","Agricultura, Ganadería, Caza y Silvicultura","ND",1,0,1
 "eco_acti_05",,"05","Pesca","ND",1,0,1
 "eco_acti_10",,"10","Explotación de Minas y Canteras","ND",1,0,1
