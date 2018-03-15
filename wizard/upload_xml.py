@@ -364,7 +364,7 @@ class UploadXMLWizard(models.TransientModel):
                     'subject': 'XML de Respuesta Envío' ,
                     'attachment_ids': att.ids,
                 }
-                send_mail = self.env['mail.mail'].create(values)
+                send_mail = self.env['mail.mail'].sudo().create(values)
                 send_mail.send()
             self.dte_id.message_post(
                 body='XML de Respuesta Envío, Estado: %s , Glosa: %s ' % (recep['EstadoRecepEnv'], recep['RecepEnvGlosa'] ),
