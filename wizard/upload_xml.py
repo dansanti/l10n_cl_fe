@@ -53,7 +53,7 @@ class UploadXMLWizard(models.TransientModel):
     option = fields.Selection(
         [
             ('upload', 'Solo Subir'),
-            ('acept', 'Aceptar'),
+            ('accept', 'Aceptar'),
             ('reject', 'Rechazar'),
         ],
         string="Opción",
@@ -357,7 +357,7 @@ class UploadXMLWizard(models.TransientModel):
                 values = {
                     'model_id': self.dte_id.id,
                     'email_from': self.dte_id.company_id.dte_email,
-                    'email_to': self.dte_id.mail_id.email_from ,
+                    'email_to': self.sudo().dte_id.mail_id.email_from ,
                     'auto_delete': False,
                     'model' : "mail.message.dte",
                     'body':'XML de Respuesta Envío, Estado: %s , Glosa: %s ' % (recep['EstadoRecepEnv'], recep['RecepEnvGlosa'] ),
@@ -710,7 +710,7 @@ class UploadXMLWizard(models.TransientModel):
 
     def _get_data(self, documento, company_id):
         string = etree.tostring(documento)
-        dte = xmltodict.parse( string)['Documento']
+        dte = xmltodict.parse( string )['Documento']
         journal_document_class_id = self._get_journal(dte['Encabezado']['IdDoc']['TipoDTE'], company_id)
         if not journal_document_class_id:
             sii_document_class = self.env['sii.document_class'].search([('sii_code', '=', dte['Encabezado']['IdDoc']['TipoDTE'])])
@@ -822,6 +822,7 @@ class UploadXMLWizard(models.TransientModel):
                 t.base = float(Totales.find('{http://www.sii.cl/SiiDte}MntNeto'))
             else:
                 t.base = Totales.find('{http://www.sii.cl/SiiDte}MntExe')
+        return inv
 
     def _dte_exist(self, documento):
         encabezado = documento.find("{http://www.sii.cl/SiiDte}Encabezado")
@@ -912,14 +913,14 @@ class UploadXMLWizard(models.TransientModel):
             except Exception as e:
                 _logger.warning('Error en 1 factura con error:  %s' % str(e))
         if created and self.option not in [False, 'upload']:
-            wiz_acept = self.env['sii.dte.validar.wizard'].create(
+            wiz_accept = self.env['sii.dte.validar.wizard'].create(
                 {
                     'invoice_ids': [(6, 0, created)],
                     'action': 'validate',
                     'option': self.option,
                 }
             )
-            wiz_acept.confirm()
+            wiz_accept.confirm()
         return created
 
     def prepare_purchase_line(self, line, date_planned):

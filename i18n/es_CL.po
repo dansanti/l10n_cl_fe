@@ -6164,9 +6164,9 @@ msgid "Credit Notes"
 msgstr "Notas de Crédito"
 
 #. module: l10n_cl_fe
-#: model:ir.actions.server,name:l10n_cl_fe.ir_cron_auto_acept_documents_ir_actions_server
-#: model:ir.cron,cron_name:l10n_cl_fe.ir_cron_auto_acept_documents
-#: model:ir.cron,name:l10n_cl_fe.ir_cron_auto_acept_documents
+#: model:ir.actions.server,name:l10n_cl_fe.ir_cron_auto_accept_documents_ir_actions_server
+#: model:ir.cron,cron_name:l10n_cl_fe.ir_cron_auto_accept_documents
+#: model:ir.cron,name:l10n_cl_fe.ir_cron_auto_accept_documents
 msgid "Cron AutoAceptación Documentos"
 msgstr "Cron AutoAceptación Documentos"
 
