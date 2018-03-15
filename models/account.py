@@ -138,7 +138,8 @@ class AccountJournalSiiDocumentClass(models.Model):
     @api.depends('sii_document_class_id', 'sequence_id')
     def get_secuence_name(self):
         for r in self:
-            name = (r.sii_document_class_id.name or '') + (': ' + r.sequence_id.name or '')
+            sequence_name = (': ' + r.sequence_id.name) if r.sequence_id else ''
+            name = (r.sii_document_class_id.name or '') + sequence_name
             r.name = name
 
     name = fields.Char(
