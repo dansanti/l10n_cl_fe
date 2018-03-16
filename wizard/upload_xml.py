@@ -435,14 +435,27 @@ class UploadXMLWizard(models.TransientModel):
                 'sii_type': sii_type,
                 'type_tax_use': 'purchase',
             } )
-        return ((6,0, imp.ids))
+        return imp
 
-    def get_product_values(self, data):
+    def get_product_values(self, data, price_included=False):
+        IndExe = data.get('IndExe', False)
+        amount = 0
+        sii_code = 0
+        sii_type = False
+        if not IndExe:
+            amount = 19
+            sii_code = 14
+            sii_type = False
+        imp = self._buscar_impuesto(amount=amount, sii_code=sii_code, sii_type=sii_type, IndExe=IndExe)
+        price = float(data['PrcItem'] if 'PrcItem' in data else data['MontoItem'])
+        if price_included:
+            price = imp.compute_all(price, self.env.user.company_id.currency_id, 1)['total_excluded']
         values = {
             'sale_ok':False,
             'name': data['NmbItem'],
-            'lst_price': float(data['PrcItem'] if 'PrcItem' in data else data['MontoItem']),
+            'lst_price': price,
             'categ_id': self._default_category(),
+            'supplier_taxes_id': [(6, 0, imp.ids)],
         }
         if 'CdgItem' in data:
             if 'TpoCodigo' in data['CdgItem']:
@@ -462,11 +475,11 @@ class UploadXMLWizard(models.TransientModel):
                         values['default_code'] = c['VlrCodigo']
         return values
 
-    def _create_prod(self, data):
-        product_id = self.env['product.product'].create(self.get_product_values(data))
+    def _create_prod(self, data, price_included=False):
+        product_id = self.env['product.product'].create(self.get_product_values(data, price_included))
         return product_id
 
-    def _buscar_producto(self, document_id, line):
+    def _buscar_producto(self, document_id, line, price_included=False):
         default_code = False
         if document_id:
             code = ' ' + str(line['CdgItem']) if 'CdgItem' in line else ''
@@ -519,25 +532,28 @@ class UploadXMLWizard(models.TransientModel):
                 limit=1)
         if not product_id:
             if not product_supplier and not self.pre_process:
-                product_id = self._create_prod(line)
+                product_id = self._create_prod(line, price_included)
             else:
                 code = ' ' + str(line['CdgItem']) if 'CdgItem' in line else ''
                 return line['NmbItem'] + '' + code
         if not product_supplier and document_id.partner_id:
+            price = float(line['PrcItem'] if 'PrcItem' in line else line['MontoItem'])
+            if price_included:
+                price = imp.compute_all(price, self.env.user.company_id.currency_id, 1)['total_excluded']
             supplier_info = {
                 'name': document_id.partner_id.id,
                 'product_name' : line['NmbItem'],
                 'product_code': default_code,
                 'product_tmpl_id': product_id.product_tmpl_id.id,
-                'price': float(line['PrcItem'] if 'PrcItem' in line else line['MontoItem']),
+                'price': price,
             }
             self.env['product.supplierinfo'].create(supplier_info)
 
         return product_id.id
 
-    def _prepare_line(self, line, document_id, journal, type):
+    def _prepare_line(self, line, document_id, journal, type, price_included=False):
         data = {}
-        product_id = self._buscar_producto(document_id, line)
+        product_id = self._buscar_producto(document_id, line, price_included)
         if isinstance(product_id, int):
             data.update(
                 {
@@ -546,7 +562,6 @@ class UploadXMLWizard(models.TransientModel):
             )
         elif not product_id:
             return False
-
         account_id = journal.default_debit_account_id.id
         if type in ('out_invoice', 'in_refund'):
                 account_id = journal.default_credit_account_id.id
@@ -557,9 +572,10 @@ class UploadXMLWizard(models.TransientModel):
         discount = 0
         if 'DescuentoPct' in line:
             discount = line['DescuentoPct']
+        price = line['PrcItem'] if 'PrcItem' in line else price_subtotal
         data.update({
             'name': line['DescItem'] if 'DescItem' in line else line['NmbItem'],
-            'price_unit': line['PrcItem'] if 'PrcItem' in line else price_subtotal,
+            'price_unit': price,
             'discount': discount,
             'quantity': line['QtyItem'] if 'QtyItem' in line else 1,
             'account_id': account_id,
@@ -572,9 +588,14 @@ class UploadXMLWizard(models.TransientModel):
             })
         else:
             product_id = self.env['product.product'].browse(product_id)
+            if price_included:
+                price = product_id.supplier_taxes_id.compute_all(price, self.env.user.company_id.currency_id, 1)['total_excluded']
+                price_subtotal = product_id.supplier_taxes_id.compute_all(price_subtotal, self.env.user.company_id.currency_id, 1)['total_excluded']
             data.update({
                 'invoice_line_tax_ids': [(6, 0, product_id.supplier_taxes_id.ids)],
                 'uom_id': product_id.uom_id.id,
+                'price_unit': price,
+                'price_subtotal': price_subtotal,
                 })
 
         return [0,0, data]
@@ -711,6 +732,9 @@ class UploadXMLWizard(models.TransientModel):
     def _get_data(self, documento, company_id):
         string = etree.tostring(documento)
         dte = xmltodict.parse( string )['Documento']
+        Encabezado = documento.find("{http://www.sii.cl/SiiDte}Encabezado")
+        IdDoc = Encabezado.find("{http://www.sii.cl/SiiDte}IdDoc")
+        price_included = Encabezado.find("{http://www.sii.cl/SiiDte}MntBruto")
         journal_document_class_id = self._get_journal(dte['Encabezado']['IdDoc']['TipoDTE'], company_id)
         if not journal_document_class_id:
             sii_document_class = self.env['sii.document_class'].search([('sii_code', '=', dte['Encabezado']['IdDoc']['TipoDTE'])])
@@ -722,7 +746,7 @@ class UploadXMLWizard(models.TransientModel):
         lines = [(5,)]
         document_id = self._dte_exist(documento)
         if 'NroLinDet' in dte['Detalle']:
-            new_line = self._prepare_line(dte['Detalle'],document_id=document_id, journal=journal_document_class_id.journal_id, type=data['type'])
+            new_line = self._prepare_line(dte['Detalle'],document_id=document_id, journal=journal_document_class_id.journal_id, type=data['type'], price_included=price_included)
             if new_line:
                 lines.append(new_line)
         elif len(dte['Detalle']) > 0:
@@ -731,7 +755,7 @@ class UploadXMLWizard(models.TransientModel):
             except:
                 Detalles = dte['Detalle']
             for line in Detalles:
-                new_line = self._prepare_line(line, document_id=document_id, journal=journal_document_class_id.journal_id, type=data['type'])
+                new_line = self._prepare_line(line, document_id=document_id, journal=journal_document_class_id.journal_id, type=data['type'], price_included=price_included)
                 if new_line:
                     lines.append(new_line)
         product_id = self.env['product.product'].search([
@@ -745,14 +769,19 @@ class UploadXMLWizard(models.TransientModel):
             else:
                 Totales = Totales['ImptoReten']
             for i in Totales:
-                imp = [self._buscar_impuesto(name="OtrosImps_" + str(i['TipoImp']), sii_code=i['TipoImp'])]
+                imp = self._buscar_impuesto(name="OtrosImps_" + str(i['TipoImp']), sii_code=i['TipoImp'])
+                price = float( i['MontoImp'] )
+                price_subtotal = float( i['MontoImp'] )
+                if price_included:
+                    price = imp.compute_all(price, self.env.user.company_id.currency_id, 1)['total_excluded']
+                    price_subtotal = imp.compute_all(price_subtotal, self.env.user.company_id.currency_id, 1)['total_excluded']
                 lines.append([0,0,{
-                    'invoice_line_tax_ids': [ imp ],
+                    'invoice_line_tax_ids': ((6,0, imp.ids)) ,
                     'product_id': product_id,
                     'name': 'MontoImpuesto %s' % str(i['TipoImp']),
-                    'price_unit': i['MontoImp'],
+                    'price_unit': price,
                     'quantity': 1,
-                    'price_subtotal': i['MontoImp'],
+                    'price_subtotal': price_subtotal,
                     'account_id':  journal_document_class_id.journal_id.default_debit_account_id.id
                     }]
                 )
@@ -817,11 +846,11 @@ class UploadXMLWizard(models.TransientModel):
             return inv
         inv.amount_total = monto_xml
         for t in inv.tax_line_ids:
-            if Totales.find('{http://www.sii.cl/SiiDte}TasaIVA') and t.tax_id.amount == float(Totales.find('{http://www.sii.cl/SiiDte}TasaIVA')):
-                t.amount = float(Totales.find('{http://www.sii.cl/SiiDte}IVA'))
-                t.base = float(Totales.find('{http://www.sii.cl/SiiDte}MntNeto'))
+            if Totales.find('{http://www.sii.cl/SiiDte}TasaIVA') is not None and t.tax_id.amount == float(Totales.find('{http://www.sii.cl/SiiDte}TasaIVA').text):
+                t.amount = float(Totales.find('{http://www.sii.cl/SiiDte}IVA').text)
+                t.base = float(Totales.find('{http://www.sii.cl/SiiDte}MntNeto').text)
             else:
-                t.base = Totales.find('{http://www.sii.cl/SiiDte}MntExe')
+                t.base = float(Totales.find('{http://www.sii.cl/SiiDte}MntExe').text)
         return inv
 
     def _dte_exist(self, documento):
@@ -852,7 +881,7 @@ class UploadXMLWizard(models.TransientModel):
     def _get_dtes(self):
         xml = self._read_xml('etree')
         envio = xml.find("{http://www.sii.cl/SiiDte}SetDTE")
-        if not envio:
+        if envio is None:
             if xml.tag == "{http://www.sii.cl/SiiDte}DTE":
                 return [xml]
             return []
