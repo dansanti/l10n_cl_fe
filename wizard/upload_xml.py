@@ -612,6 +612,7 @@ class UploadXMLWizard(models.TransientModel):
             vals.update({
                     'doc_code_prefix': ref['TpoDocRef'],
                     'sii_code': 801,
+                    'use_prefix': True,
                 })
         return self.env['sii.document_class'].create(vals)
 
@@ -619,9 +620,10 @@ class UploadXMLWizard(models.TransientModel):
         query = []
         if str(ref['TpoDocRef']).isdigit():
             query.append(('sii_code', '=', ref['TpoDocRef']))
+            query.append(('use_prefix', '=', False))
         else:
             query.append(('doc_code_prefix', '=', ref['TpoDocRef']))
-        tpo = self.env['sii.document_class'].search(query)
+        tpo = self.env['sii.document_class'].search(query, limit=1)
         if not tpo:
             tpo = self._create_tpo_doc(ref)
         return [0,0,{
