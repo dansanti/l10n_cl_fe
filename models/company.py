@@ -92,7 +92,7 @@ stamp to be legally valid.''',
         )
     city_id = fields.Many2one(
             related='partner_id.city_id',
-            relation="res.country.state.city",
+            relation="res.city",
             string='City',
         )
     document_number = fields.Char(

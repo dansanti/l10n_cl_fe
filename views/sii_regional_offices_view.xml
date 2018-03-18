@@ -7,8 +7,8 @@
                 <form string="SII Regional Offices">
                     <group>
                         <field name="name"/>
-                        <field name="state_ids"
-                               placeholder="Comunas"
+                        <field name="city_ids"
+                               placeholder="Ciudades"
                                widget="many2many_tags"
                                options="{'no_create': True}"/>
                     </group>

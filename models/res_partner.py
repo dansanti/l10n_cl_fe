@@ -35,10 +35,6 @@ class ResPartner(models.Model):
             id2='activities_id',
             string='Activities Names'
         )
-    city_id = fields.Many2one(
-            "res.country.state.city",
-            'City',
-        )
     responsability_id = fields.Many2one(
         'sii.responsability',
         string='Responsability',
