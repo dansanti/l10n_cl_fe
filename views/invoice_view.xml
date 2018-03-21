@@ -255,7 +255,7 @@
               </field>
 
               <field name="comment" position="after">
-                  <field name="global_descuentos_recargos" widget="one2many_list" mode="tree" context="{'default_invoice_id': id}">
+                  <field name="global_descuentos_recargos" widget="one2many_list" mode="tree" context="{'default_invoice_id': active_id}">
                     <tree string="Descuetos / Recargos Globales" editable="bottom">
                       <field name="type"/>
                       <field name="gdr_type"/>
