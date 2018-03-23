@@ -507,10 +507,15 @@ class AccountInvoice(models.Model):
             amount_diff = currency.compute(self.amount_total, company_currency)
             amount_diff_currency = self.amount_total
         for line in invoice_move_lines:
-            if not line.get('tax_line_id'):
+            #@TODO Posibilidad de GDR a exentos
+            exento = False
+            if line.get('tax_ids'):
+                exento = self.env['account.tax'].search([('id', 'in', line.get('tax_ids')[0][2]), ('amount', '=', 0)])
+            if not line.get('tax_line_id') and not exento:
                 line['price'] *= gdr
             if line.get('amount_currency', False) and not line.get('tax_line_id'):
-                line['amount_currency'] *= gdr
+                if not exento:
+                    line['amount_currency'] *= gdr
             if self.currency_id != company_currency:
                 if not (line.get('currency_id') and line.get('amount_currency')):
                     line['currency_id'] = currency.id
