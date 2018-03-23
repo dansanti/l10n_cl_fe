@@ -976,7 +976,7 @@ class AccountInvoice(models.Model):
 
     @api.onchange('sii_document_class_id', 'partner_id')
     def _check_vat(self):
-        if self.partner_id and not self._es_boleta() and not self.partner_id.commercial_partner_id.document_number:
+        if self.partner_id and not self._es_boleta() and not self.partner_id.commercial_partner_id.document_number and self.vat_discriminated:
             raise UserError(_("""The customer/supplier does not have a VAT \
 defined. The type of invoicing document you selected requires you tu settle \
 a VAT."""))
@@ -1122,6 +1122,8 @@ a VAT."""))
     @api.multi
     def invoice_validate(self):
         for inv in self:
+            if not inv.journal_id.use_documents or not inv.sii_document_class_id.dte:
+                continue
             inv.sii_result = 'NoEnviado'
             inv.responsable_envio = self.env.user.id
             if inv.type in ['out_invoice', 'out_refund']:
