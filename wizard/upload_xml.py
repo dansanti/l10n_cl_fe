@@ -413,6 +413,7 @@ class UploadXMLWizard(models.TransientModel):
             ('amount', '=', amount),
             ('sii_code', '=', sii_code),
             ('type_tax_use', '=', 'purchase'),
+            ('activo_fijo', '=', False),
         ]
         if IndExe:
             query.append(
@@ -437,8 +438,8 @@ class UploadXMLWizard(models.TransientModel):
             } )
         return imp
 
-    def get_product_values(self, data, price_included=False):
-        IndExe = data.get('IndExe', False)
+    def get_product_values(self, line, price_included=False):
+        IndExe = line.find("{http://www.sii.cl/SiiDte}IndExe")
         amount = 0
         sii_code = 0
         sii_type = False
@@ -447,32 +448,22 @@ class UploadXMLWizard(models.TransientModel):
             sii_code = 14
             sii_type = False
         imp = self._buscar_impuesto(amount=amount, sii_code=sii_code, sii_type=sii_type, IndExe=IndExe)
-        price = float(data['PrcItem'] if 'PrcItem' in data else data['MontoItem'])
+        price = float(line.find("{http://www.sii.cl/SiiDte}PrcItem").text if line.find("{http://www.sii.cl/SiiDte}PrcItem") is not None else line.find("{http://www.sii.cl/SiiDte}MontoItem").text)
         if price_included:
             price = imp.compute_all(price, self.env.user.company_id.currency_id, 1)['total_excluded']
         values = {
-            'sale_ok':False,
-            'name': data['NmbItem'],
+            'sale_ok': False,
+            'name': line.find("{http://www.sii.cl/SiiDte}NmbItem").text,
             'lst_price': price,
             'categ_id': self._default_category(),
             'supplier_taxes_id': [(6, 0, imp.ids)],
         }
-        if 'CdgItem' in data:
-            if 'TpoCodigo' in data['CdgItem']:
-                if data['CdgItem']['TpoCodigo'] == 'ean13':
-                    values['barcode'] = data['CdgItem']['VlrCodigo']
-                else:
-                    values['default_code'] = data['CdgItem']['VlrCodigo']
+        for c in line.findall("{http://www.sii.cl/SiiDte}CdgItem"):
+            VlrCodigo = c.find("{http://www.sii.cl/SiiDte}VlrCodigo").text
+            if c.find("{http://www.sii.cl/SiiDte}TpoCodigo").text == 'ean13':
+                values['barcode'] = VlrCodigo
             else:
-                try:
-                    Codes = data['CdgItem']['item']
-                except:
-                    Codes = data['CdgItem']
-                for c in Codes:
-                    if c['TpoCodigo'] == 'ean13':
-                        values['barcode'] = c['VlrCodigo']
-                    else:
-                        values['default_code'] = c['VlrCodigo']
+                values['default_code'] = VlrCodigo
         return values
 
     def _create_prod(self, data, price_included=False):
@@ -481,13 +472,15 @@ class UploadXMLWizard(models.TransientModel):
 
     def _buscar_producto(self, document_id, line, price_included=False):
         default_code = False
+        CdgItem = line.find("{http://www.sii.cl/SiiDte}CdgItem")
+        NmbItem = line.find("{http://www.sii.cl/SiiDte}NmbItem").text
         if document_id:
-            code = ' ' + str(line['CdgItem']) if 'CdgItem' in line else ''
+            code = ' ' + etree.tostring(CdgItem) if CdgItem is not None else ''
             line_id = self.env['mail.message.dte.document.line'].search(
                 [
                     '|',
-                    ('new_product', '=',  line['NmbItem'] + '' + code),
-                    ('product_description', '=', line['DescItem'] if 'DescItem' in line else line['NmbItem']),
+                    ('new_product', '=', NmbItem + '' + code),
+                    ('product_description', '=', line.find("{http://www.sii.cl/SiiDte}DescItem").text if line.find("{http://www.sii.cl/SiiDte}DescItem") is not None else NmbItem),
                     ('document_id', '=', document_id.id)
                 ]
             )
@@ -498,32 +491,23 @@ class UploadXMLWizard(models.TransientModel):
                 return False
         query = False
         product_id = False
-        if 'CdgItem' in line:
-            if 'VlrCodigo' in line['CdgItem']:
-                if line['CdgItem']['TpoCodigo'] == 'ean13':
-                    query = [('barcode','=',line['CdgItem']['VlrCodigo'])]
-                else:
-                    query = [('default_code','=',line['CdgItem']['VlrCodigo'])]
-                default_code = line['CdgItem']['VlrCodigo']
-            else:
-                try:
-                    Codes = line['CdgItem']['item']
-                except:
-                    Codes = line['CdgItem']
-                for c in Codes:
-                    if c['TpoCodigo'] == 'ean13':
-                        query = [('barcode','=',c['VlrCodigo'])]
-                    elif c['TpoCodigo'] == 'INT1':
-                        query = [('default_code','=',c['VlrCodigo'])]
-                    default_code = c['VlrCodigo']
+        if CdgItem is not None:
+            for c in line.findall("{http://www.sii.cl/SiiDte}CdgItem"):
+                VlrCodigo = c.find("{http://www.sii.cl/SiiDte}VlrCodigo")
+                TpoCodigo = c.find("{http://www.sii.cl/SiiDte}TpoCodigo").text
+                if TpoCodigo == 'ean13':
+                    query = [('barcode', '=', VlrCodigo.text)]
+                elif TpoCodigo == 'INT1':
+                    query = [('default_code', '=', VlrCodigo.text)]
+                default_code = VlrCodigo.text
         if not query:
-            query = [('name','=',line['NmbItem'])]
+            query = [('name', '=', NmbItem)]
         product_id = self.env['product.product'].search(query)
         query2 = [('name', '=', document_id.partner_id.id)]
         if default_code:
             query2.append(('product_code', '=', default_code))
         else:
-            query2.append(('product_name', '=', line['NmbItem']))
+            query2.append(('product_name', '=', NmbItem))
         product_supplier = self.env['product.supplierinfo'].search(query2)
         product_id = product_supplier.product_id or self.env['product.product'].search(
             [
@@ -534,15 +518,15 @@ class UploadXMLWizard(models.TransientModel):
             if not product_supplier and not self.pre_process:
                 product_id = self._create_prod(line, price_included)
             else:
-                code = ' ' + str(line['CdgItem']) if 'CdgItem' in line else ''
-                return line['NmbItem'] + '' + code
+                code = ' ' + CdgItem.text if CdgItem is not None else ''
+                return NmbItem + '' + code
         if not product_supplier and document_id.partner_id:
-            price = float(line['PrcItem'] if 'PrcItem' in line else line['MontoItem'])
+            price = float(line.find("{http://www.sii.cl/SiiDte}PrcItem").text if line.find("{http://www.sii.cl/SiiDte}PrcItem") is not None else line.find("{http://www.sii.cl/SiiDte}MontoItem").text)
             if price_included:
                 price = imp.compute_all(price, self.env.user.company_id.currency_id, 1)['total_excluded']
             supplier_info = {
                 'name': document_id.partner_id.id,
-                'product_name' : line['NmbItem'],
+                'product_name' : NmbItem,
                 'product_code': default_code,
                 'product_tmpl_id': product_id.product_tmpl_id.id,
                 'price': price,
@@ -565,26 +549,27 @@ class UploadXMLWizard(models.TransientModel):
         account_id = journal.default_debit_account_id.id
         if type in ('out_invoice', 'in_refund'):
                 account_id = journal.default_credit_account_id.id
-        if 'MntExe' in line:
-            price_subtotal = float(line['MntExe'])
+        if line.find("{http://www.sii.cl/SiiDte}MntExe") is not None:
+            price_subtotal = float(line.find("{http://www.sii.cl/SiiDte}MntExe").text)
         else :
-            price_subtotal = float(line['MontoItem'])
+            price_subtotal = float(line.find("{http://www.sii.cl/SiiDte}MontoItem").text)
         discount = 0
-        if 'DescuentoPct' in line:
-            discount = line['DescuentoPct']
-        price = line['PrcItem'] if 'PrcItem' in line else price_subtotal
+        if line.find("{http://www.sii.cl/SiiDte}DescuentoPct") is not None:
+            discount = float(line.find("{http://www.sii.cl/SiiDte}DescuentoPct").text)
+        price = float(line.find("{http://www.sii.cl/SiiDte}PrcItem").text) if line.find("{http://www.sii.cl/SiiDte}PrcItem") is not None else price_subtotal
+        DescItem = line.find("{http://www.sii.cl/SiiDte}DescItem")
         data.update({
-            'name': line['DescItem'] if 'DescItem' in line else line['NmbItem'],
+            'name':  DescItem.text if DescItem is not None else line.find("{http://www.sii.cl/SiiDte}NmbItem").text,
             'price_unit': price,
             'discount': discount,
-            'quantity': line['QtyItem'] if 'QtyItem' in line else 1,
+            'quantity': line.find("{http://www.sii.cl/SiiDte}QtyItem").text if line.find("{http://www.sii.cl/SiiDte}QtyItem") is not None else 1,
             'account_id': account_id,
             'price_subtotal': price_subtotal,
         })
         if self.pre_process:
             data.update({
                 'new_product': product_id,
-                'product_description': line['DescItem'] if 'DescItem' in line else '',
+                'product_description': DescItem.text if DescItem is not None else '',
             })
         else:
             product_id = self.env['product.product'].browse(product_id)
@@ -600,17 +585,17 @@ class UploadXMLWizard(models.TransientModel):
 
         return [0,0, data]
 
-    def _create_tpo_doc(self, ref):
+    def _create_tpo_doc(self, TpoDocRef, RazonRef=''):
         vals = {
-                'name': ref.get('RazonRef', '') + ' ' + str(ref['TpoDocRef'])
+                'name': RazonRef + ' ' + str(TpoDocRef)
             }
-        if str(ref['TpoDocRef']).isdigit():
+        if str(TpoDocRef).isdigit():
             vals.update({
-                    'sii_code': ref['TpoDocRef'],
+                    'sii_code': TpoDocRef,
                 })
         else:
             vals.update({
-                    'doc_code_prefix': ref['TpoDocRef'],
+                    'doc_code_prefix': TpoDocRef,
                     'sii_code': 801,
                     'use_prefix': True,
                 })
@@ -618,35 +603,41 @@ class UploadXMLWizard(models.TransientModel):
 
     def _prepare_ref(self, ref):
         query = []
-        if str(ref['TpoDocRef']).isdigit():
-            query.append(('sii_code', '=', ref['TpoDocRef']))
+        TpoDocRef = ref.find("{http://www.sii.cl/SiiDte}TpoDocRef").text
+        RazonRef = ref.find("{http://www.sii.cl/SiiDte}RazonRef")
+        if str(TpoDocRef).isdigit():
+            query.append(('sii_code', '=', TpoDocRef))
             query.append(('use_prefix', '=', False))
         else:
-            query.append(('doc_code_prefix', '=', ref['TpoDocRef']))
+            query.append(('doc_code_prefix', '=', TpoDocRef))
         tpo = self.env['sii.document_class'].search(query, limit=1)
         if not tpo:
-            tpo = self._create_tpo_doc(ref)
+            tpo = self._create_tpo_doc( TpoDocRef, RazonRef)
         return [0,0,{
-            'origen' : ref.get('FolioRef', None),
+            'origen' : ref.find("{http://www.sii.cl/SiiDte}FolioRef").text,
             'sii_referencia_TpoDocRef' : tpo.id,
-            'sii_referencia_CodRef' : ref.get('CodRef', False),
-            'motivo' : ref.get('RazonRef', False),
-            'fecha_documento' : ref.get('FchRef', False),
+            'sii_referencia_CodRef' : ref.find("{http://www.sii.cl/SiiDte}CodRef").text if ref.find("{http://www.sii.cl/SiiDte}CodRef") is not None else None,
+            'motivo' : RazonRef.text if RazonRef is not None else None,
+            'fecha_documento' : ref.find("{http://www.sii.cl/SiiDte}FchRef").text if ref.find("{http://www.sii.cl/SiiDte}FchRef") is not None else None,
         }]
 
     def process_dr(self, dr):
         data = {
-                    'type': dr['TpoMov'],
+                    'type': dr.find("{http://www.sii.cl/SiiDte}TpoMov").text,
                 }
         disc_type = "percent"
-        if dr['TpoValor'] == '$':
+        if dr.find("{http://www.sii.cl/SiiDte}TpoValor").text == '$':
             disc_type = "amount"
         data['gdr_type'] = disc_type
-        data['valor'] = dr['ValorDR']
-        data['gdr_dtail'] = dr.get('GlosaDR', 'Descuento globla')
+        data['valor'] = dr.find("{http://www.sii.cl/SiiDte}ValorDR").text
+        data['gdr_dtail'] = dr.find("{http://www.sii.cl/SiiDte}GlosaDR").text if dr.find("{http://www.sii.cl/SiiDte}GlosaDR") is not None else 'Descuento globla'
         return data
 
     def _prepare_invoice(self, documento, company_id, journal_document_class_id):
+        Encabezado = documento.find("{http://www.sii.cl/SiiDte}Encabezado")
+        IdDoc = Encabezado.find("{http://www.sii.cl/SiiDte}IdDoc")
+        Emisor = Encabezado.find("{http://www.sii.cl/SiiDte}Emisor")
+        RUTEmisor = Emisor.find("{http://www.sii.cl/SiiDte}RUTEmisor").text
         string = etree.tostring(documento)
         dte = xmltodict.parse( string )['Documento']
         invoice = {}
@@ -654,7 +645,7 @@ class UploadXMLWizard(models.TransientModel):
             [
                 ('active','=', True),
                 ('parent_id', '=', False),
-                ('vat','=', self.format_rut(dte['Encabezado']['Emisor']['RUTEmisor']))
+                ('vat','=', self.format_rut(RUTEmisor))
             ]
         )
         if not partner_id:
@@ -679,9 +670,10 @@ class UploadXMLWizard(models.TransientModel):
         image.save(barcodefile,'PNG')
         data = barcodefile.getvalue()
         sii_barcode_img = base64.b64encode(data)
+        FchEmis = IdDoc.find("{http://www.sii.cl/SiiDte}FchEmis").text
         invoice.update( {
             'origin' : 'XML Envío: ' + name.decode(),
-            'date_invoice' : dte['Encabezado']['IdDoc']['FchEmis'],
+            'date_invoice' : FchEmis,
             'partner_id' : partner_id,
             'company_id' : company_id.id,
             'journal_id': journal_document_class_id.journal_id.id,
@@ -691,30 +683,25 @@ class UploadXMLWizard(models.TransientModel):
             'sii_barcode': ted_string,
             'sii_barcode_img': sii_barcode_img,
         })
-
-        if 'DscRcgGlobal' in dte:
-            disc_type = "%"
-            DscRcgGlobal = dte['DscRcgGlobal']
+        DscRcgGlobal = documento.findall("{http://www.sii.cl/SiiDte}DscRcgGlobal")
+        if DscRcgGlobal:
             drs = [(5,)]
-            if 'TpoMov' in DscRcgGlobal:
-                drs.append((0,0,self.process_dr(dte['DscRcgGlobal'])))
-            else:
-                for dr in DscRcgGlobal:
-                    drs.append((0,0,self.process_dr(dr)))
+            for dr in DscRcgGlobal:
+                drs.append((0,0,self.process_dr(dr)))
             invoice.update({
                     'global_descuentos_recargos': drs,
                 })
-
+        Folio = IdDoc.find("{http://www.sii.cl/SiiDte}Folio").text
         if partner_id and not self.pre_process:
             invoice.update({
-                'reference': dte['Encabezado']['IdDoc']['Folio'],
+                'reference': Folio,
                 'journal_document_class_id':journal_document_class_id.id,
             })
         else:
             invoice.update({
-                'number': dte['Encabezado']['IdDoc']['Folio'],
-                'date' : dte['Encabezado']['IdDoc']['FchEmis'],
-                'new_partner': dte['Encabezado']['Emisor']['RUTEmisor'] + ' ' + dte['Encabezado']['Emisor']['RznSoc'],
+                'number': Folio,
+                'date' : FchEmis,
+                'new_partner': RUTEmisor + ' ' + Emisor.find("{http://www.sii.cl/SiiDte}RznSoc").text,
                 'sii_document_class_id': journal_document_class_id.sii_document_class_id.id,
                 'amount' : dte['Encabezado']['Totales']['MntTotal'],
             })
@@ -737,9 +724,9 @@ class UploadXMLWizard(models.TransientModel):
         Encabezado = documento.find("{http://www.sii.cl/SiiDte}Encabezado")
         IdDoc = Encabezado.find("{http://www.sii.cl/SiiDte}IdDoc")
         price_included = Encabezado.find("{http://www.sii.cl/SiiDte}MntBruto")
-        journal_document_class_id = self._get_journal(dte['Encabezado']['IdDoc']['TipoDTE'], company_id)
+        journal_document_class_id = self._get_journal(IdDoc.find("{http://www.sii.cl/SiiDte}TipoDTE").text, company_id)
         if not journal_document_class_id:
-            sii_document_class = self.env['sii.document_class'].search([('sii_code', '=', dte['Encabezado']['IdDoc']['TipoDTE'])])
+            sii_document_class = self.env['sii.document_class'].search([('sii_code', '=', IdDoc.find("{http://www.sii.cl/SiiDte}TipoDTE").text)])
             raise UserError('No existe Diario para el tipo de documento %s, por favor añada uno primero, o ignore el documento' % sii_document_class.name.encode('UTF-8'))
         data = self._prepare_invoice(documento, company_id, journal_document_class_id)
         data['type'] = 'in_invoice'
@@ -747,19 +734,10 @@ class UploadXMLWizard(models.TransientModel):
             data['type'] = 'in_refund'
         lines = [(5,)]
         document_id = self._dte_exist(documento)
-        if 'NroLinDet' in dte['Detalle']:
-            new_line = self._prepare_line(dte['Detalle'],document_id=document_id, journal=journal_document_class_id.journal_id, type=data['type'], price_included=price_included)
+        for line in documento.findall("{http://www.sii.cl/SiiDte}Detalle"):
+            new_line = self._prepare_line(line, document_id=document_id, journal=journal_document_class_id.journal_id, type=data['type'], price_included=price_included)
             if new_line:
                 lines.append(new_line)
-        elif len(dte['Detalle']) > 0:
-            try:
-                Detalles = dte['Detalle']['item']
-            except:
-                Detalles = dte['Detalle']
-            for line in Detalles:
-                new_line = self._prepare_line(line, document_id=document_id, journal=journal_document_class_id.journal_id, type=data['type'], price_included=price_included)
-                if new_line:
-                    lines.append(new_line)
         product_id = self.env['product.product'].search([
                 ('product_tmpl_id', '=', self.env.ref('l10n_cl_fe.product_imp').id),
             ]
@@ -799,17 +777,11 @@ class UploadXMLWizard(models.TransientModel):
         #        'account_id':  journal_document_class_id.journal_id.default_debit_account_id.id
         #        }]
         #    )
-        if not self.pre_process and 'Referencia' in dte:
+        Referencias = documento.findall("{http://www.sii.cl/SiiDte}Referencia")
+        if not self.pre_process and Referencias:
             refs = [(5,)]
-            if 'NroLinRef' in dte['Referencia']:
-                refs.append(self._prepare_ref(dte['Referencia']))
-            else:
-                try:
-                    Referencias = dte['Referencia']['item']
-                except:
-                    Referencias = dte['Referencia']
-                for ref in Referencias:
-                    refs.append(self._prepare_ref(ref))
+            for ref in Referencias:
+                refs.append(self._prepare_ref(ref))
             data['referencias'] = refs
         data['invoice_line_ids'] = lines
         mnt_neto = int(dte['Encabezado']['Totales']['MntNeto']) if 'MntNeto' in dte['Encabezado']['Totales'] else 0
@@ -902,6 +874,9 @@ class UploadXMLWizard(models.TransientModel):
                         ],
                         limit=1,
                     )
+                if not company_id:
+                    _logger.warning("No existe compañia para %s" %documento.find("{http://www.sii.cl/SiiDte}Encabezado/{http://www.sii.cl/SiiDte}Receptor/{http://www.sii.cl/SiiDte}RUTRecep").text)
+                    continue
                 pre = self._create_pre(
                     documento,
                     company_id,
