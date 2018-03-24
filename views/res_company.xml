@@ -16,7 +16,7 @@
                                'required':  [('dte_service_provider', 'not in', ['SII', 'SIICERT'])]}" />
 				<field name="sii_regional_office_id"
 					domain="['|',
-                        ('state_ids', '=', city_id),
+                        ('city_ids', '=', city_id),
                         ('name', '=', 'Grandes Contribuyentes')]"
 					attrs="{'invisible': [('dte_service_provider', 'not in', ['SII', 'SIICERT'])],
                                'required':  [('dte_service_provider', 'in', ['SII', 'SIICERT'])]}" />
