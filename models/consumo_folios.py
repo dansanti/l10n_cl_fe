@@ -562,7 +562,7 @@ version="1.0">
 
     def _process_imps(self, tax_line_id, totales=0, currency=None, Neto=0, TaxMnt=0, MntExe=0):
         mnt = tax_line_id.compute_all(totales,  currency, 1)['taxes'][0]
-        if mnt['amount'] < 0:
+        if mnt['amount'] <= 0 and mnt['base'] < 0:
             mnt['amount'] *= -1
             mnt['base'] *= -1
         if self._es_iva(tax_line_id): # diferentes tipos de IVA retenidos o no @TODO investigar si se aplican a boletas
@@ -575,7 +575,6 @@ version="1.0">
 
     def getResumen(self, rec):
         det = collections.OrderedDict()
-
         det['TpoDoc'] = rec.document_class_id.sii_code
         det['NroDoc'] = int(rec.sii_document_number)
         for a in self.anulaciones:
@@ -740,7 +739,7 @@ version="1.0">
         for rec in self.with_context(lang='es_CL').move_ids:
             document_class_id = rec.document_class_id if 'document_class_id' in rec else rec.sii_document_class_id
             if not document_class_id or document_class_id.sii_code not in [39, 41, 61]:
-                _logger.info("Por este medio solamente e pueden declarar Boletas o Notas de crédito Electrónicas, por favor elimine el documento %s del listado" % rec.name)
+                _logger.warning("Por este medio solamente se pueden declarar Boletas o Notas de crédito Electrónicas, por favor elimine el documento %s del listado" % rec.name)
                 continue
             if rec.sii_document_number:
                 recs.append(rec)
