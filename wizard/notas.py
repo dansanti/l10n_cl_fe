@@ -31,6 +31,11 @@ class AccountInvoiceRefund(models.TransientModel):
             required=True,
             help='Refund base on this type. You can not Modify and Cancel if the invoice is already reconciled',
         )
+    
+    @api.onchange('filter_refund')
+    def _set_template(self):
+        if self.filter_refund == '2':
+            self.description = _("Dice:   Debe Decir: ")
 
     @api.multi
     def compute_refund(self, mode='1'):
