@@ -215,40 +215,38 @@
                       </div>
                       <div id="total" class="col-xs-4 pull-right">
                           <table class="table table-condensed">
-                               <tr style="max-height:11px; font-size:12px !important;" name="subtotal">
+                              <t t-if="o.global_descuentos_recargos">
+                                <tr t-foreach="o.global_descuentos_recargos" t-as="gdr" class="border-black" style="max-height:11px; font-size:12px !important;">
+                                  <td><strong>Descuento o Recargo Global</strong></td>
+                                  <td class="text-right">
+                                      <span t-esc="gdr.valor if gdr.gdr_type=='amount' else gdr.amount_untaxed_global_dr" t-esc-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                  </td>
+                                </tr>
+                              </t>
+                              <tr style="max-height:11px; font-size:12px !important;" name="subtotal">
                                   <td><strong>Subtotal</strong></td>
                                   <td class="text-right">
                                       <span t-field="o.amount_untaxed" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
                                   </td>
-                               </tr>
-                               <t t-if="o.global_descuentos_recargos">
-                                 <tr t-foreach="o.global_descuentos_recargos" t-as="gdr" class="border-black" style="max-height:11px; font-size:12px !important;">
-                                   <td><strong>Descuento o Recargo Global</strong></td>
-                                   <td class="text-right">
-                                       <span t-esc="gdr.valor if gdr.gdr_type=='amount' else gdr.amount_untaxed_global_dr" t-esc-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
-                                   </td>
-                                 </tr>
-                               </t>
-                               <tr name="discount" t-if="display_discount" class="border-black" style="max-height:11px; font-size:12px !important;">
-                                 <td><strong>Descuento</strong></td>
+                              </tr>
+                              <tr name="discount" t-if="display_discount" class="border-black" style="max-height:11px; font-size:12px !important;">
+                               <td><strong>Descuento</strong></td>
+                               <td class="text-right">
+                                   <span t-esc="o.getTotalDiscount()" t-esc-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                               </td>
+                              </tr>
+                              <tr t-foreach="o.tax_line_ids" t-as="t" style="max-height:11px; font-size:12px !important;">
+                                 <td><span t-field="t.tax_id.description"/></td>
                                  <td class="text-right">
-                                     <span t-esc="o.getTotalDiscount()" t-esc-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                     <span t-esc="t.amount if t.amount > 0 else t.base" t-esc-options='{"widget": "monetary", "display_currency": "o.currency_id"}'/>
                                  </td>
-                                </tr>
-                               <tr t-foreach="o._get_tax_amount_by_group()" t-as="amount_by_group" style="max-height:11px; font-size:12px !important;">
-                                  <t t-if="len(o.tax_line_ids) == 1 and o.amount_untaxed == amount_by_group[2]">
-                                    <td><span t-esc="amount_by_group[0]"/></td>
-                                    <td class="text-right">
-                                        <span t-esc="amount_by_group[3]"/>
-                                    </td>
-                                  </t>
-                               </tr>
-                               <tr class="border-black" style="max-height:12px; font-size:12px !important;">
+                              </tr>
+                              <tr class="border-black" style="max-height:12px; font-size:12px !important;">
                                   <td><strong>Total</strong></td>
                                   <td class="text-right">
                                        <span t-field="o.amount_total" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
                                   </td>
-                               </tr>
+                              </tr>
                           </table>
                       </div>
                     </div>
