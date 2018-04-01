@@ -70,49 +70,41 @@ class ColaEnvio(models.Model):
 
     def _procesar_tipo_trabajo(self):
         docs = self.env[self.model].browse(ast.literal_eval(self.doc_ids))
-        if self.tipo_trabajo in [ 'pasivo' ]:
-            if docs[0].sii_result not in ['', 'NoEnviado']:
+        if self.tipo_trabajo == 'pasivo':
+            if docs[0].sii_xml_request and docs[0].sii_xml_request.state in [ 'Aceptado', 'Enviado', 'Rechazado']:
                 self.unlink()
                 return
             if self.date_time and datetime.now() >= datetime.strptime(self.date_time, DTF):
-                for d in docs:
-                    d.sii_result = 'EnCola'
                 try:
-                    docs.do_dte_send()
-                    if docs[0].sii_send_ident:
+                    envio_id = docs.do_dte_send()
+                    if envio_id.sii_send_ident:
                         self.tipo_trabajo = 'consulta'
                 except Exception as e:
-                    for d in docs:
-                        d.sii_result = 'NoEnviado'
                     _logger.warning('Error en Envío automático')
                     _logger.warning(str(e))
+                docs.get_sii_result()
             return
-        if docs[0].sii_send_ident and docs[0].sii_message and docs[0].sii_result in ['Proceso', 'Reparo', 'Rechazado']:
+        if docs[0].sii_message and docs[0].sii_result in ['Proceso', 'Reparo', 'Rechazado']:
             if self.send_email and docs[0].sii_result in ['Proceso', 'Reparo']:
                 for doc in docs:
                     self.enviar_email(doc)
             self.unlink()
             return
-        else:
-            for doc in docs :
-                doc.responsable_envio = self.user_id
-            if self.tipo_trabajo == 'envio' or not docs[0].sii_send_ident:
-                try:
-                    docs.do_dte_send(self.n_atencion)
-                    if docs[0].sii_result not in ['', 'NoEnviado']:
-                        self.tipo_trabajo = 'consulta'
-                    if self.send_email:
-                        for doc in docs:
-                            self.enviar_email(doc)
-                except Exception as e:
-                    _logger.warning("Error en envío Cola")
-                    _logger.warning(str(e))
-            else:
-                try:
-                    docs[0].ask_for_dte_status()
-                except Exception as e:
-                    _logger.warning("Error en Consulta")
-                    _logger.warning(str(e))
+        if self.tipo_trabajo == 'consulta':
+            try:
+                docs.ask_for_dte_status()
+            except Exception as e:
+                _logger.warning("Error en Consulta")
+                _logger.warning(str(e))
+        elif self.tipo_trabajo == 'envio' and (not docs[0].sii_xml_request or not docs[0].sii_xml_request.sii_send_ident or docs[0].sii_xml_request.state not in [ 'Aceptado', 'Enviado']):
+            try:
+                envio_id = docs.do_dte_send()
+                if envio_id.sii_send_ident:
+                    self.tipo_trabajo = 'consulta'
+                docs.get_sii_result()
+            except Exception as e:
+                _logger.warning("Error en envío Cola")
+                _logger.warning(str(e))
 
     @api.model
     def _cron_procesar_cola(self):

@@ -18,11 +18,12 @@ from . import res_partner
 from . import res_city
 from . import res_state_region
 from . import res_state
+from . import res_users
 from . import sale_order
 from . import sii_activity_description
 from . import sii_cola_envio
 from . import sii_regional_offices
 from . import sii
-from . import user_signature_key
+from . import sii_xml_envio
 from . import global_descuento_recargo
 from . import res_config_settings

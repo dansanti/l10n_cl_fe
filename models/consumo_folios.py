@@ -814,9 +814,8 @@ version="1.0">
         cant_doc_batch = 0
         company_id = self.company_id
         dte_service = company_id.dte_service_provider
-        try:
-            signature_d = self.get_digital_signature(company_id)
-        except:
+        signature_d = self.env.user.get_digital_signature(self.company_id)
+        if not signature_d:
             raise UserError(_('''There is no Signer Person with an \
         authorized signature for you in the system. Please make sure that \
         'user_signature_key' module has been installed and enable a digital \
@@ -933,8 +932,7 @@ version="1.0">
     @api.multi
     def ask_for_dte_status(self):
         try:
-            signature_d = self.get_digital_signature_pem(
-                self.company_id)
+            signature_d = self.env.user.get_digital_signature(self.company_id)
             seed = self.get_seed(self.company_id)
             template_string = self.create_template_seed(seed)
             seed_firmado = self.sign_seed(

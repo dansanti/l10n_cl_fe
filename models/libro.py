@@ -585,46 +585,6 @@ version="1.0">
         fulldoc = fulldoc if self.xml_validator(fulldoc, type) else ''
         return '<?xml version="1.0" encoding="ISO-8859-1"?>\n%s' % fulldoc
 
-    def get_digital_signature_pem(self, comp_id):
-        obj = user = False
-        if 'responsable_envio' in self and self._ids:
-            obj = user = self[0].responsable_envio
-        if not obj:
-            obj = user = self.env.user
-        if not obj.cert:
-            obj = self.env['res.users'].search([("authorized_users_ids","=", user.id)])
-            if not obj or not obj.cert:
-                obj = self.env['res.company'].browse([comp_id.id])
-                if not obj.cert or not user.id in obj.authorized_users_ids.ids:
-                    return False
-        signature_data = {
-            'subject_name': obj.name,
-            'subject_serial_number': obj.subject_serial_number,
-            'priv_key': obj.priv_key,
-            'cert': obj.cert,
-            'rut_envia': obj.subject_serial_number
-            }
-        return signature_data
-
-    def get_digital_signature(self, comp_id):
-        obj = user = False
-        if 'responsable_envio' in self and self._ids:
-            obj = user = self[0].responsable_envio
-        if not obj:
-            obj = user = self.env.user
-        if not obj.cert:
-            obj = self.env['res.users'].search([("authorized_users_ids","=", user.id)])
-            if not obj or not obj.cert:
-                obj = self.env['res.company'].browse([comp_id.id])
-                if not obj.cert or not user.id in obj.authorized_users_ids.ids:
-                    return False
-        signature_data = {
-            'subject_name': obj.name,
-            'subject_serial_number': obj.subject_serial_number,
-            'priv_key': obj.priv_key,
-            'cert': obj.cert}
-        return signature_data
-
     def get_resolution_data(self, comp_id):
         resolution_data = {
             'dte_resolution_date': comp_id.dte_resolution_date,
@@ -636,7 +596,7 @@ version="1.0">
         if not company_id.dte_service_provider:
             raise UserError(_("Not Service provider selected!"))
         try:
-            signature_d = self.get_digital_signature_pem( company_id )
+            signature_d = self.env.user.get_digital_signature(self.company_id)
             seed = self.get_seed(company_id)
             template_string = self.create_template_seed(seed)
             seed_firmado = self.sign_seed(
@@ -1207,7 +1167,7 @@ version="1.0">
         cant_doc_batch = 0
         company_id = self.company_id
         dte_service = company_id.dte_service_provider
-        signature_d = self.get_digital_signature(company_id)
+        signature_d = self.env.user.get_digital_signature(self.company_id)
         if not signature_d:
             raise UserError(_('''There is no Signer Person with an \
         authorized signature for you in the system. Please make sure that \
@@ -1345,8 +1305,7 @@ version="1.0">
     @api.multi
     def ask_for_dte_status(self):
         try:
-            signature_d = self.get_digital_signature_pem(
-                self.company_id)
+            signature_d = self.env.user.get_digital_signature(self.company_id)
             seed = self.get_seed(self.company_id)
             template_string = self.create_template_seed(seed)
             seed_firmado = self.sign_seed(
