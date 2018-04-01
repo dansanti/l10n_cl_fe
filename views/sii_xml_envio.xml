@@ -16,7 +16,7 @@
             <field name="sii_receipt"/>
             <field name="user_id"/>
             <field name="company_id"/>
-            <field name="sii_xml_request"/>
+            <field name="xml_envio"/>
             <field name="invoice_ids" readonly="True"/>
           </group>
         </sheet>

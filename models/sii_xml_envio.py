@@ -105,6 +105,14 @@ class SIIXMLEnvio(models.Model):
             states={'draft': [('readonly', False)]},
         )
 
+    @api.multi
+    def name_get(self):
+        result = []
+        for r in self:
+            name = r.name + " Código Envío: %s" % r.sii_send_ident if r.sii_send_ident else r.name
+            result.append((r.id, name))
+        return result
+
     def get_seed(self, company_id):
         try:
             import ssl
