@@ -220,6 +220,15 @@ class AccountInvoice(models.Model):
         domain = self._get_available_journal_document_class()
         return [('id', 'in', domain)]
 
+    def _get_barcode_img(self):
+        for r in self:
+            if r.sii_barcode:
+                barcodefile = BytesIO()
+                image = self.pdf417bc(r.sii_barcode)
+                image.save(barcodefile, 'PNG')
+                data = barcodefile.getvalue()
+                r.sii_barcode_img = base64.b64encode(data)
+
     turn_issuer = fields.Many2one(
         'partner.activities',
         'Giro Emisor',
@@ -335,13 +344,14 @@ class AccountInvoice(models.Model):
     sii_barcode = fields.Char(
             copy=False,
             string=_('SII Barcode'),
-            readonly=True,
             help='SII Barcode Name',
+            readonly=True,
+            states={'draft': [('readonly', False)]},
         )
     sii_barcode_img = fields.Binary(
-            copy=False,
             string=_('SII Barcode Image'),
             help='SII Barcode Image in PDF417 format',
+            compute="_get_barcode_img",
         )
     sii_message = fields.Text(
             string='SII Message',
@@ -350,6 +360,8 @@ class AccountInvoice(models.Model):
     sii_xml_dte = fields.Text(
             string='SII XML DTE',
             copy=False,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
         )
     sii_xml_request = fields.Many2one(
             'sii.xml.envio',
@@ -1755,13 +1767,6 @@ version="1.0">
             '''<TED version="1.0">{}<FRMT algoritmo="SHA1withRSA">{}\
 </FRMT></TED>''').format(ddxml.decode(), frmt)
         self.sii_barcode = ted
-        image = False
-        if ted:
-            barcodefile = BytesIO()
-            image = self.pdf417bc(ted)
-            image.save(barcodefile,'PNG')
-            data = barcodefile.getvalue()
-            self.sii_barcode_img = base64.b64encode(data)
         ted  += '<TmstFirma>{}</TmstFirma>'.format(timestamp)
         return ted
 
