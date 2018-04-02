@@ -2072,8 +2072,8 @@ version="1.0">
     def process_response_xml(self, resp):
         if resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] == '2':
             status = {'warning':{'title':_("Error code: 2"), 'message': _(resp['SII:RESPUESTA']['SII:RESP_HDR']['GLOSA'])}}
-            return
-        if resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] in ["EPR", "MMC"]:
+            return "Enviado"
+        if resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] in ["EPR", "MMC", "DOK"]:
             return "Proceso"
         elif resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] == "1":
             return "Reparo"
