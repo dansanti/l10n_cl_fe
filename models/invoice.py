@@ -158,16 +158,6 @@ class AccountInvoiceTax(models.Model):
             neto += base
         return neto
 
-    amount_retencion = fields.Monetary(
-            string="Retención",
-            default=0.00,
-        )
-    retencion_account_id = fields.Many2one(
-            'account.account',
-            string='Tax Account',
-            domain=[('deprecated', '=', False)],
-        )
-
 
 class Referencias(models.Model):
     _name = 'account.invoice.referencias'

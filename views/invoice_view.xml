@@ -1,30 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-      <record id="view_invoice_tax_tree" model="ir.ui.view">
-          <field name="name">account.invoice.tax.sii.tree</field>
-          <field name="model">account.invoice.tax</field>
-          <field name="inherit_id" ref="account.view_invoice_tax_tree" />
-          <field name="arch" type="xml">
-              <field name="base" position="after">
-                  <field name="amount_retencion" />
-                  <field name='retencion_account_id' />
-              </field>
-          </field>
-      </record>
-
-      <record id="view_invoice_tax_form" model="ir.ui.view">
-          <field name="name">account.invoice.tax.sii.tree</field>
-          <field name="model">account.invoice.tax</field>
-          <field name="inherit_id" ref="account.view_invoice_tax_form" />
-          <field name="arch" type="xml">
-              <field name="base" position="after">
-                  <field name="amount_retencion" />
-                  <field name='retencion_account_id' />
-              </field>
-          </field>
-      </record>
-
       <record id="view_account_invoice_filter" model="ir.ui.view">
           <field name="name">l10n_cl.invoice.search</field>
           <field name="model">account.invoice</field>
@@ -138,14 +114,6 @@
                 </field>
               </field>
 
-              <xpath expr="//page/field[@name='tax_line_ids']/tree/field[@name='account_id']" position="after">
-                <field name="retencion_account_id" />
-              </xpath>
-
-              <xpath expr="//page/field[@name='tax_line_ids']/tree/field[@name='amount']" position="after">
-                <field name="amount_retencion" />
-              </xpath>
-
               <field name="tax_line_ids" position="before">
                   <field name="referencias" mode="tree">
                     <form>
@@ -176,10 +144,6 @@
 
               <field name="account_id" position="attributes">
                   <attribute name="options">{'no_create': True}</attribute>
-              </field>
-
-              <field name="amount_tax" position="after">
-                <field name="amount_retencion" attrs="{'invisible':[('amount_retencion', '=', 0)]}" />
               </field>
 <!--
               <field name="invoice_line_ids" position="attributes">
@@ -300,21 +264,14 @@
                     </tree>
                   </field>
               </xpath>
-              <xpath expr="//field[@name='tax_line_ids']/tree/field[@name='account_id']" position="after">
-                <field name="retencion_account_id" />
-              </xpath>
-              <xpath expr="//field[@name='tax_line_ids']/tree/field[@name='amount']" position="after">
-                <field name="amount_retencion" />
-              </xpath>
+
               <xpath expr="//notebook/page/group" position="inside">
                 <group string="Tratamiento del IVA">
                   <field name="no_rec_code" />
                   <field name="iva_uso_comun" />
                 </group>
               </xpath>
-              <field name="amount_tax" position="after">
-                <field name="amount_retencion" attrs="{'invisible':[('amount_retencion', '=', 0)]}" />
-              </field>
+
               <!--
                 <field name="invoice_line_ids" position="attributes">
                     <attribute name="context">{'partner_id': partner_id, 'price_type': context.get('price_type') or False, 'type': type}" name="invoice_line_ids" on_change="onchange_invoice_line(invoice_line_ids)</attribute>
