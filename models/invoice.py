@@ -320,11 +320,6 @@ class AccountInvoice(models.Model):
             'res.partner',
             string="Contacto",
         )
-    amount_retencion = fields.Monetary(
-            string="Retención",
-            default=0.00,
-            compute='_compute_amount',
-        )
     sii_batch_number = fields.Integer(
             copy=False,
             string='Batch Number',
