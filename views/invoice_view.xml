@@ -171,7 +171,6 @@
                           <field name='sii_barcode_img' widget="image" attrs="{'invisible':[('sii_result', '=', '')]}" readonly="1"/>
                           <field name='sii_message' attrs="{'invisible':[('sii_result', 'in', ['','NoEnviado'])]}" readonly="1"/>
                           <field name='sii_xml_dte' attrs="{'invisible':[('sii_result', '=', '')]}" readonly="1"/>
-                          <field name='sii_xml_exchange' attrs="{'invisible':[('sii_result', '=', '')]}" readonly="1"/>
                       </group>
                   </page>
 

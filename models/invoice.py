@@ -353,10 +353,6 @@ class AccountInvoice(models.Model):
             string='SII XML Request',
             copy=False,
         )
-    sii_xml_exchange = fields.Text(
-            string='SII XML Exchange',
-            copy=False,
-        )
     sii_result = fields.Selection(
             [
                 ('draft', 'Borrador'),
@@ -1334,8 +1330,8 @@ version="1.0">
 
     def crear_intercambio(self):
         rut = self.format_vat(self.partner_id.commercial_partner_id.vat )
-        xml, file_name, comp = self._crear_envio(RUTRecep=rut)
-        self.sii_xml_exchange = xml
+        envio = self._crear_envio(RUTRecep=rut)
+        return envio['xml_envio']
 
     ''' Código para realizar migración de la versión 9.0.5.2.0, a la 9.0.5.3.0, se eliminará en 9.0.6.0.0'''
     def _read_xml(self, mode="text"):
@@ -1348,23 +1344,22 @@ version="1.0">
         return xml
 
     def _create_attachment(self,):
-        if not self.sii_xml_exchange:
-            try:
-                self.crear_intercambio()
-            except:
-                #Código compatibilidad
-                if self.sii_xml_request and not self.sii_xml_dte:
-                    xml = self._read_xml("etree")
-                    envio = xml.find("{http://www.sii.cl/SiiDte}SetDTE")
-                    if envio:
-                        self.sii_xml_dte = etree.tostring(envio.findall("{http://www.sii.cl/SiiDte}DTE")[0])
-                self.crear_intercambio()
+        try:
+            xml_intercambio = self.crear_intercambio()
+        except:
+            #Código compatibilidad
+            if self.sii_xml_request and not self.sii_xml_dte:
+                xml = self._read_xml("etree")
+                envio = xml.find("{http://www.sii.cl/SiiDte}SetDTE")
+                if envio:
+                    self.sii_xml_dte = etree.tostring(envio.findall("{http://www.sii.cl/SiiDte}DTE")[0])
+            xml_intercambio = self.crear_intercambio()
         url_path = '/download/xml/invoice/%s' % (self.id)
         filename = ('%s.xml' % self.document_number).replace(' ','_')
         att = self.env['ir.attachment'].search([('name','=', filename), ('res_id','=', self.id), ('res_model','=','account.invoice')], limit=1)
         if att:
             return att
-        data = base64.b64encode(self.sii_xml_exchange.encode('ISO-8859-1'))
+        data = base64.b64encode(xml_intercambio)
         values = dict(
                         name=filename,
                         datas_fname=filename,
