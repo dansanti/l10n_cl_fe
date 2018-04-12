@@ -250,38 +250,39 @@
                           </table>
                       </div>
                     </div>
-
-                    <div class="row">
-                        <div class="col-xs-12" style="border: 1px solid black;height:20px;font-size:15px !important;">
-                          <div class="col-xs-4">
-                              <strong>Nombre:</strong>
+                    <t t-if="cedible">
+                      <div class="row">
+                          <div class="col-xs-12" style="border: 1px solid black;height:20px;font-size:15px !important;">
+                            <div class="col-xs-4">
+                                <strong>Nombre:</strong>
+                            </div>
                           </div>
-                        </div>
-                        <div class="col-xs-12" style="border: 1px solid black;height:20px;font-size:15px !important;">
-                          <div class="col-xs-7">
-                              <strong>R.U.T.:</strong>
+                          <div class="col-xs-12" style="border: 1px solid black;height:20px;font-size:15px !important;">
+                            <div class="col-xs-7">
+                                <strong>R.U.T.:</strong>
+                            </div>
+                            <div class="col-xs-5">
+                                <strong>FECHA:</strong>
+                            </div>
                           </div>
-                          <div class="col-xs-5">
-                              <strong>FECHA:</strong>
+                          <div class="col-xs-12" style="border: 1px solid black;height:20px; font-size:15px !important;">
+                            <div class="col-xs-7">
+                                <strong>RECINTO:</strong>
+                            </div>
+                            <div class="col-xs-5">
+                                <strong>FIRMA:</strong>
+                            </div>
                           </div>
-                        </div>
-                        <div class="col-xs-12" style="border: 1px solid black;height:20px; font-size:15px !important;">
-                          <div class="col-xs-7">
-                              <strong>RECINTO:</strong>
+                          <div class="col-xs-12" style="border: 1px solid black;">
+                            <p style="font-size:8px">
+                              "El acuse de recibo que se declara en este acto, de acuerdo a lo dispuesto en la letra b) del Artículo 4°, y la letra c) del Artículo 5° de la Ley 19.983, acredita que la entrega de mercaderías o servicio(s) prestado(s) ha(n) sido recibido(s)"
+                            </p>
                           </div>
-                          <div class="col-xs-5">
-                              <strong>FIRMA:</strong>
-                          </div>
-                        </div>
-                        <div class="col-xs-12" style="border: 1px solid black;">
-                          <p style="font-size:8px">
-                            "El acuse de recibo que se declara en este acto, de acuerdo a lo dispuesto en la letra b) del Artículo 4°, y la letra c) del Artículo 5° de la Ley 19.983, acredita que la entrega de mercaderías o servicio(s) prestado(s) ha(n) sido recibido(s)"
-                          </p>
-                        </div>
-                   </div>
-                   <div class="row">
-                     <h6 class="pull-right" t-if="cedible"> CEDIBLE</h6>
-                   </div>
+                      </div>
+                      <div class="row">
+                        <h6 class="pull-right"> CEDIBLE</h6>
+                      </div>
+                    </t>
                 </div>
               </div>
           </template>
