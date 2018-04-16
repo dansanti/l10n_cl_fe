@@ -593,21 +593,16 @@ version="1.0">
 
     @api.multi
     def send_xml_file(self, envio_dte=None, file_name="envio",company_id=False):
+        signature_d = self.env.user.get_digital_signature(company_id)
+        if not signature_d:
+            raise UserError(_('''There is no Signer Person with an \
+        authorized signature for you in the system. Please make sure that \
+        'user_signature_key' module has been installed and enable a digital \
+        signature, for you or make the signer to authorize you to use his \
+        signature.'''))
         if not company_id.dte_service_provider:
             raise UserError(_("Not Service provider selected!"))
-        try:
-            signature_d = self.env.user.get_digital_signature(self.company_id)
-            seed = self.get_seed(company_id)
-            template_string = self.create_template_seed(seed)
-            seed_firmado = self.sign_seed(
-                template_string,
-                signature_d['priv_key'],
-                signature_d['cert'])
-            token = self.get_token(seed_firmado,company_id)
-        except Exception as e:
-            _logger.info(connection_status)
-            raise UserError(tools.ustr(e))
-
+        token = self.env['sii.xml.envio'].get_token( self.env.user, company_id )
         url = 'https://palena.sii.cl'
         if company_id.dte_service_provider == 'SIICERT':
             url = 'https://maullin.sii.cl'
@@ -637,7 +632,6 @@ version="1.0">
             return retorno
         respuesta_dict = xmltodict.parse(response.data)
         if respuesta_dict['RECEPCIONDTE']['STATUS'] != '0':
-            _logger.info('l736-status no es 0')
             _logger.info(respuesta_dict)
             _logger.info(connection_status[respuesta_dict['RECEPCIONDTE']['STATUS']])
         else:
@@ -1284,10 +1278,11 @@ version="1.0">
             'sii_xml_request':envio_dte
             })
 
-    def _get_send_status(self, track_id, signature_d,token):
+    def _get_send_status(self):
+        token = self.env['sii.xml.envio'].get_token(self.env.user, self.company_id)
         url = server_url[self.company_id.dte_service_provider] + 'QueryEstUp.jws?WSDL'
         _server = Client(url)
-        respuesta = _server.service.getEstUp(self.company_id.vat[2:-1],self.company_id.vat[-1],track_id,token)
+        respuesta = _server.service.getEstUp(self.company_id.vat[2:-1],self.company_id.vat[-1], self.sii_send_ident, token)
         self.sii_receipt = respuesta
         resp = xmltodict.parse(respuesta)
         status = False
@@ -1304,19 +1299,9 @@ version="1.0">
 
     @api.multi
     def ask_for_dte_status(self):
-        try:
-            signature_d = self.env.user.get_digital_signature(self.company_id)
-            seed = self.get_seed(self.company_id)
-            template_string = self.create_template_seed(seed)
-            seed_firmado = self.sign_seed(
-                template_string, signature_d['priv_key'],
-                signature_d['cert'])
-            token = self.get_token(seed_firmado,self.company_id)
-        except:
-            raise UserError(connection_status[response.e])
         xml_response = xmltodict.parse(self.sii_xml_response)
         if self.state == 'Enviado':
-            status = self._get_send_status(self.sii_send_ident, signature_d, token)
+            status = self._get_send_status()
             #if self.state != 'Proceso':
             return status
 

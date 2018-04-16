@@ -911,10 +911,11 @@ version="1.0">
             'sii_xml_request':envio_dte
             })
 
-    def _get_send_status(self, track_id, signature_d,token):
+    def _get_send_status(self):
+        token = self.env['sii.xml.envio'].get_token(self.env.user, self.company_id)
         url = server_url[self.company_id.dte_service_provider] + 'QueryEstUp.jws?WSDL'
         _server = Client(url)
-        respuesta = _server.service.getEstUp(self.company_id.vat[2:-1],self.company_id.vat[-1],track_id,token)
+        respuesta = _server.service.getEstUp(self.company_id.vat[2:-1],self.company_id.vat[-1], self.sii_send_ident, token)
         self.sii_message = respuesta
         resp = xmltodict.parse(respuesta)
         status = False
@@ -931,19 +932,8 @@ version="1.0">
 
     @api.multi
     def ask_for_dte_status(self):
-        try:
-            signature_d = self.env.user.get_digital_signature(self.company_id)
-            seed = self.get_seed(self.company_id)
-            template_string = self.create_template_seed(seed)
-            seed_firmado = self.sign_seed(
-                template_string, signature_d['priv_key'],
-                signature_d['cert'])
-            token = self.get_token(seed_firmado,self.company_id)
-        except Exception as e:
-            raise UserError(tools.ustr(e))
-        xml_response = xmltodict.parse(self.sii_xml_response)
         if self.state == 'Enviado':
-            status = self._get_send_status(self.sii_send_ident, signature_d, token)
+            status = self._get_send_status()
             if self.state != 'Proceso':
                 return status
 
