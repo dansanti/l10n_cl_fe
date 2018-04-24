@@ -46,7 +46,7 @@
                                    attrs="{'invisible': ['|',('type','not in',['purchase','sale'])],'required': [('use_documents','=',True),('type','in',['sale'])]}" context="{'default_company_id':company_id}"
                                    placeholder="Giros del Diario" widget="many2many_tags"
                                    options="{'no_create': True}"
-                                   domain="[('partner_ids', '=', company_id)]"/>
+                                   domain="[('company_ids', 'parent_of', company_id)]"/>
                         </group>
                         <field name='journal_document_class_ids' context="{'journal_type': type}" editable="bottom" widget="one2many">
                           <tree string="Journal SII Documents" editable="bottom">

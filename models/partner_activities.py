@@ -68,11 +68,11 @@ class PartnerActivities(models.Model):
             help="Allows you to hide the activity without removing it.",
             default=True,
         )
-    partner_ids = fields.Many2many(
-            'res.partner',
+    company_ids = fields.Many2many(
+            'res.company',
             id1='activities_id',
-            id2='partner_id',
-            string='Partners',
+            id2='company_id',
+            string='Company',
         )
     journal_ids = fields.Many2many(
             'account.journal',

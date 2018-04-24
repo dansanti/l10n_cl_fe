@@ -29,12 +29,6 @@ class ResPartner(models.Model):
             "res.country.state",
             'Ubication',
         )
-    partner_activities_ids = fields.Many2many(
-            'partner.activities',
-            id1='partner_id',
-            id2='activities_id',
-            string='Activities Names'
-        )
     responsability_id = fields.Many2one(
         'sii.responsability',
         string='Responsability',
