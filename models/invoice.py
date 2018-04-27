@@ -1331,7 +1331,7 @@ version="1.0">
     def crear_intercambio(self):
         rut = self.format_vat(self.partner_id.commercial_partner_id.vat )
         envio = self._crear_envio(RUTRecep=rut)
-        return envio['xml_envio']
+        return envio['xml_envio'].encode('ISO-8859-1')
 
     ''' Código para realizar migración de la versión 9.0.5.2.0, a la 9.0.5.3.0, se eliminará en 9.0.6.0.0'''
     def _read_xml(self, mode="text"):
