@@ -1126,12 +1126,6 @@ a VAT."""))
         ]
         return self.env['account.journal'].search(domain, limit=1, order="sequence asc")
 
-    def split_cert(self, cert):
-        certf, j = '', 0
-        for i in range(0, 29):
-            certf += cert[76 * i:76 * (i + 1)] + '\n'
-        return certf
-
     def get_resolution_data(self, comp_id):
         resolution_data = {
             'dte_resolution_date': comp_id.dte_resolution_date,
@@ -1284,7 +1278,18 @@ version="1.0">
             fulldoc = self.append_sign_env_bol(message,msg)
         return fulldoc
 
-    def sign_full_xml(self, message, privkey, cert, uri, type='doc'):
+    def sign_full_xml(self, message, uri, type='doc'):
+        user_id = self.user_id or self.env.user
+        signature_d = user_id.get_digital_signature(self.company_id)
+        if not signature_d:
+            raise UserError(_('''There is no Signer Person with an \
+        authorized signature for you in the system. Please make sure that \
+        'user_signature_key' module has been installed and enable a digital \
+        signature, for you or make the signer to authorize you to use his \
+        signature.'''))
+        cert = signature_d['cert'].replace(
+            BC, '').replace(EC, '').replace('\n', '').replace(' ','')
+        privkey = signature_d['priv_key']
         doc = etree.fromstring(message)
         string = etree.tostring(doc[0])
         mess = etree.tostring(etree.fromstring(string), method="c14n")
@@ -1491,6 +1496,8 @@ version="1.0">
             if inv.sii_result in ['','NoEnviado','Rechazado'] and not inv._es_boleta() and not inv._nc_boleta():
                 if inv.sii_result in ['Rechazado']:
                     inv._timbrar()
+                    if inv.sii_xml_request:
+                        inv.sii_xml_request.unlink()
                 inv.sii_result = 'EnCola'
                 ids.append(inv.id)
         if not isinstance(n_atencion, string_types):
@@ -1911,15 +1918,6 @@ version="1.0">
         return tpo_dte
 
     def _timbrar(self, n_atencion=None):
-        signature_d = self.env.user.get_digital_signature(self.company_id)
-        if not signature_d:
-            raise UserError(_('''There is no Signer Person with an \
-        authorized signature for you in the system. Please make sure that \
-        'user_signature_key' module has been installed and enable a digital \
-        signature, for you or make the signer to authorize you to use his \
-        signature.'''))
-        certp = signature_d['cert'].replace(
-            BC, '').replace(EC, '').replace('\n', '')
         folio = self.get_folio()
         tpo_dte = self._tpo_dte()
         doc_id_number = "F{}T{}".format(folio, self.sii_document_class_id.sii_code)
@@ -1941,8 +1939,6 @@ version="1.0">
             type = 'bol'
         einvoice = self.sign_full_xml(
                 envelope_efact,
-                signature_d['priv_key'],
-                self.split_cert(certp),
                 doc_id_number,
                 type,
             )
@@ -1961,15 +1957,6 @@ version="1.0">
                 batch += 1
                 inv.sii_batch_number = batch #si viene una guía/nota regferenciando una factura, que por numeración viene a continuación de la guia/nota, será recahazada laguía porque debe estar declarada la factura primero
             es_boleta = inv._es_boleta()
-            signature_d = self.env.user.get_digital_signature(inv.company_id)
-            if not signature_d:
-                raise UserError(_('''There is no Signer Person with an \
-            authorized signature for you in the system. Please make sure that \
-            'user_signature_key' module has been installed and enable a digital \
-            signature, for you or make the signer to authorize you to use his \
-            signature.'''))
-            certp = signature_d['cert'].replace(
-                BC, '').replace(EC, '').replace('\n', '')
             if inv.company_id.dte_service_provider == 'SIICERT': #Retimbrar con número de atención y envío
                 inv._timbrar(n_atencion)
             #@TODO Mejarorar esto en lo posible
@@ -2027,8 +2014,6 @@ version="1.0">
             envio_dte  = self.create_template_env(dtes)
         envio_dte = self.sign_full_xml(
                 envio_dte.replace('<?xml version="1.0" encoding="ISO-8859-1"?>\n', ''),
-                signature_d['priv_key'],
-                certp,
                 'SetDoc',
                 env,
             )
