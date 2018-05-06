@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import models, fields, api
+from odoo import models, fields, api, SUPERUSER_ID
 from odoo.tools.translate import _
 from odoo.exceptions import UserError
 import logging
@@ -307,9 +307,8 @@ class UploadXMLWizard(models.TransientModel):
             limit=1)
         id_seq = self.env.ref('l10n_cl_fe.response_sequence').id
         IdRespuesta = self.env['ir.sequence'].browse(id_seq).next_by_id()
-        try:
-            signature_d = self.env['account.invoice'].get_digital_signature(company_id)
-        except:
+        signature_d = self.env['res.users'].browse(SUPERUSER_ID).get_digital_signature(company_id)
+        if not signature_d:
             raise UserError(_('''There is no Signer Person with an \
         authorized signature for you in the system. Please make sure that \
         'user_signature_key' module has been installed and enable a digital \
@@ -319,7 +318,6 @@ class UploadXMLWizard(models.TransientModel):
             BC, '').replace(EC, '').replace('\n', '')
         recep = self._receipt(IdRespuesta)
         NroDetalles = len(envio['SetDTE']['DTE'])
-        dicttoxml.set_debug(False)
         resp_dtes = dicttoxml.dicttoxml(recep, root=False, attr_type=False).decode().replace('<item>','\n').replace('</item>','\n')
         RecepcionEnvio = '''
 <RecepcionEnvio>
@@ -341,10 +339,8 @@ class UploadXMLWizard(models.TransientModel):
             attr_type=False,
         ).decode().replace('<item>','\n').replace('</item>','\n')
         resp = self._RecepcionEnvio(caratula, RecepcionEnvio )
-        respuesta = '<?xml version="1.0" encoding="ISO-8859-1"?>\n'+self.env['account.invoice'].sign_full_xml(
+        respuesta = '<?xml version="1.0" encoding="ISO-8859-1"?>\n'+self.env['account.invoice'].with_context({'user_id': SUPERUSER_ID, 'company_id': company_id.id}).sign_full_xml(
             resp.replace('<?xml version="1.0" encoding="ISO-8859-1"?>\n', ''),
-            signature_d['priv_key'],
-            certp,
             'Odoo_resp',
             'env_resp')
         if self.dte_id:
@@ -518,7 +514,11 @@ class UploadXMLWizard(models.TransientModel):
             if not product_supplier and not self.pre_process:
                 product_id = self._create_prod(line, price_included)
             else:
-                code = ' ' + CdgItem.text if CdgItem is not None else ''
+                code = ''
+                coma = ''
+                for c in line.findall("{http://www.sii.cl/SiiDte}CdgItem"):
+                    code += coma + c.find("{http://www.sii.cl/SiiDte}TpoCodigo").text + ' ' + c.find("{http://www.sii.cl/SiiDte}VlrCodigo").text
+                    coma = ', '
                 return NmbItem + '' + code
         if not product_supplier and document_id.partner_id:
             price = float(line.find("{http://www.sii.cl/SiiDte}PrcItem").text if line.find("{http://www.sii.cl/SiiDte}PrcItem") is not None else line.find("{http://www.sii.cl/SiiDte}MontoItem").text)
@@ -677,7 +677,6 @@ class UploadXMLWizard(models.TransientModel):
             'partner_id' : partner_id,
             'company_id' : company_id.id,
             'journal_id': journal_document_class_id.journal_id.id,
-            'turn_issuer': company_id.company_activities_ids[0].id,
             'sii_xml_request': string ,
             'sii_send_file_name': name,
             'sii_barcode': ted_string,
@@ -917,7 +916,7 @@ class UploadXMLWizard(models.TransientModel):
                 if not inv:
                     raise UserError('El archivo XML no contiene documentos para alguna empresa registrada en Odoo, o ya ha sido procesado anteriormente ')
             except Exception as e:
-                _logger.warning('Error en 1 factura con error:  %s' % str(e))
+                _logger.warning('Error en crear 1 factura con error:  %s' % str(e))
         if created and self.option not in [False, 'upload']:
             wiz_accept = self.env['sii.dte.validar.wizard'].create(
                 {
