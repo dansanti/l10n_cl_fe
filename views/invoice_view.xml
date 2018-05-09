@@ -57,6 +57,10 @@
               <button name="invoice_print" position="after">
                  <button string="Imprimir Cedible" type="object" name="print_cedible" />
               </button>
+              <field name="invoice_line_tax_ids" position="attributes">
+                <attribute name="required">1</attribute>    
+              </field>
+              
 
               <!--
               <button name="invoice_cancel" position="attributes">
