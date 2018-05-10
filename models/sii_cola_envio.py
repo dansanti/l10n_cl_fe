@@ -76,7 +76,7 @@ class ColaEnvio(models.Model):
                 return
             if self.date_time and datetime.now() >= datetime.strptime(self.date_time, DTF):
                 try:
-                    envio_id = docs.do_dte_send()
+                    envio_id = docs.sudo(self.user_id.id).do_dte_send()
                     if envio_id.sii_send_ident:
                         self.tipo_trabajo = 'consulta'
                 except Exception as e:
@@ -98,7 +98,7 @@ class ColaEnvio(models.Model):
                 _logger.warning(str(e))
         elif self.tipo_trabajo == 'envio' and (not docs[0].sii_xml_request or not docs[0].sii_xml_request.sii_send_ident or docs[0].sii_xml_request.state not in [ 'Aceptado', 'Enviado']):
             try:
-                envio_id = docs.do_dte_send()
+                envio_id = docs.sudo(self.user_id.id).do_dte_send()
                 if envio_id.sii_send_ident:
                     self.tipo_trabajo = 'consulta'
                 docs.get_sii_result()

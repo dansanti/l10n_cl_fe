@@ -1947,7 +1947,6 @@ version="1.0">
 
     def _crear_envio(self, n_atencion=None, RUTRecep="60803000-K"):
         dicttoxml.set_debug(False)
-        DTEs = {}
         clases = {}
         company_id = False
         es_boleta = False
@@ -1968,7 +1967,6 @@ version="1.0">
                                                 'sii_batch_number': inv.sii_batch_number,
                                                 'sii_document_number':inv.sii_document_number
                                             }])
-            DTEs.update(clases)
             if not company_id:
                 company_id = inv.company_id
             elif company_id.id != inv.company_id.id:
@@ -2012,7 +2010,7 @@ version="1.0">
             env = 'env_boleta'
         else:
             envio_dte  = self.create_template_env(dtes)
-        envio_dte = self.sign_full_xml(
+        envio_dte = self.env['account.invoice'].sudo(self.env.uid).with_context({'company_id': company_id.id}).sign_full_xml(
                 envio_dte.replace('<?xml version="1.0" encoding="ISO-8859-1"?>\n', ''),
                 'SetDoc',
                 env,
