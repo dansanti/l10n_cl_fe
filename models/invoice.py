@@ -1944,7 +1944,6 @@ version="1.0">
             )
         self.sii_xml_dte = einvoice
 
-
     def _crear_envio(self, n_atencion=None, RUTRecep="60803000-K"):
         dicttoxml.set_debug(False)
         clases = {}
@@ -2061,6 +2060,8 @@ version="1.0">
 
     def _get_dte_status(self):
         for r in self:
+            if r.sii_xml_request and r.sii_xml_request.state not in ['Enviado', 'Reparo']:
+                continue
             token = r.sii_xml_request.get_token(self.env.user, r.company_id)
             url = server_url[r.company_id.dte_service_provider] + 'QueryEstDte.jws?WSDL'
             _server = Client(url)
