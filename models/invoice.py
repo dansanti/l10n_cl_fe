@@ -367,6 +367,7 @@ class AccountInvoice(models.Model):
             ],
             string='Resultado',
             help="SII request result",
+            copy=False,
         )
     canceled = fields.Boolean(
             string="Canceled?",
@@ -2067,7 +2068,7 @@ version="1.0">
             _server = Client(url)
             receptor = r.format_vat(r.commercial_partner_id.vat)
             date_invoice = datetime.strptime(r.date_invoice, "%Y-%m-%d").strftime("%d-%m-%Y")
-            signature_d = r.user_id.get_digital_signature(r.company_id)
+            signature_d = self.env.user.get_digital_signature(r.company_id)
             rut = signature_d['subject_serial_number']
             respuesta = _server.service.getEstDte(
                 rut[:8],
