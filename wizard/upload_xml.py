@@ -104,11 +104,14 @@ class UploadXMLWizard(models.TransientModel):
         rut = 'CL' + rut
         return rut
 
-    def _read_xml(self, mode="text"):
+    def _read_xml(self, mode="text", check=False):
         if self.document_id:
             xml = self.document_id.xml
         elif self.xml_file:
-            xml = base64.b64decode(self.xml_file).decode('ISO-8859-1').replace('<?xml version="1.0" encoding="ISO-8859-1"?>','').replace('<?xml version="1.0" encoding="ISO-8859-1" ?>','').replace(' xmlns="http://www.sii.cl/SiiDte"','')
+            xml = base64.b64decode(self.xml_file).decode('ISO-8859-1').replace('<?xml version="1.0" encoding="ISO-8859-1"?>','').replace('<?xml version="1.0" encoding="ISO-8859-1" ?>','')
+            if check:
+                return xml
+            xml = xml.replace(' xmlns="http://www.sii.cl/SiiDte"','')
         if mode == "etree":
             parser = etree.XMLParser(remove_blank_text=True)
             return etree.fromstring(xml, parser=parser)
@@ -148,7 +151,7 @@ class UploadXMLWizard(models.TransientModel):
     def _validar_caratula(self, cara):
         try:
             self.env['account.invoice'].xml_validator(
-                self._read_xml(False),
+                self._read_xml(False, check=True).encode(),
                 'env',
             )
         except:
@@ -671,16 +674,21 @@ class UploadXMLWizard(models.TransientModel):
         data = barcodefile.getvalue()
         sii_barcode_img = base64.b64encode(data)
         FchEmis = IdDoc.find("FchEmis").text
+        xml_envio = self.env['sii.xml.envio'].create(
+            {
+                'name': 'ENVIO_%s'%name.decode(),
+                'xml_envio': string.decode(),
+                'state': 'Aceptado',
+            }
+        )
         invoice.update( {
             'origin' : 'XML Envío: ' + name.decode(),
             'date_invoice' : FchEmis,
             'partner_id' : partner_id,
             'company_id' : company_id.id,
             'journal_id': journal_document_class_id.journal_id.id,
-            'sii_xml_request': string ,
-            'sii_send_file_name': name,
-            'sii_barcode': ted_string,
-            'sii_barcode_img': sii_barcode_img,
+            'sii_xml_request': xml_envio.id,
+            'sii_barcode': ted_string.decode(),
         })
         DscRcgGlobal = documento.findall("DscRcgGlobal")
         if DscRcgGlobal:

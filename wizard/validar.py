@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import models, fields, api
+from odoo import models, fields, api, SUPERUSER_ID
 from odoo.tools.translate import _
 from odoo.exceptions import UserError
 import logging
@@ -139,16 +139,6 @@ class ValidarDTEWizard(models.TransientModel):
         IdRespuesta = self.env['ir.sequence'].browse(id_seq).next_by_id()
         NroDetalles = 1
         for doc in document_ids:
-            try:
-                signature_d = inv_obj.get_digital_signature(doc.company_id)
-            except:
-                raise UserError(_('''There is no Signer Person with an \
-            authorized signature for you in the system. Please make sure that \
-            'user_signature_key' module has been installed and enable a digital \
-            signature, for you or make the signer to authorize you to use his \
-            signature.'''))
-            certp = signature_d['cert'].replace(
-                BC, '').replace(EC, '').replace('\n', '')
             xml = xmltodict.parse(doc.xml)['DTE']['Documento']
             dte = self._resultado(
                 TipoDTE=xml['Encabezado']['IdDoc']['TipoDTE'],
@@ -180,8 +170,6 @@ class ValidarDTEWizard(models.TransientModel):
             )
             respuesta = '<?xml version="1.0" encoding="ISO-8859-1"?>\n' + inv_obj.sign_full_xml(
                 resp.replace('<?xml version="1.0" encoding="ISO-8859-1"?>\n', ''),
-                signature_d['priv_key'],
-                certp,
                 'Odoo_resp',
                 'env_resp')
             att = self._create_attachment(
@@ -230,16 +218,6 @@ class ValidarDTEWizard(models.TransientModel):
         for inv in self.invoice_ids:
             if inv.claim in ['ACD', 'RCD']:
                 continue
-            try:
-                signature_d = inv.get_digital_signature(inv.company_id)
-            except:
-                raise UserError(_('''There is no Signer Person with an \
-            authorized signature for you in the system. Please make sure that \
-            'user_signature_key' module has been installed and enable a digital \
-            signature, for you or make the signer to authorize you to use his \
-            signature.'''))
-            certp = signature_d['cert'].replace(
-                BC, '').replace(EC, '').replace('\n', '')
             dte = self._resultado(
                 TipoDTE=inv.sii_document_class_id.sii_code,
                 Folio=inv.reference,
@@ -272,8 +250,6 @@ class ValidarDTEWizard(models.TransientModel):
             )
             respuesta = '<?xml version="1.0" encoding="ISO-8859-1"?>\n' + inv.sign_full_xml(
                 resp.replace('<?xml version="1.0" encoding="ISO-8859-1"?>\n', ''),
-                signature_d['priv_key'],
-                certp,
                 'Odoo_resp',
                 'env_resp',
             )
@@ -306,7 +282,7 @@ class ValidarDTEWizard(models.TransientModel):
         receipt['RUTEmisor'] = inv.format_vat(inv.partner_id.vat)
         receipt['RUTRecep'] = inv.format_vat(inv.company_id.vat)
         receipt['MntTotal'] = int(round(inv.amount_total))
-        receipt['Recinto'] = inv.company_id.street
+        receipt['Recinto'] = self.env['account.invoice']._acortar_str(inv.company_id.street, 80)
         receipt['RutFirma'] = RutFirma
         receipt['Declaracion'] = 'El acuse de recibo que se declara en este acto, de acuerdo a lo dispuesto en la letra b) del Art. 4, y la letra c) del Art. 5 de la Ley 19.983, acredita que la entrega de mercaderias o servicio(s) prestado(s) ha(n) sido recibido(s).'
         receipt['TmstFirmaRecibo'] = inv.time_stamp()
@@ -340,9 +316,8 @@ class ValidarDTEWizard(models.TransientModel):
         for inv in self.invoice_ids:
             if inv.claim in ['ACD', 'RCD']:
                 continue
-            try:
-                signature_d = inv.get_digital_signature(inv.company_id)
-            except:
+            signature_d = self.env['res.users'].browse(SUPERUSER_ID).get_digital_signature(inv.company_id)
+            if not signature_d:
                 raise UserError(_('''There is no Signer Person with an \
             authorized signature for you in the system. Please make sure that \
             'user_signature_key' module has been installed and enable a digital \
@@ -374,8 +349,6 @@ class ValidarDTEWizard(models.TransientModel):
             message += '\n ' + str(dict_recept['Folio']) + ' ' + dict_recept['Declaracion']
             receipt ='<?xml version="1.0" encoding="ISO-8859-1"?>\n' + inv.sign_full_xml(
                 doc.replace('<?xml version="1.0" encoding="ISO-8859-1"?>\n', ''),
-                signature_d['priv_key'],
-                certp,
                 'Recibo',
                 'recep')
             RutRecibe = inv.format_vat(inv.partner_id.vat)
@@ -394,14 +367,12 @@ class ValidarDTEWizard(models.TransientModel):
             )
             envio_dte = '<?xml version="1.0" encoding="ISO-8859-1"?>\n' + inv.sign_full_xml(
                 envio_dte.replace('<?xml version="1.0" encoding="ISO-8859-1"?>\n', ''),
-                signature_d['priv_key'],
-                certp,
                 'SetDteRecibidos',
                 'env_recep',
             )
             att = self._create_attachment(
                 envio_dte,
-                'recepcion_mercaderias_' + str(inv.sii_send_file_name),
+                'recepcion_mercaderias_' + str(inv.sii_xml_request.name),
                 )
             inv.message_post(
                 body='XML de Recepción de Mercaderías\n %s' % (message),
