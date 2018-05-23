@@ -468,9 +468,10 @@ class AccountInvoice(models.Model):
         if amount_diff != 0:
             if self.type in ('out_invoice', 'in_refund'):
                 invoice_move_lines[0]['price'] -= amount_diff
+                total += amount_diff
             else:
                 invoice_move_lines[0]['price'] += amount_diff
-            total += amount_diff
+                total -= amount_diff
         if amount_diff_currency !=0:
             invoice_move_lines[0]['amount_currency'] += amount_diff_currency
             total_currency += amount_diff_currency
@@ -1367,7 +1368,7 @@ version="1.0">
 
     @api.multi
     def action_invoice_sent(self):
-        ifself.sii_document_class_id and not self.sii_document_class_id.is_dte and self.state not in ['draft'] and not self.sii_xml_dte:
+        if self.sii_document_class_id and not self.sii_document_class_id.is_dte and self.state not in ['draft'] and not self.sii_xml_dte:
             return super(AccountInvoice, self).action_invoice_sent()
         """ Open a window to compose an email, with the edi invoice template
             message loaded by default
