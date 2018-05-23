@@ -139,26 +139,6 @@ class AccountInvoiceLine(models.Model):
 
     price_tax_included = fields.Monetary(string='Amount', readonly=True, compute='_compute_price')
 
-class AccountInvoiceTax(models.Model):
-    _inherit = "account.invoice.tax"
-
-    def _getNeto(self, currency):
-        neto = 0
-        for tax in self:
-            base = tax.base
-            price_tax_included = 0
-            #amount_tax +=tax.amount
-            for line in tax.invoice_id.invoice_line_ids:
-                if tax.tax_id in line.invoice_line_tax_ids and tax.tax_id.price_include:
-                    price_tax_included += line.price_tax_included
-            if price_tax_included > 0 and  tax.tax_id.sii_type in ["R"] and tax.tax_id.amount > 0:
-                base = currency.round(price_tax_included)
-            elif price_tax_included > 0 and tax.tax_id.amount > 0:
-                base = currency.round(price_tax_included / ( 1 + tax.tax_id.amount / 100.0))
-            neto += base
-        return neto
-
-
 class Referencias(models.Model):
     _name = 'account.invoice.referencias'
 
@@ -367,6 +347,7 @@ class AccountInvoice(models.Model):
             ],
             string='Resultado',
             help="SII request result",
+            copy=False,
         )
     canceled = fields.Boolean(
             string="Canceled?",
@@ -1944,10 +1925,8 @@ version="1.0">
             )
         self.sii_xml_dte = einvoice
 
-
     def _crear_envio(self, n_atencion=None, RUTRecep="60803000-K"):
         dicttoxml.set_debug(False)
-        DTEs = {}
         clases = {}
         company_id = False
         es_boleta = False
@@ -1968,7 +1947,6 @@ version="1.0">
                                                 'sii_batch_number': inv.sii_batch_number,
                                                 'sii_document_number':inv.sii_document_number
                                             }])
-            DTEs.update(clases)
             if not company_id:
                 company_id = inv.company_id
             elif company_id.id != inv.company_id.id:
@@ -2012,7 +1990,7 @@ version="1.0">
             env = 'env_boleta'
         else:
             envio_dte  = self.create_template_env(dtes)
-        envio_dte = self.sign_full_xml(
+        envio_dte = self.env['account.invoice'].sudo(self.env.uid).with_context({'company_id': company_id.id}).sign_full_xml(
                 envio_dte.replace('<?xml version="1.0" encoding="ISO-8859-1"?>\n', ''),
                 'SetDoc',
                 env,
@@ -2063,12 +2041,14 @@ version="1.0">
 
     def _get_dte_status(self):
         for r in self:
+            if r.sii_xml_request and r.sii_xml_request.state not in ['Aceptado', 'Reparo']:
+                continue
             token = r.sii_xml_request.get_token(self.env.user, r.company_id)
             url = server_url[r.company_id.dte_service_provider] + 'QueryEstDte.jws?WSDL'
             _server = Client(url)
             receptor = r.format_vat(r.commercial_partner_id.vat)
             date_invoice = datetime.strptime(r.date_invoice, "%Y-%m-%d").strftime("%d-%m-%Y")
-            signature_d = r.user_id.get_digital_signature(r.company_id)
+            signature_d = self.env.user.get_digital_signature(r.company_id)
             rut = signature_d['subject_serial_number']
             respuesta = _server.service.getEstDte(
                 rut[:8],
