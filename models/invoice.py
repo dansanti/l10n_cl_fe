@@ -631,12 +631,19 @@ class AccountInvoice(models.Model):
     def get_taxes_values(self):
         tax_grouped = {}
         totales = {}
+        included = False
         for line in self.invoice_line_ids:
-            if line.invoice_line_tax_ids and line.invoice_line_tax_ids[0].price_include:# se asume todos losproductos vienen con precio incluido o no ( no hay mixes)
-                for t in line.invoice_line_tax_ids:
-                    if not t in totales:
-                        totales[t] = 0
-                    totales[t] += (self.currency_id.round(line.price_unit *line.quantity) * line.discount)
+            if (line.invoice_line_tax_ids and line.invoice_line_tax_ids[0].price_include) :# se asume todos losproductos vienen con precio incluido o no ( no hay mixes)
+                if included or not tax_grouped:#genero error en caso de contenido mixto, en caso primer impusto no incluido segundo impuesto incluido
+                    for t in line.invoice_line_tax_ids:
+                        if not t in totales:
+                            totales[t] = 0
+                        totales[t] += (self.currency_id.round(line.price_unit *line.quantity) * line.discount)
+                included = True
+            else:
+                included = False
+            if (totales and not included) or ( included and not totales):
+                raise UserError('No se puede hacer timbrado mixto, todos los impuestos en este pedido deben ser uno de estos dos:  1.- precio incluído, 2.-  precio sin incluir')
             taxes = line.invoice_line_tax_ids.compute_all(line.price_unit, self.currency_id, line.quantity, line.product_id, self.partner_id, discount=line.discount)['taxes']
             tax_grouped = self._get_grouped_taxes(line, taxes, tax_grouped)
         if totales:
@@ -1360,7 +1367,7 @@ version="1.0">
 
     @api.multi
     def action_invoice_sent(self):
-        ifself.sii_document_class_id and not self.sii_document_class_id.is_dte and self.state not in ['draft'] and not self.sii_xml_dte: 
+        ifself.sii_document_class_id and not self.sii_document_class_id.is_dte and self.state not in ['draft'] and not self.sii_xml_dte:
             return super(AccountInvoice, self).action_invoice_sent()
         """ Open a window to compose an email, with the edi invoice template
             message loaded by default
