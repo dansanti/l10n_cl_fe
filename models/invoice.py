@@ -1068,9 +1068,6 @@ a VAT."""))
                     inv.sii_result = 'Proceso'
                 else:
                     inv._timbrar()
-                    if inv._es_boleta() and not inv._nc_boleta():
-                        inv.sii_result = 'Proceso'
-                        continue
                     tiempo_pasivo = (datetime.now() + timedelta(hours=int(self.env['ir.config_parameter'].sudo().get_param('account.auto_send_dte', default=12))))
                     self.env['sii.cola_envio'].create({
                                                 'doc_ids':[inv.id],
@@ -1368,7 +1365,7 @@ version="1.0">
 
     @api.multi
     def action_invoice_sent(self):
-        if self.sii_document_class_id and not self.sii_document_class_id.is_dte and self.state not in ['draft'] and not self.sii_xml_dte:
+        if self.sii_document_class_id and not self.sii_document_class_id.dte and self.state not in ['draft'] and not self.sii_xml_dte:
             return super(AccountInvoice, self).action_invoice_sent()
         """ Open a window to compose an email, with the edi invoice template
             message loaded by default
@@ -1483,17 +1480,23 @@ version="1.0">
     @api.multi
     def do_dte_send_invoice(self, n_atencion=None):
         ids = []
+        envio_boleta = False
         for inv in self.with_context(lang='es_CL'):
-            if inv.sii_result in ['','NoEnviado','Rechazado'] and not inv._es_boleta() and not inv._nc_boleta():
+            if inv.sii_result in ['','NoEnviado','Rechazado']:
                 if inv.sii_result in ['Rechazado']:
                     inv._timbrar()
                     if inv.sii_xml_request:
                         inv.sii_xml_request.unlink()
                 inv.sii_result = 'EnCola'
                 ids.append(inv.id)
+                if not envio_boleta and (inv._es_boleta() or inv._nc_boleta()):
+                    envio_boleta = True
         if not isinstance(n_atencion, string_types):
             n_atencion = ''
         if ids:
+            if envio_boleta:
+                self.browse(ids).do_dte_send(n_atencion)
+                return
             self.env['sii.cola_envio'].create({
                                     'doc_ids': ids,
                                     'model':'account.invoice',
@@ -1945,7 +1948,10 @@ version="1.0">
             if not inv.sii_batch_number or inv.sii_batch_number == 0:
                 batch += 1
                 inv.sii_batch_number = batch #si viene una guía/nota regferenciando una factura, que por numeración viene a continuación de la guia/nota, será recahazada laguía porque debe estar declarada la factura primero
-            es_boleta = inv._es_boleta()
+            if inv.sii_batch_number !=0 and inv._es_boleta():
+                if not es_boleta and clases:
+                    raise UserError('No se puede hacer envío masivo con contenido mixto, para este envío solamente boleta electrónica, boleta exenta electrónica o NC de Boleta ( o eliminar los casos descitos del set)')
+                es_boleta = True
             if inv.company_id.dte_service_provider == 'SIICERT': #Retimbrar con número de atención y envío
                 inv._timbrar(n_atencion)
             #@TODO Mejarorar esto en lo posible
@@ -1961,9 +1967,6 @@ version="1.0">
                 company_id = inv.company_id
             elif company_id.id != inv.company_id.id:
                 raise UserError("Está combinando compañías, no está permitido hacer eso en un envío")
-            company_id = inv.company_id
-            #@TODO hacer autoreconciliación
-
         file_name = ""
         dtes={}
         SubTotDTE = ''
@@ -2015,14 +2018,37 @@ version="1.0">
     @api.multi
     def do_dte_send(self, n_atencion=None):
         if not self[0].sii_xml_request or self[0].sii_result in ['Rechazado'] or (self[0].company_id.dte_service_provider == 'SIICERT' and self[0].sii_xml_request.state in ['', 'NoEnviado']):
+            tipo_envio = {
+                'boleta': [],
+                'nc_boleta': [],
+                'factura': [],
+            }
             for r in self:
+                if r._es_boleta():
+                    tipo_envio['boleta'].append(r.id)
+                elif r._nc_boleta():
+                    tipo_envio['nc_boleta'].append(r.id)
+                else:
+                    tipo_envio['factura'].append(r.id)
                 if r.sii_xml_request:
                     r.sii_xml_request.unlink()
-            envio = self._crear_envio(n_atencion, RUTRecep="60803000-K")
-            envio_id = self.env['sii.xml.envio'].create(envio)
-            for r in self:
-                r.sii_xml_request = envio_id.id
-            resp = envio_id.send_xml()
+            for k, t in tipo_envio.items():
+                if not t:
+                    continue
+                recs = self.browse(t)
+                envio = recs._crear_envio(n_atencion, RUTRecep="60803000-K")
+                if k in ['boleta', 'nc_boleta']:
+                    envio.update({
+                        'state': 'Aceptado',
+                        'sii_send_ident': envio['name'],
+                    })
+                envio_id = self.env['sii.xml.envio'].create(envio)
+                for r in recs:
+                    r.sii_xml_request = envio_id.id
+                    if r._es_boleta() or r._nc_boleta():
+                        r.sii_result = 'Proceso'
+                if k in ['factura']:
+                    resp = envio_id.send_xml()
             return envio_id
         self[0].sii_xml_request.send_xml()
         return self[0].sii_xml_request
