@@ -1059,7 +1059,7 @@ a VAT."""))
     @api.multi
     def invoice_validate(self):
         for inv in self:
-            if inv.sii_document_class.sii_ccode in [55, 56, 60, 61, 111, 112, 802] and not inv.referencias:
+            if inv.sii_document_class_id.sii_code in [55, 56, 60, 61, 111, 112, 802] and not inv.referencias:
                 raise UserError('Las Notas deben llevar por obligación una referencia al documento que están afectando')
             if not inv.journal_id.use_documents or not inv.sii_document_class_id.dte:
                 continue
