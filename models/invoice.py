@@ -468,9 +468,10 @@ class AccountInvoice(models.Model):
         if amount_diff != 0:
             if self.type in ('out_invoice', 'in_refund'):
                 invoice_move_lines[0]['price'] -= amount_diff
+                total += amount_diff
             else:
                 invoice_move_lines[0]['price'] += amount_diff
-            total += amount_diff
+                total -= amount_diff
         if amount_diff_currency !=0:
             invoice_move_lines[0]['amount_currency'] += amount_diff_currency
             total_currency += amount_diff_currency
@@ -631,12 +632,19 @@ class AccountInvoice(models.Model):
     def get_taxes_values(self):
         tax_grouped = {}
         totales = {}
+        included = False
         for line in self.invoice_line_ids:
-            if line.invoice_line_tax_ids and line.invoice_line_tax_ids[0].price_include:# se asume todos losproductos vienen con precio incluido o no ( no hay mixes)
-                for t in line.invoice_line_tax_ids:
-                    if not t in totales:
-                        totales[t] = 0
-                    totales[t] += (self.currency_id.round(line.price_unit *line.quantity) * line.discount)
+            if (line.invoice_line_tax_ids and line.invoice_line_tax_ids[0].price_include) :# se asume todos losproductos vienen con precio incluido o no ( no hay mixes)
+                if included or not tax_grouped:#genero error en caso de contenido mixto, en caso primer impusto no incluido segundo impuesto incluido
+                    for t in line.invoice_line_tax_ids:
+                        if not t in totales:
+                            totales[t] = 0
+                        totales[t] += (self.currency_id.round(line.price_unit *line.quantity) * line.discount)
+                included = True
+            else:
+                included = False
+            if (totales and not included) or ( included and not totales):
+                raise UserError('No se puede hacer timbrado mixto, todos los impuestos en este pedido deben ser uno de estos dos:  1.- precio incluído, 2.-  precio sin incluir')
             taxes = line.invoice_line_tax_ids.compute_all(line.price_unit, self.currency_id, line.quantity, line.product_id, self.partner_id, discount=line.discount)['taxes']
             tax_grouped = self._get_grouped_taxes(line, taxes, tax_grouped)
         if totales:
@@ -1051,6 +1059,8 @@ a VAT."""))
     @api.multi
     def invoice_validate(self):
         for inv in self:
+            if inv.sii_document_class.sii_ccode in [55, 56, 60, 61, 111, 112, 802] and not inv.referencias:
+                raise UserError('Las Notas deben llevar por obligación una referencia al documento que están afectando')
             if not inv.journal_id.use_documents or not inv.sii_document_class_id.dte:
                 continue
             inv.sii_result = 'NoEnviado'
@@ -1060,9 +1070,6 @@ a VAT."""))
                     inv.sii_result = 'Proceso'
                 else:
                     inv._timbrar()
-                    if inv._es_boleta() and not inv._nc_boleta():
-                        inv.sii_result = 'Proceso'
-                        continue
                     tiempo_pasivo = (datetime.now() + timedelta(hours=int(self.env['ir.config_parameter'].sudo().get_param('account.auto_send_dte', default=12))))
                     self.env['sii.cola_envio'].create({
                                                 'doc_ids':[inv.id],
@@ -1360,6 +1367,8 @@ version="1.0">
 
     @api.multi
     def action_invoice_sent(self):
+        if self.sii_document_class_id and not self.sii_document_class_id.dte and self.state not in ['draft'] and not self.sii_xml_dte:
+            return super(AccountInvoice, self).action_invoice_sent()
         """ Open a window to compose an email, with the edi invoice template
             message loaded by default
         """
@@ -1473,17 +1482,23 @@ version="1.0">
     @api.multi
     def do_dte_send_invoice(self, n_atencion=None):
         ids = []
+        envio_boleta = False
         for inv in self.with_context(lang='es_CL'):
-            if inv.sii_result in ['','NoEnviado','Rechazado'] and not inv._es_boleta() and not inv._nc_boleta():
+            if inv.sii_result in ['','NoEnviado','Rechazado']:
                 if inv.sii_result in ['Rechazado']:
                     inv._timbrar()
                     if inv.sii_xml_request:
                         inv.sii_xml_request.unlink()
                 inv.sii_result = 'EnCola'
                 ids.append(inv.id)
+                if not envio_boleta and (inv._es_boleta() or inv._nc_boleta()):
+                    envio_boleta = True
         if not isinstance(n_atencion, string_types):
             n_atencion = ''
         if ids:
+            if envio_boleta:
+                self.browse(ids).do_dte_send(n_atencion)
+                return
             self.env['sii.cola_envio'].create({
                                     'doc_ids': ids,
                                     'model':'account.invoice',
@@ -1635,16 +1650,21 @@ version="1.0">
         #Totales['VlrPagar']
         return Totales
 
+    def _es_exento(self):
+        return self.sii_document_class_id.sii_code in [34, 41] or (self.referencias and self.referencias[0].sii_referencia_TpoDocRef.sii_code in [ 34, 41])
+
     def _totales(self, MntExe=0, no_product=False, taxInclude=False):
         MntNeto = False
         IVA = False
         ImptoReten = False
         TasaIVA = False
         MntIVA = 0
-        if self.sii_document_class_id.sii_code == 34 or (self.referencias and self.referencias[0].sii_referencia_TpoDocRef.sii_code == '34'):
+        if self._es_exento():
             MntExe = self.currency_id.round(self.amount_total)
             if  no_product:
                 MntExe = 0
+            if self.amount_tax > 0:
+                raise UserError("NO pueden ir productos afectos en documentos exentos")
         elif self.amount_untaxed and self.amount_untaxed != 0:
             if not self._es_boleta() or not taxInclude:
                 IVA = False
@@ -1653,6 +1673,8 @@ version="1.0">
                         IVA = t
                 if IVA and IVA.base > 0 :
                     MntNeto = self.currency_id.round(IVA.base)
+        if self.amount_tax == 0 and MntExe > 0 and not self._es_exento():
+            raise UserError("Debe ir almenos un producto afecto")
         if MntExe > 0:
             MntExe = self.currency_id.round( MntExe)
         if not self._es_boleta() or not taxInclude:
@@ -1935,7 +1957,10 @@ version="1.0">
             if not inv.sii_batch_number or inv.sii_batch_number == 0:
                 batch += 1
                 inv.sii_batch_number = batch #si viene una guía/nota regferenciando una factura, que por numeración viene a continuación de la guia/nota, será recahazada laguía porque debe estar declarada la factura primero
-            es_boleta = inv._es_boleta()
+            if inv.sii_batch_number !=0 and inv._es_boleta():
+                if not es_boleta and clases:
+                    raise UserError('No se puede hacer envío masivo con contenido mixto, para este envío solamente boleta electrónica, boleta exenta electrónica o NC de Boleta ( o eliminar los casos descitos del set)')
+                es_boleta = True
             if inv.company_id.dte_service_provider == 'SIICERT': #Retimbrar con número de atención y envío
                 inv._timbrar(n_atencion)
             #@TODO Mejarorar esto en lo posible
@@ -1951,9 +1976,6 @@ version="1.0">
                 company_id = inv.company_id
             elif company_id.id != inv.company_id.id:
                 raise UserError("Está combinando compañías, no está permitido hacer eso en un envío")
-            company_id = inv.company_id
-            #@TODO hacer autoreconciliación
-
         file_name = ""
         dtes={}
         SubTotDTE = ''
@@ -2005,14 +2027,37 @@ version="1.0">
     @api.multi
     def do_dte_send(self, n_atencion=None):
         if not self[0].sii_xml_request or self[0].sii_result in ['Rechazado'] or (self[0].company_id.dte_service_provider == 'SIICERT' and self[0].sii_xml_request.state in ['', 'NoEnviado']):
+            tipo_envio = {
+                'boleta': [],
+                'nc_boleta': [],
+                'factura': [],
+            }
             for r in self:
+                if r._es_boleta():
+                    tipo_envio['boleta'].append(r.id)
+                elif r._nc_boleta():
+                    tipo_envio['nc_boleta'].append(r.id)
+                else:
+                    tipo_envio['factura'].append(r.id)
                 if r.sii_xml_request:
                     r.sii_xml_request.unlink()
-            envio = self._crear_envio(n_atencion, RUTRecep="60803000-K")
-            envio_id = self.env['sii.xml.envio'].create(envio)
-            for r in self:
-                r.sii_xml_request = envio_id.id
-            resp = envio_id.send_xml()
+            for k, t in tipo_envio.items():
+                if not t:
+                    continue
+                recs = self.browse(t)
+                envio = recs._crear_envio(n_atencion, RUTRecep="60803000-K")
+                if k in ['boleta', 'nc_boleta']:
+                    envio.update({
+                        'state': 'Aceptado',
+                        'sii_send_ident': envio['name'],
+                    })
+                envio_id = self.env['sii.xml.envio'].create(envio)
+                for r in recs:
+                    r.sii_xml_request = envio_id.id
+                    if r._es_boleta() or r._nc_boleta():
+                        r.sii_result = 'Proceso'
+                if k in ['factura']:
+                    resp = envio_id.send_xml()
             return envio_id
         self[0].sii_xml_request.send_xml()
         return self[0].sii_xml_request
@@ -2025,8 +2070,10 @@ version="1.0">
             return "Proceso"
         elif resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] == "1":
             return "Reparo"
-        elif resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] == "FAU":
+        elif resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] in ["DNK", "FAU", "RCT"]:
             return "Rechazado"
+        elif resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] in ["FAN"]:
+            return "Anulado" #Desde El sii
 
     @api.onchange('sii_message')
     def get_sii_result(self):
@@ -2041,7 +2088,7 @@ version="1.0">
 
     def _get_dte_status(self):
         for r in self:
-            if r.sii_xml_request and r.sii_xml_request.state not in ['Aceptado', 'Reparo']:
+            if r.sii_xml_request and r.sii_xml_request.state not in ['Aceptado', 'Rechazado']:
                 continue
             token = r.sii_xml_request.get_token(self.env.user, r.company_id)
             url = server_url[r.company_id.dte_service_provider] + 'QueryEstDte.jws?WSDL'
@@ -2072,7 +2119,10 @@ version="1.0">
                 raise UserError('No se ha enviado aún el documento, aún está en cola de envío interna en odoo')
             if r.sii_xml_request.state not in [ 'Aceptado', 'Rechazado']:
                 r.sii_xml_request.get_send_status(r.env.user)
-        self._get_dte_status()
+        try:
+            self._get_dte_status()
+        except Exception as e:
+            _logger.warning("Error al obtener DTE Status: %s" %str(e))
         self.get_sii_result()
 
     def set_dte_claim(self, rut_emisor=False, company_id=False, sii_document_number=False, sii_document_class_id=False, claim=False):
