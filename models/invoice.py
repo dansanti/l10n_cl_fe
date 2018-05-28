@@ -1650,16 +1650,21 @@ version="1.0">
         #Totales['VlrPagar']
         return Totales
 
+    def _es_exento(self):
+        return self.sii_document_class_id.sii_code in [34, 41] or (self.referencias and self.referencias[0].sii_referencia_TpoDocRef.sii_code in [ 34, 41])
+
     def _totales(self, MntExe=0, no_product=False, taxInclude=False):
         MntNeto = False
         IVA = False
         ImptoReten = False
         TasaIVA = False
         MntIVA = 0
-        if self.sii_document_class_id.sii_code == 34 or (self.referencias and self.referencias[0].sii_referencia_TpoDocRef.sii_code == '34'):
+        if self._es_exento():
             MntExe = self.currency_id.round(self.amount_total)
             if  no_product:
                 MntExe = 0
+            if self.amount_tax > 0:
+                raise UserError("NO pueden ir productos afectos en documentos exentos")
         elif self.amount_untaxed and self.amount_untaxed != 0:
             if not self._es_boleta() or not taxInclude:
                 IVA = False
@@ -1668,6 +1673,8 @@ version="1.0">
                         IVA = t
                 if IVA and IVA.base > 0 :
                     MntNeto = self.currency_id.round(IVA.base)
+        if self.amount_tax == 0 and MntExe > 0 and not self._es_exento():
+            raise UserError("Debe ir almenos un producto afecto")
         if MntExe > 0:
             MntExe = self.currency_id.round( MntExe)
         if not self._es_boleta() or not taxInclude:
