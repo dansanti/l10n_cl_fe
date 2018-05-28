@@ -71,7 +71,7 @@ class ColaEnvio(models.Model):
     def _procesar_tipo_trabajo(self):
         docs = self.env[self.model].browse(ast.literal_eval(self.doc_ids))
         if self.tipo_trabajo == 'pasivo':
-            if docs[0].sii_xml_request and docs[0].sii_xml_request.state in [ 'Aceptado', 'Enviado', 'Rechazado']:
+            if docs[0].sii_xml_request and docs[0].sii_xml_request.state in [ 'Aceptado', 'Enviado', 'Rechazado', 'Anulado']:
                 self.unlink()
                 return
             if self.date_time and datetime.now() >= datetime.strptime(self.date_time, DTF):
@@ -84,7 +84,7 @@ class ColaEnvio(models.Model):
                     _logger.warning(str(e))
                 docs.get_sii_result()
             return
-        if docs[0].sii_message and docs[0].sii_result in ['Proceso', 'Reparo', 'Rechazado']:
+        if docs[0].sii_message and docs[0].sii_result in ['Proceso', 'Reparo', 'Rechazado', 'Anulado']:
             if self.send_email and docs[0].sii_result in ['Proceso', 'Reparo']:
                 for doc in docs:
                     self.enviar_email(doc)

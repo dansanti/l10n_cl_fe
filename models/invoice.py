@@ -2063,8 +2063,10 @@ version="1.0">
             return "Proceso"
         elif resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] == "1":
             return "Reparo"
-        elif resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] == "FAU":
+        elif resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] in ["DNK", "FAU", "RCT"]:
             return "Rechazado"
+        elif resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] in ["FAN"]:
+            return "Anulado" #Desde El sii
 
     @api.onchange('sii_message')
     def get_sii_result(self):
@@ -2079,7 +2081,7 @@ version="1.0">
 
     def _get_dte_status(self):
         for r in self:
-            if r.sii_xml_request and r.sii_xml_request.state not in ['Aceptado', 'Reparo']:
+            if r.sii_xml_request and r.sii_xml_request.state not in ['Aceptado', 'Rechazado']:
                 continue
             token = r.sii_xml_request.get_token(self.env.user, r.company_id)
             url = server_url[r.company_id.dte_service_provider] + 'QueryEstDte.jws?WSDL'
@@ -2110,7 +2112,10 @@ version="1.0">
                 raise UserError('No se ha enviado aún el documento, aún está en cola de envío interna en odoo')
             if r.sii_xml_request.state not in [ 'Aceptado', 'Rechazado']:
                 r.sii_xml_request.get_send_status(r.env.user)
-        self._get_dte_status()
+        try:
+            self._get_dte_status()
+        except Exception as e:
+            _logger.warning("Error al obtener DTE Status: %s" %str(e))
         self.get_sii_result()
 
     def set_dte_claim(self, rut_emisor=False, company_id=False, sii_document_number=False, sii_document_class_id=False, claim=False):
