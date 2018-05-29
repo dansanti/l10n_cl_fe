@@ -8,10 +8,6 @@ import xmltodict
 from lxml import etree
 import collections
 import dicttoxml
-try:
-    from io import BytesIO
-except:
-    _logger.warning("no se ha cargado io")
 
 _logger = logging.getLogger(__name__)
 
@@ -730,12 +726,7 @@ class UploadXMLWizard(models.TransientModel):
         except:
             name = self.filename.encode('UTF-8')
         image = False
-        barcodefile = BytesIO()
         ted_string = etree.tostring(documento.find("TED"), method="c14n", pretty_print=False)
-        image = self.env['account.invoice'].pdf417bc(ted_string.decode().replace('xmlns="http://www.sii.cl/SiiDte" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ','').replace(' xmlns=""',''))
-        image.save(barcodefile,'PNG')
-        data = barcodefile.getvalue()
-        sii_barcode_img = base64.b64encode(data)
         FchEmis = IdDoc.find("FchEmis").text
         xml_envio = self.env['sii.xml.envio'].create(
             {
