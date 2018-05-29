@@ -519,7 +519,7 @@ class UploadXMLWizard(models.TransientModel):
         CdgItem = line.find("CdgItem")
         NmbItem = line.find("NmbItem").text
         if document_id:
-            code = ' ' + etree.tostring(CdgItem) if CdgItem is not None else ''
+            code = ' ' + etree.tostring(CdgItem).decode() if CdgItem is not None else ''
             line_id = self.env['mail.message.dte.document.line'].search(
                 [
                     '|',
