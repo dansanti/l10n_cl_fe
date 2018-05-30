@@ -1779,7 +1779,7 @@ version="1.0">
                 lines['CdgItem']['VlrCodigo'] = line.product_id.default_code
             taxInclude = False
             for t in line.invoice_line_tax_ids:
-                taxInclude = t.price_include
+                taxInclude = t.price_include or ( (self._es_boleta() or self._nc_boleta()) and not t.sii_detailed )
                 if t.amount == 0 or t.sii_code in [0]:#@TODO mejor manera de identificar exento de afecto
                     lines['IndExe'] = 1
                     price_exe = line.price_tax_included

@@ -335,7 +335,7 @@ class ConsumoFolios(models.Model):
             lines.append([0,0, i])
         self.impuestos = lines
 
-    @api.onchange('fecha_inicio', 'company_id')
+    @api.onchange('fecha_inicio', 'company_id', 'fecha_final')
     def set_data(self):
         self.name = self.fecha_inicio
         self.fecha_final = self.fecha_inicio
@@ -352,6 +352,13 @@ class ConsumoFolios(models.Model):
             ])
         if consumos > 0:
             self.sec_envio = (consumos+1)
+        self._resumenes()
+
+    @api.multi
+    def copy(self, default=None):
+        res = super(ConsumoFolios, self).copy(default)
+        res.set_data()
+        return res
 
     @api.multi
     def unlink(self):
@@ -560,19 +567,6 @@ version="1.0">
             return True
         return False
 
-    def _process_imps(self, tax_line_id, totales=0, currency=None, Neto=0, TaxMnt=0, MntExe=0):
-        mnt = tax_line_id.compute_all(totales,  currency, 1)['taxes'][0]
-        if mnt['amount'] <= 0 and mnt['base'] < 0:
-            mnt['amount'] *= -1
-            mnt['base'] *= -1
-        if self._es_iva(tax_line_id): # diferentes tipos de IVA retenidos o no @TODO investigar si se aplican a boletas
-            TaxMnt += mnt['amount']
-            Neto += mnt['base']
-        else:
-            if tax_line_id.amount == 0:
-                MntExe += mnt['base']
-        return Neto, TaxMnt, MntExe
-
     def getResumen(self, rec):
         det = collections.OrderedDict()
         det['TpoDoc'] = rec.document_class_id.sii_code
@@ -585,48 +579,25 @@ version="1.0">
             return det
         Neto = 0
         MntExe = 0
-        TaxMnt = 0
-        Tasa = False
-        impuestos = {}
+        TaxMnt =  rec.amount_tax
+        MntTotal = rec.amount_total
         if 'lines' in rec:
-            for line in rec.lines:# agrupo las líneas para calcular iva global
-                if line.tax_ids:
-                    for t in line.tax_ids:
-                        if not Tasa and self._es_iva(t):
-                            Tasa = t.amount
-                        impuestos.setdefault(t.id, [t, 0])
-                        impuestos[t.id][1] += line.price_subtotal_incl
-            for key, t in impuestos.items():
-                Neto, TaxMnt, MntExe = self._process_imps(t[0], t[1], rec.pricelist_id.currency_id, Neto, TaxMnt, MntExe)
+            Neto = rec.pricelist_id.currency_id.round(sum(line.price_subtotal for line in rec.lines))
+            MntExe = rec.exento()
+            TasaIVA = self.env['pos.order.line'].search([('order_id', '=', rec.id), ('tax_ids.amount', '>', 0)], limit=1).tax_ids.amount
         else:  # si la boleta fue hecha por contabilidad
-            for l in rec.line_ids:
-                if l.tax_line_id:
-                    if l.tax_line_id and l.tax_line_id.amount > 0: #supuesto iva único
-                        if self._es_iva(l.tax_line_id): # diferentes tipos de IVA retenidos o no
-                            if not Tasa:
-                                Tasa = l.tax_line_id.amount
-                            if l.credit > 0:
-                                TaxMnt += l.credit
-                            else:
-                                TaxMnt += l.debit
-                elif l.tax_ids and l.tax_ids[0].amount > 0:
-                    if l.credit > 0:
-                        Neto += l.credit
-                    else:
-                        Neto += l.debit
-                elif l.tax_ids and l.tax_ids[0].amount == 0: #caso monto exento
-                    if l.credit > 0:
-                        MntExe += l.credit
-                    else:
-                        MntExe += l.debit
+            TasaIVA = self.env['account.move.line'].search([('move_id', '=', rec.id), ('tax_line_id.amount', '>', 0)], limit=1).tax_line_id.amount
+            Neto = rec.amount_untaxed
+            exentos = self.env['account.move.line'].search_read([('move_id','=',rec.id), ('tax_ids.amount', '=', 0)], ['balance'])
+            for exe in exentos:
+                MntExe += exe['balance']
         if MntExe > 0 :
-            det['MntExe'] = int(round(MntExe,0))
+            det['MntExe'] = MntExe
         if TaxMnt > 0:
-            det['MntIVA'] = int(round(TaxMnt))
-            det['TasaIVA'] = Tasa
-        monto_total = int(round((Neto + MntExe + TaxMnt), 0))
-        det['MntNeto'] = int(round(Neto))
-        det['MntTotal'] = monto_total
+            det['MntIVA'] = TaxMnt
+            det['TasaIVA'] = TasaIVA
+        det['MntNeto'] = (Neto - MntExe)
+        det['MntTotal'] = MntTotal
         return det
 
     def _last(self, folio, items):# se asumen que vienen ordenados de menor a mayor
