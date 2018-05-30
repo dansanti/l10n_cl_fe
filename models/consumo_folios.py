@@ -579,24 +579,42 @@ version="1.0">
             return det
         Neto = 0
         MntExe = 0
-        TaxMnt =  rec.amount_tax
-        MntTotal = rec.amount_total
+        TaxMnt = 0
+        MntTotal = 0
         if 'lines' in rec:
+            TaxMnt =  rec.amount_tax
+            MntTotal = rec.amount_total
             Neto = rec.pricelist_id.currency_id.round(sum(line.price_subtotal for line in rec.lines))
             MntExe = rec.exento()
             TasaIVA = self.env['pos.order.line'].search([('order_id', '=', rec.id), ('tax_ids.amount', '>', 0)], limit=1).tax_ids.amount
+            Neto -= MntExe
         else:  # si la boleta fue hecha por contabilidad
+            for l in rec.line_ids:
+                if l.tax_line_id:
+                    if l.tax_line_id and l.tax_line_id.amount > 0: #supuesto iva único
+                        if self._es_iva(l.tax_line_id): # diferentes tipos de IVA retenidos o no
+                            if l.credit > 0:
+                                TaxMnt += l.credit
+                            else:
+                                TaxMnt += l.debit
+                elif l.tax_ids and l.tax_ids[0].amount > 0:
+                    if l.credit > 0:
+                        Neto += l.credit
+                    else:
+                        Neto += l.debit
+                elif l.tax_ids and l.tax_ids[0].amount == 0: #caso monto exento
+                    if l.credit > 0:
+                        MntExe += l.credit
+                    else:
+                        MntExe += l.debit
             TasaIVA = self.env['account.move.line'].search([('move_id', '=', rec.id), ('tax_line_id.amount', '>', 0)], limit=1).tax_line_id.amount
-            Neto = rec.amount_untaxed
-            exentos = self.env['account.move.line'].search_read([('move_id','=',rec.id), ('tax_ids.amount', '=', 0)], ['balance'])
-            for exe in exentos:
-                MntExe += exe['balance']
+            MntTotal = Neto + MntExe + TaxMnt
         if MntExe > 0 :
             det['MntExe'] = MntExe
         if TaxMnt > 0:
             det['MntIVA'] = TaxMnt
             det['TasaIVA'] = TasaIVA
-        det['MntNeto'] = (Neto - MntExe)
+        det['MntNeto'] = Neto
         det['MntTotal'] = MntTotal
         return det
 
